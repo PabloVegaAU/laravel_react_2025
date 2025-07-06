@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,11 +13,42 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Desactivar restricciones de clave foránea temporalmente
+        Schema::disableForeignKeyConstraints();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        try {
+            DB::beginTransaction();
+
+            // 1. Datos base del sistema
+            $this->call([
+                RoleSeeder::class,
+            ]);
+
+            // 2. Datos de gamificación
+            $this->call([
+                LevelSeeder::class,
+                RangeSeeder::class,
+            ]);
+
+            DB::commit();
+
+            // 3. Usuarios y perfiles
+            $this->call([
+                AdminSeeder::class,
+                TeacherSeeder::class,
+                StudentSeeder::class,
+            ]);
+
+            DB::commit();
+
+            $this->command->info('¡Base de datos sembrada exitosamente! 🌱');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $this->command->error('Error al sembrar la base de datos: '.$e->getMessage());
+            throw $e;
+        } finally {
+            // Reactivar restricciones de clave foránea
+            Schema::enableForeignKeyConstraints();
+        }
     }
 }
