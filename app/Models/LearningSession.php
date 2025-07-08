@@ -14,8 +14,10 @@ class LearningSession extends Model
         'purpose_learning',
         'application_date',
         'educational_institution_id',
-        'teacher_classroom_curricular_area_id',
+        'teacher_classroom_curricular_area_cycle_id',
         'competency_id',
+        'start_sequence',
+        'end_sequence',
     ];
 
     protected $casts = [

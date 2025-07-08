@@ -13,8 +13,8 @@ class StudentAvatar extends Model
     protected $table = 'student_avatars';
 
     protected $casts = [
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'points_store' => 'decimal:2',
+        'exchange_date' => 'datetime',
     ];
 
     public function student(): BelongsTo

@@ -13,8 +13,7 @@ class StudentAchievement extends Model
     protected $table = 'student_achievements';
 
     protected $casts = [
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'achieved_at' => 'datetime',
     ];
 
     public function student(): BelongsTo

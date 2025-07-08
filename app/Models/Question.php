@@ -21,6 +21,8 @@ class Question extends Model
         'description',
         'difficulty',
         'explanation_required',
+        'nivel',
+        'grades',
     ];
 
     protected $casts = [

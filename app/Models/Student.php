@@ -24,8 +24,8 @@ class Student extends Model
     protected $casts = [
         'entry_date' => 'date',
         'experience_achieved' => 'decimal:2',
-        'points_achieved' => 'decimal:2',
-        'total_score' => 'decimal:2',
+        'points_store_achieved' => 'decimal:2',
+        'points_store' => 'decimal:2',
         'graduation_date' => 'date',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',

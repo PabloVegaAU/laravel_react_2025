@@ -13,16 +13,8 @@ class StudentStoreReward extends Model
     protected $table = 'student_store_rewards';
 
     protected $casts = [
-        'status' => 'string',
-        'redeemed_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
-
-    protected $visible = [
-        'status',
-        'redeemed_at',
-        'created_at',
+        'points_store' => 'decimal:2',
+        'exchange_date' => 'datetime',
     ];
 
     public function student(): BelongsTo

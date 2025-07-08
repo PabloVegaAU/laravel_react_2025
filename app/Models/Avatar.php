@@ -11,7 +11,7 @@ class Avatar extends Model
     protected $table = 'avatars';
 
     protected $casts = [
-        'points' => 'decimal:2',
+        'points_store' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

@@ -15,6 +15,7 @@ class Level extends Model
 
     protected $casts = [
         'level' => 'integer',
+        'experience_max' => 'decimal:2',
         'experience_required' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',

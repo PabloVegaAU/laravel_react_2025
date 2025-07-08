@@ -11,7 +11,7 @@ class Background extends Model
     protected $table = 'backgrounds';
 
     protected $casts = [
-        'points' => 'decimal:2',
+        'points_store' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

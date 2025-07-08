@@ -12,8 +12,6 @@ class StudentLevelHistory extends Model
     protected $casts = [
         'experience' => 'decimal:2',
         'achieved_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
     ];
 
     public function student(): BelongsTo
