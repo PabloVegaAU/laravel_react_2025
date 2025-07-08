@@ -4,7 +4,7 @@ import { Competency } from './competency'
 import { Question } from './question'
 
 /**
- * Representa una capacidad o habilidad específica en el sistema educativo
+ * Representa una capacidad específica en el sistema educativo
  * Basado en:
  * - Migración: database/migrations/2025_06_22_100080_create_capabilities_table.php
  * - Modelo: app/Models/Capability.php

@@ -24,12 +24,6 @@ return new class extends Migration
                 ->restrictOnDelete()
                 ->comment('Relación con la asignación de profesor en aula y área curricular');
 
-            // Relación con el profesor para búsquedas rápidas
-            $table->foreignId('teacher_id')
-                ->constrained('teachers', 'user_id')
-                ->restrictOnDelete()
-                ->comment('Referencia directa al profesor para optimizar consultas');
-
             $table->foreignId('learning_session_id')
                 ->constrained('learning_sessions')
                 ->restrictOnDelete()
@@ -57,7 +51,6 @@ return new class extends Migration
 
             // Índices para consultas frecuentes
             $table->index('teacher_classroom_curricular_area_id', 'idx_application_form_tcca');
-            $table->index('teacher_id', 'idx_application_form_teacher');
             $table->index('learning_session_id', 'idx_application_form_learning_session');
 
             // Índice compuesto para programación

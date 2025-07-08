@@ -1,6 +1,7 @@
 import FlashMessages from '@/components/organisms/flash-messages'
 import Table from '@/components/organisms/table'
 import AppLayout from '@/layouts/app-layout'
+import { useTranslations } from '@/lib/translator'
 import { Capability, Competency, CurricularArea } from '@/types/academic'
 import { BreadcrumbItem } from '@/types/core'
 import { PaginatedResponse, ResourcePageProps } from '@/types/core/api-types'
@@ -28,6 +29,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 export default function Questions({ questions, question_types, capabilities, difficulties, curricular_areas, competencies }: PageProps) {
+  const { t } = useTranslations()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
   const columns: Column<Question>[] = [
@@ -46,7 +48,7 @@ export default function Questions({ questions, question_types, capabilities, dif
     {
       header: 'Dificultad',
       accessorKey: 'difficulty',
-      renderCell: (row) => row.difficulty.charAt(0).toUpperCase() + row.difficulty.slice(1)
+      renderCell: (row) => t(row.difficulty)
     },
     {
       header: 'Acciones',

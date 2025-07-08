@@ -9,6 +9,15 @@ class ApplicationFormResponseQuestion extends Model
 {
     protected $table = 'application_form_response_questions';
 
+    protected $fillable = [
+        'application_form_response_id',
+        'application_form_question_id',
+        'question_option_id',
+        'explanation',
+        'score',
+        'points_store',
+    ];
+
     protected $casts = [
         'score' => 'decimal:2',
         'points_store' => 'decimal:2',

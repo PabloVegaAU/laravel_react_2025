@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('purpose_learning');
             $table->date('application_date');
+            $table->enum('status', ['draft', 'active', 'inactive'])->default('draft');
 
             $table->foreignId('educational_institution_id')
                 ->constrained('educational_institutions')->cascadeOnDelete();
@@ -23,8 +24,6 @@ return new class extends Migration
                 ->constrained('teacher_classroom_curricular_areas')->cascadeOnDelete();
             $table->foreignId('competency_id')
                 ->constrained('competencies')->cascadeOnDelete();
-            $table->foreignId('curricular_area_id')
-                ->constrained('curricular_areas')->cascadeOnDelete();
             $table->timestamps();
         });
     }

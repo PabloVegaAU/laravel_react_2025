@@ -146,10 +146,10 @@ export function CreateQuestionDialog({
 
           {/* Selección de competencia */}
           <div className='flex flex-col gap-2'>
-            <Label htmlFor='competency_id'>Habilidad *</Label>
+            <Label htmlFor='competency_id'>Competencia *</Label>
             <Select value={data.competency_id} onValueChange={(value) => setData('competency_id', value)} disabled={!data.curricular_area_id}>
               <SelectTrigger id='competency_id' name='competency_id'>
-                <SelectValue placeholder={!data.curricular_area_id ? 'Primero selecciona un área curricular' : 'Selecciona una habilidad'} />
+                <SelectValue placeholder={!data.curricular_area_id ? 'Primero selecciona un área curricular' : 'Selecciona una competencia'} />
               </SelectTrigger>
               <SelectContent>
                 {filteredCompetencies.map((competency) => (
@@ -167,7 +167,7 @@ export function CreateQuestionDialog({
             <Label htmlFor='capability_id'>Capacidad *</Label>
             <Select value={data.capability_id} onValueChange={(value) => setData('capability_id', value)} disabled={!data.competency_id}>
               <SelectTrigger id='capability_id' name='capability_id'>
-                <SelectValue placeholder={!data.competency_id ? 'Primero selecciona una habilidad' : 'Selecciona una capacidad'} />
+                <SelectValue placeholder={!data.competency_id ? 'Primero selecciona una competencia' : 'Selecciona una capacidad'} />
               </SelectTrigger>
               <SelectContent>
                 {filteredCapabilities.map((capability) => (

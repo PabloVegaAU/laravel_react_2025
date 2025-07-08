@@ -81,6 +81,12 @@ export const createNavItems = (permissions: string[] = []) => {
       permission: 'teacher.application-forms.index'
     },
     {
+      title: 'Fichas de Aplicación',
+      href: '/student/application-forms',
+      icon: FileQuestion,
+      permission: 'student.application-forms.index'
+    },
+    {
       title: 'Preguntas',
       href: '/teacher/questions',
       icon: FileQuestion,

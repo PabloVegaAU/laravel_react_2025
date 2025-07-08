@@ -12,7 +12,7 @@ class ApplicationForm extends Model
     protected $table = 'application_forms';
 
     protected $fillable = [
-        'title',
+        'name',
         'description',
         'start_date',
         'end_date',
@@ -42,11 +42,6 @@ class ApplicationForm extends Model
     public function teacherClassroomCurricularArea(): BelongsTo
     {
         return $this->belongsTo(TeacherClassroomCurricularArea::class);
-    }
-
-    public function teacher(): BelongsTo
-    {
-        return $this->belongsTo(Teacher::class, 'teacher_id', 'user_id');
     }
 
     public function learningSession(): BelongsTo

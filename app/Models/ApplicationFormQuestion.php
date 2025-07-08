@@ -10,6 +10,14 @@ class ApplicationFormQuestion extends Model
 {
     protected $table = 'application_form_questions';
 
+    protected $fillable = [
+        'application_form_id',
+        'question_id',
+        'order',
+        'score',
+        'points_store',
+    ];
+
     protected $casts = [
         'order' => 'integer',
         'score' => 'decimal:2',

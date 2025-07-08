@@ -4,6 +4,8 @@ namespace App\Http\Middleware;
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\File;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
 
@@ -29,6 +31,20 @@ class HandleInertiaRequests extends Middleware
     }
 
     /**
+     * Cargar las traducciones del idioma actual
+     */
+    protected function getTranslations($locale)
+    {
+        $path = lang_path("{$locale}.json");
+
+        if (File::exists($path)) {
+            return json_decode(file_get_contents($path), true);
+        }
+
+        return [];
+    }
+
+    /**
      * Define the props that are shared by default.
      *
      * @see https://inertiajs.com/shared-data
@@ -38,6 +54,7 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
+        $locale = App::getLocale();
 
         return [
             ...parent::share($request),
@@ -46,14 +63,11 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user()?->only(['id', 'name', 'email']),
             ],
+            'translations' => $this->getTranslations($locale),
+            'locale' => $locale,
             'ziggy' => fn (): array => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
-            ],
-            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-            'flash' => [
-                'success' => fn () => $request->session()->get('success'),
-                'error' => fn () => $request->session()->get('error'),
             ],
         ];
     }

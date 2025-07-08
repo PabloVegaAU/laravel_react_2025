@@ -82,5 +82,10 @@ class RoleSeeder extends Seeder
         Permission::create(['name' => 'teacher.application-forms.destroy'])->syncRoles([$teacher]);
 
         // ********************* PERMISOS STUDENT *****************************
+        // CRUD APPLICATION FORMS
+        Permission::create(['name' => 'student.application-forms.index'])->syncRoles([$student]);
+        Permission::create(['name' => 'student.application-forms.create'])->syncRoles([$student]);
+        Permission::create(['name' => 'student.application-forms.edit'])->syncRoles([$student]);
+        Permission::create(['name' => 'student.application-forms.destroy'])->syncRoles([$student]);
     }
 }

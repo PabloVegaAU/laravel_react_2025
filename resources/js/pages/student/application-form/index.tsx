@@ -7,7 +7,7 @@ import { ApplicationForm } from '@/types/application-form'
 import { BreadcrumbItem } from '@/types/core'
 import { PaginatedResponse, ResourcePageProps } from '@/types/core/api-types'
 import { Column } from '@/types/core/ui-types'
-import { Head, Link } from '@inertiajs/react'
+import { Head } from '@inertiajs/react'
 import { format } from 'date-fns'
 
 type PageProps = Omit<ResourcePageProps<ApplicationForm>, 'data'> & {
@@ -17,7 +17,7 @@ type PageProps = Omit<ResourcePageProps<ApplicationForm>, 'data'> & {
 const breadcrumbs: BreadcrumbItem[] = [
   {
     title: 'Fichas de Aplicación',
-    href: 'teacher/application-forms'
+    href: 'student/application-forms'
   }
 ]
 
@@ -37,14 +37,14 @@ export default function ApplicationsForm({ applicationForms }: PageProps) {
       header: 'Fecha de inicio',
       accessorKey: 'start_date',
       renderCell(row) {
-        return format(new Date(row.start_date), 'dd/MM/yyyy')
+        return format(row.start_date, 'dd/MM/yyyy')
       }
     },
     {
       header: 'Fecha de fin',
       accessorKey: 'end_date',
       renderCell(row) {
-        return format(new Date(row.end_date), 'dd/MM/yyyy')
+        return format(row.end_date, 'dd/MM/yyyy')
       }
     },
     {
@@ -52,40 +52,23 @@ export default function ApplicationsForm({ applicationForms }: PageProps) {
       accessorKey: 'status',
       renderCell: (row) => {
         const status = String(row.status || '').toLowerCase()
-        return t(status, '')
+        return t(status, 'status')
       }
     },
     {
       header: 'Acciones',
       accessorKey: 'actions',
-      renderCell: (row) => (
-        <div className='flex space-x-2'>
-          <Button variant='info'>Editar</Button>
-          <Link href={`/teacher/application-forms/${row.id}/edit`}>
-            <Button variant='outline' size='sm'>
-              Ver
-            </Button>
-          </Link>
-        </div>
-      )
+      renderCell: () => <Button>Completar</Button>
     }
   ]
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title={t('application_forms.title', 'Fichas de Aplicación')} />
+      <Head title='Fichas de Aplicación' />
       <FlashMessages />
 
       <div className='flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
-        <Link href='/teacher/application-forms/create'>
-          <Button>Crear Ficha de Aplicación</Button>
-        </Link>
-        <div className='rounded-md border'>
-          <Table columns={columns} data={applicationForms} />
-          {applicationForms.data.length === 0 && (
-            <div className='text-muted-foreground p-4 text-center text-sm'>No se encontraron fichas de aplicación</div>
-          )}
-        </div>
+        <Table columns={columns} data={applicationForms} />
       </div>
     </AppLayout>
   )
