@@ -38,6 +38,7 @@ return new class extends Migration
                 ->nullable()
                 ->comment('Número de teléfono de contacto');
 
+            // Metadatos
             $table->timestamps();
             $table->softDeletes();
 
@@ -50,10 +51,7 @@ return new class extends Migration
             $table->index('birth_date', 'idx_profile_birth_date');
 
             // Índice para búsqueda por nombre completo
-            $table->rawIndex(
-                "(first_name || ' ' || last_name || ' ' || COALESCE(second_last_name, ''))",
-                'idx_profile_full_text_search'
-            );
+            $table->fullText(['first_name', 'last_name', 'second_last_name'], 'idx_profiles_fulltext');
         });
     }
 

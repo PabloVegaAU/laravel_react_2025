@@ -12,31 +12,29 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('classrooms', function (Blueprint $table) {
-            $table->id()
-                ->comment('Identificador único del aula');
-
+            // General
+            $table->id()->comment('Identificador único del aula');
             $table->string('grade', 10)
-                ->comment('Grado académico (ej: 1ro, 2do, etc.)');
-
+                ->comment('Grado académico (ej: 1st, 2nd, etc.)');
             $table->string('section', 10)
                 ->comment('Sección del grado (ej: A, B, C)');
-
             $table->enum('level', [
                 'primary',     // Educación primaria
                 'secondary',   // Educación secundaria
             ])->comment('Nivel educativo del aula');
-
             $table->year('academic_year')
                 ->comment('Año académico al que pertenece el aula');
 
+            // Metadatos
             $table->timestamps();
             $table->softDeletes();
 
-            // Índices para optimizar consultas
+            // Relaciones
+            // (No hay relaciones directas en esta tabla)
+
+            // Índices
             $table->index(['level', 'grade', 'section'], 'idx_classroom_level_grade_section');
             $table->index('academic_year', 'idx_classroom_academic_year');
-
-            // Índice compuesto para búsquedas frecuentes
             $table->index(
                 ['academic_year', 'level'],
                 'idx_classroom_year_level'

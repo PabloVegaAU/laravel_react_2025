@@ -15,7 +15,17 @@ return new class extends Migration
             $table->id()
                 ->comment('Identificador único del registro de historial de nivel');
 
-            // Relación con el estudiante (usando user_id como clave primaria en la tabla students)
+            // Experiencia acumulada
+            $table->decimal('experience', 10, 2)
+                ->default(0)
+                ->comment('Cantidad de experiencia acumulada');
+
+            // Fecha de logro
+            $table->timestamp('achieved_at')
+                ->useCurrent()
+                ->comment('Fecha y hora en que se alcanzó este nivel/rango');
+
+            // Relación con el estudiante
             $table->foreignId('student_id')
                 ->constrained('students', 'user_id')
                 ->cascadeOnDelete()
@@ -32,16 +42,6 @@ return new class extends Migration
                 ->constrained('ranges')
                 ->restrictOnDelete()
                 ->comment('Rango alcanzado por el estudiante');
-
-            // Experiencia acumulada
-            $table->decimal('experience', 10, 2)
-                ->default(0)
-                ->comment('Cantidad de experiencia acumulada');
-
-            // Fecha de logro
-            $table->timestamp('achieved_at')
-                ->useCurrent()
-                ->comment('Fecha y hora en que se alcanzó este nivel/rango');
 
             // Índices para optimizar consultas
             $table->index(['student_id', 'achieved_at'], 'idx_student_achievement_date');

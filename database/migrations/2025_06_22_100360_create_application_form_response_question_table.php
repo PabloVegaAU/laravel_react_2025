@@ -12,48 +12,53 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('application_form_response_question', function (Blueprint $table) {
-            $table->id();
-            // Relaciones
-            // Relación con la respuesta de la práctica
-            $table->foreignId('application_form_response_id')
-                ->constrained('application_form_responses')
-                ->cascadeOnDelete()
-                ->comment('Referencia a la respuesta de la práctica');
-
-            // Relación con la pregunta en la práctica
-            $table->foreignId('application_form_question_id')
-                ->constrained('application_form_questions')
-                ->cascadeOnDelete()
-                ->comment('Referencia a la pregunta en la práctica');
-
-            // Relación con la opción seleccionada (puede ser nula para preguntas abiertas)
-            $table->foreignId('question_option_id')
-                ->nullable()
-                ->constrained('question_options')
-                ->nullOnDelete()
-                ->comment('Referencia a la opción seleccionada (opcional)');
-
-            // Explicación
+            // General
+            $table->id()->comment('ID único de la relación entre respuesta y pregunta');
+            // Datos de la respuesta
             $table->text('explanation')
                 ->nullable()
                 ->comment('Explicación escrita del estudiante para justificar su respuesta');
 
-            // Puntuación y puntos de la tienda
-            $table->decimal('score', 10, 2)->default(0)->comment('Puntaje de la pregunta');
-            $table->decimal('points_store', 10, 2)->default(0)->comment('Puntos de la tienda');
+            // Puntuación y recompensas
+            $table->decimal('score', 10, 2)
+                ->default(0)
+                ->comment('Puntaje obtenido en la pregunta');
 
+            $table->decimal('points_store', 10, 2)
+                ->default(0)
+                ->comment('Puntos de la tienda obtenidos por esta respuesta');
+
+            // Relaciones
+            $table->foreignId('application_form_response_id')
+                ->constrained('application_form_responses')
+                ->cascadeOnDelete()
+                ->comment('Referencia a la respuesta del formulario');
+
+            $table->foreignId('application_form_question_id')
+                ->constrained('application_form_questions')
+                ->cascadeOnDelete()
+                ->comment('Referencia a la pregunta del formulario');
+
+            $table->foreignId('question_option_id')
+                ->nullable()
+                ->constrained('question_options')
+                ->nullOnDelete()
+                ->comment('Referencia a la opción seleccionada (opcional para preguntas abiertas)');
+
+            // Metadatos
             $table->timestamps();
+            $table->softDeletes()->comment('Fecha de eliminación suave');
 
-            // Índice único para evitar respuestas duplicadas
+            // Índices
+            $table->index('application_form_response_id', 'idx_afrq_response');
+            $table->index('application_form_question_id', 'idx_afrq_question');
+            $table->index('question_option_id', 'idx_afrq_option');
+
+            // Restricción única para evitar respuestas duplicadas
             $table->unique(
                 ['application_form_response_id', 'application_form_question_id'],
                 'uq_application_form_response_question'
             );
-
-            // Índices para optimizar consultas
-            $table->index('application_form_response_id', 'idx_application_form_response_question_response');
-            $table->index('application_form_question_id', 'idx_application_form_response_question_pq');
-            $table->index('question_option_id', 'idx_application_form_response_question_option');
         });
     }
 

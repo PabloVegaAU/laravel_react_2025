@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('curricular_areas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('cycle_id')->constrained()->onDelete('restrict');
             $table->string('name');
             $table->string('description');
             $table->string('color');

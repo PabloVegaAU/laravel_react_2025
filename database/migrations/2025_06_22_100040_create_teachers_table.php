@@ -12,25 +12,27 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('teachers', function (Blueprint $table) {
-            // Clave foránea que también es clave primaria
+            // General
+            $table->enum('status', [
+                'active',    // Activo
+                'inactive',  // Inactivo
+                'on leave',  // De permiso/licencia
+                'retired',   // Jubilado
+            ])->default('active')
+                ->comment('Estado actual del profesor');
+
+            // Metadatos
+            $table->timestamps();
+            $table->softDeletes();
+
+            // Relaciones
             $table->foreignId('user_id')
                 ->primary()
                 ->constrained('users')
                 ->cascadeOnDelete()
                 ->comment('Referencia al usuario que es profesor');
 
-            $table->enum('status', [
-                'active',    // Activo
-                'inactive',  // Inactivo temporalmente
-                'on leave',  // De permiso/licencia
-                'retired',    // Jubilado
-            ])->default('active')
-                ->comment('Estado actual del profesor');
-
-            $table->timestamps();
-            $table->softDeletes();
-
-            // Índice para búsquedas por estado
+            // Índices
             $table->index('status', 'idx_teacher_status');
         });
     }

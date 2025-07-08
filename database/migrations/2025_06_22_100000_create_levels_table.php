@@ -12,28 +12,29 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('levels', function (Blueprint $table) {
-            $table->id()
-                ->comment('Identificador único del nivel');
-
+            // General
+            $table->id()->comment('Identificador único del nivel');
             $table->unsignedInteger('level')
                 ->unique('uq_levels_level')
                 ->comment('Nivel numérico (1, 2, 3, ...)');
-
+            $table->decimal('experience_max', 10, 2)
+                ->unsigned()
+                ->default(0)
+                ->comment('Experiencia maxima del nivel');
             $table->decimal('experience_required', 10, 2)
                 ->unsigned()
                 ->default(0)
                 ->comment('Experiencia necesaria para alcanzar este nivel');
 
-            $table->text('description')
-                ->nullable()
-                ->comment('Descripción del nivel y sus beneficios');
-
+            // Metadatos
             $table->timestamps();
             $table->softDeletes();
 
-            // Índices para optimizar consultas
-            $table->index('experience_required', 'idx_levels_experience');
-            $table->index('level', 'idx_levels_level');
+            // Relaciones
+            // (No hay relaciones directas en esta tabla)
+
+            // Índices
+            // (No hay índices adicionales)
         });
     }
 

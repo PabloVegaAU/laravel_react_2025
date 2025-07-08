@@ -12,22 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('application_forms', function (Blueprint $table) {
-            $table->id();
+            // General
+            $table->id()->comment('Identificador único del formulario de aplicación');
 
             // Información básica
-            $table->string('name');
-            $table->text('description');
-
-            // Relación con la asignación profesor/aula/área
-            $table->foreignId('teacher_classroom_curricular_area_id')
-                ->constrained('teacher_classroom_curricular_areas')
-                ->restrictOnDelete()
-                ->comment('Relación con la asignación de profesor en aula y área curricular');
-
-            $table->foreignId('learning_session_id')
-                ->constrained('learning_sessions')
-                ->restrictOnDelete()
-                ->comment('Relación con la sesión de aprendizaje');
+            $table->string('name')
+                ->comment('Nombre del formulario de aplicación');
+            $table->text('description')
+                ->comment('Descripción detallada del formulario');
 
             // Configuración de estado
             $table->enum('status', [
@@ -37,23 +29,31 @@ return new class extends Migration
                 'inactive',   // Inactiva (no visible)
                 'archived',   // Archivada (solo lectura)
             ])->default('draft')
-                ->comment('Estado de la práctica: draft, scheduled, active, inactive, archived')
-                ->index('idx_application_form_status');
+                ->comment('Estado del formulario: borrador, programado, activo, inactivo, archivado');
 
             // Puntuación y fechas
-            $table->decimal('score_max', 10, 2);
-            $table->dateTime('start_date')->index('idx_application_form_start_date');
-            $table->dateTime('end_date')->index('idx_application_form_end_date');
+            $table->decimal('score_max', 10, 2)
+                ->comment('Puntuación máxima posible en este formulario');
+            $table->dateTime('start_date')
+                ->comment('Fecha y hora de inicio de disponibilidad del formulario');
+            $table->dateTime('end_date')
+                ->comment('Fecha y hora de finalización de disponibilidad del formulario');
 
             // Metadatos
             $table->timestamps();
             $table->softDeletes();
 
-            // Índices para consultas frecuentes
-            $table->index('teacher_classroom_curricular_area_id', 'idx_application_form_tcca');
-            $table->index('learning_session_id', 'idx_application_form_learning_session');
+            // Relaciones
+            $table->foreignId('learning_session_id')
+                ->constrained('learning_sessions')
+                ->restrictOnDelete()
+                ->comment('Referencia a la sesión de aprendizaje relacionada');
 
-            // Índice compuesto para programación
+            // Índices
+            $table->index('status', 'idx_application_form_status');
+            $table->index('start_date', 'idx_application_form_start_date');
+            $table->index('end_date', 'idx_application_form_end_date');
+            $table->index('learning_session_id', 'idx_application_form_learning_session');
             $table->index(
                 ['status', 'start_date', 'end_date'],
                 'idx_application_form_scheduling'

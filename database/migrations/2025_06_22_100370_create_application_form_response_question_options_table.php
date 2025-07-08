@@ -12,20 +12,42 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('application_form_response_question_options', function (Blueprint $table) {
-            $table->id();
+            // General
+            $table->id()->comment('ID único de la opción de respuesta a la pregunta');
+
+            // Datos de evaluación
+            $table->decimal('score', 10, 2)
+                ->default(0)
+                ->comment('Puntaje obtenido por esta opción');
+
+            $table->boolean('is_correct')
+                ->default(false)
+                ->comment('Indica si la opción seleccionada es correcta');
+
+            // Relaciones
             $table->foreignId('application_form_response_question_id')
                 ->constrained('application_form_response_question')
                 ->cascadeOnDelete()
-                ->comment('Referencia a la respuesta de la práctica');
+                ->comment('Referencia a la respuesta de la pregunta');
+
             $table->foreignId('question_option_id')
                 ->constrained('question_options')
                 ->cascadeOnDelete()
                 ->comment('Referencia a la opción seleccionada');
 
-            $table->decimal('score', 10, 2)->default(0);
-            $table->boolean('is_correct');
-
+            // Metadatos
             $table->timestamps();
+            $table->softDeletes()->comment('Fecha de eliminación suave');
+
+            // Índices
+            $table->index('application_form_response_question_id', 'idx_afrqo_response_question');
+            $table->index('question_option_id', 'idx_afrqo_question_option');
+
+            // Restricción única para evitar opciones duplicadas
+            $table->unique(
+                ['application_form_response_question_id', 'question_option_id'],
+                'uq_afrqo_response_question_option'
+            );
         });
     }
 

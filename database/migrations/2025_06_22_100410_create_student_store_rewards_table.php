@@ -12,10 +12,42 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('student_store_rewards', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('student_id')->constrained('students', 'user_id')->cascadeOnDelete();
-            $table->foreignId('store_reward_id')->constrained()->cascadeOnDelete();
-            $table->timestamps();
+            // General
+            $table->id()->comment('Identificador único del registro de canje');
+
+            // Información del canje
+            $table->decimal('points_store', 10, 2)
+                ->comment('Cantidad de puntos de la tienda utilizados');
+            $table->timestamp('exchange_date')
+                ->nullable()
+                ->comment('Fecha y hora en que se realizó el canje');
+
+            // Relaciones
+            $table->foreignId('student_id')
+                ->constrained('students', 'user_id')
+                ->cascadeOnDelete()
+                ->comment('Referencia al estudiante que realizó el canje');
+
+            $table->foreignId('store_reward_id')
+                ->constrained('store_rewards')
+                ->cascadeOnDelete()
+                ->comment('Referencia a la recompensa canjeada');
+
+            // Índices
+            $table->index(
+                ['student_id', 'store_reward_id'],
+                'idx_student_store_reward'
+            );
+            $table->index(
+                ['student_id', 'exchange_date'],
+                'idx_student_store_reward_date'
+            );
+
+            // Restricción única para evitar duplicados
+            $table->unique(
+                ['student_id', 'store_reward_id'],
+                'uq_student_store_reward'
+            );
         });
     }
 

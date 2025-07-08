@@ -11,15 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sessions_capabilities', function (Blueprint $table) {
+        Schema::create('curricular_area_cycles', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('learning_session_id')
-                ->constrained('learning_sessions')
-                ->cascadeOnDelete();
-            $table->foreignId('capability_id')
-                ->constrained('capabilities')
-                ->cascadeOnDelete();
+            $table->foreignId('cycle_id')->constrained()->onDelete('restrict');
+            $table->foreignId('curricular_area_id')->constrained()->onDelete('restrict');
             $table->timestamps();
+
+            $table->unique(['cycle_id', 'curricular_area_id']);
         });
     }
 
@@ -28,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sessions_capabilities');
+        Schema::dropIfExists('curricular_area_cycles');
     }
 };

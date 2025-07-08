@@ -12,11 +12,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('achievements', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('description');
-            $table->string('image');
+            // General
+            $table->id()->comment('ID único del logro');
+            $table->string('name')->comment('Nombre del logro');
+            $table->string('description')->comment('Descripción del logro');
+            $table->string('image')->comment('Ruta de la imagen del logro');
+
+            // Metadatos
             $table->timestamps();
+            $table->softDeletes()->comment('Fecha de eliminación suave');
+
+            // Relaciones
+            // (No hay relaciones foráneas en esta tabla)
+
+            // Índices
+            $table->index('name', 'idx_achievements_name');
         });
     }
 

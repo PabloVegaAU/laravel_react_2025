@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('competencies', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('curricular_area_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('curricular_area_cycle_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->string('color');
             $table->timestamps();
