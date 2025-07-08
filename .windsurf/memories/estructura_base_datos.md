@@ -137,6 +137,23 @@ La base de datos está diseñada siguiendo las convenciones de Laravel Eloquent 
 
 ### 6. Sistema de Evaluación
 
+#### learning_sessions
+- **Descripción**: Sesiones de aprendizaje que agrupan actividades relacionadas
+- **Campos clave**:
+  - `id`: Identificador único (bigint, autoincremental)
+  - `name`: Nombre de la sesión (string)
+  - `purpose_learning`: Propósito de aprendizaje (text)
+  - `application_date`: Fecha de aplicación (date)
+  - `educational_institution_id`: FK a educational_institutions (bigint)
+  - `teacher_classroom_curricular_area_id`: FK a teacher_classroom_curricular_areas (bigint)
+  - `competency_id`: FK a competencies (bigint)
+  - `created_at`, `updated_at`, `deleted_at`: Marcas de tiempo
+- **Índices**:
+  - `idx_learning_session_application_date` (application_date)
+  - `idx_learning_session_institution` (educational_institution_id)
+  - `idx_learning_session_tcca` (teacher_classroom_curricular_area_id)
+  - `idx_learning_session_competency` (competency_id)
+
 #### questions
 - **Descripción**: Preguntas para evaluaciones
 - **Campos clave**:
@@ -177,18 +194,28 @@ La base de datos está diseñada siguiendo las convenciones de Laravel Eloquent 
 ### 7. Formularios y Respuestas
 
 #### application_forms
-- **Descripción**: Formularios de evaluación
+- **Descripción**: Formularios de evaluación asociados a sesiones de aprendizaje
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
-  - `name`: Título del formulario (string)
+  - `name`: Nombre del formulario (string)
   - `description`: Descripción (text, nullable)
   - `status`: Estado (enum: 'draft', 'scheduled', 'active', 'inactive', 'archived')
   - `score_max`: Puntuación máxima (decimal 10,2)
   - `start_date`, `end_date`: Fechas de disponibilidad (datetime)
   - `teacher_classroom_curricular_area_id`: FK a teacher_classroom_curricular_areas (bigint)
-  - `teacher_id`: FK a users (bigint)
   - `learning_session_id`: FK a learning_sessions (bigint)
   - `created_at`, `updated_at`, `deleted_at`: Marcas de tiempo
+- **Índices**:
+  - `idx_application_form_status` (status)
+  - `idx_application_form_start_date` (start_date)
+  - `idx_application_form_end_date` (end_date)
+  - `idx_application_form_tcca` (teacher_classroom_curricular_area_id)
+  - `idx_application_form_learning_session` (learning_session_id)
+  - `idx_application_form_scheduling` (status, start_date, end_date)
+- **Cambios recientes**:
+  - Se eliminó la columna `teacher_id` (ahora se obtiene a través de teacher_classroom_curricular_area)
+  - Se renombró `title` a `name` para mayor consistencia
+  - Se optimizaron los índices para mejorar el rendimiento
 
 #### application_form_questions
 - **Propósito**: Relación entre formularios y preguntas

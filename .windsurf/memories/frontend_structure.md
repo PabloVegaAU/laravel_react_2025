@@ -51,6 +51,10 @@ resources/
 - **Table**: Tablas de datos
 - **Toast**: Notificaciones
 
+### Componentes de Formularios
+- **ApplicationForm**: Formulario para crear/editar fichas de aplicación
+- **LearningSessionForm**: Formulario para crear/editar sesiones de aprendizaje
+
 ## Gestión de Estado
 
 ### Store (Zustand)
@@ -128,6 +132,124 @@ resources/
 - Un componente por archivo
 - Estilos en módulos CSS
 - Tipos TypeScript en archivos `.d.ts`
+
+## Tipos TypeScript
+
+### Tipos de Formularios de Aplicación
+```typescript
+// resources/js/types/application-form/index.d.ts
+
+type ApplicationFormStatus = 'draft' | 'scheduled' | 'active' | 'inactive' | 'archived';
+
+interface ApplicationForm {
+  id: number;
+  name: string;
+  description: string | null;
+  status: ApplicationFormStatus;
+  score_max: number;
+  start_date: string; // ISO 8601
+  end_date: string; // ISO 8601
+  teacher_classroom_curricular_area_id: number;
+  learning_session_id: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  
+  // Relaciones
+  learning_session?: LearningSession;
+  teacher_classroom_curricular_area?: TeacherClassroomCurricularArea;
+  questions?: Question[];
+}
+
+interface CreateApplicationFormData {
+  name: string;
+  description?: string;
+  status: ApplicationFormStatus;
+  score_max: number;
+  start_date: string;
+  end_date: string;
+  teacher_classroom_curricular_area_id: number;
+  learning_session_id: number;
+}
+```
+
+### Tipos de Sesiones de Aprendizaje
+```typescript
+// resources/js/types/learning-session/index.d.ts
+
+interface LearningSession {
+  id: number;
+  name: string;
+  purpose_learning: string;
+  application_date: string; // YYYY-MM-DD
+  educational_institution_id: number;
+  teacher_classroom_curricular_area_id: number;
+  competency_id: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  
+  // Relaciones
+  educational_institution?: EducationalInstitution;
+  teacher_classroom_curricular_area?: TeacherClassroomCurricularArea;
+  competency?: Competency;
+  application_forms?: ApplicationForm[];
+}
+
+interface CreateLearningSessionData {
+  name: string;
+  purpose_learning: string;
+  application_date: string;
+  educational_institution_id: number;
+  teacher_classroom_curricular_area_id: number;
+  competency_id: number;
+}
+```
+
+## Servicios API
+
+### ApplicationFormService
+```typescript
+// resources/js/services/ApplicationFormService.ts
+
+class ApplicationFormService {
+  static async create(data: CreateApplicationFormData): Promise<ApplicationForm> {
+    const response = await axios.post<{ data: ApplicationForm }>('/api/application-forms', data);
+    return response.data.data;
+  }
+  
+  static async update(id: number, data: Partial<CreateApplicationFormData>): Promise<ApplicationForm> {
+    const response = await axios.put<{ data: ApplicationForm }>(`/api/application-forms/${id}`, data);
+    return response.data.data;
+  }
+  
+  static async getById(id: number): Promise<ApplicationForm> {
+    const response = await axios.get<{ data: ApplicationForm }>(`/api/application-forms/${id}`);
+    return response.data.data;
+  }
+  
+  // Otros métodos...
+}
+```
+
+### LearningSessionService
+```typescript
+// resources/js/services/LearningSessionService.ts
+
+class LearningSessionService {
+  static async create(data: CreateLearningSessionData): Promise<LearningSession> {
+    const response = await axios.post<{ data: LearningSession }>('/api/learning-sessions', data);
+    return response.data.data;
+  }
+  
+  static async getByTeacher(teacherId: number): Promise<LearningSession[]> {
+    const response = await axios.get<{ data: LearningSession[] }>(`/api/teachers/${teacherId}/learning-sessions`);
+    return response.data.data;
+  }
+  
+  // Otros métodos...
+}
+```
 
 ## Próximos Pasos
 1. Documentar componentes específicos
