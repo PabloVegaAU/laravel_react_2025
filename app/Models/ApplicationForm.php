@@ -18,8 +18,7 @@ class ApplicationForm extends Model
         'end_date',
         'status',
         'score_max',
-        'teacher_id',
-        'teacher_classroom_curricular_area_id',
+        'teacher_classroom_curricular_area_cycle_id',
         'learning_session_id',
     ];
 
@@ -30,6 +29,7 @@ class ApplicationForm extends Model
         'status' => 'string',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
     protected $dates = [
@@ -37,16 +37,27 @@ class ApplicationForm extends Model
         'end_date',
         'created_at',
         'updated_at',
+        'deleted_at',
     ];
 
-    public function teacherClassroomCurricularArea(): BelongsTo
-    {
-        return $this->belongsTo(TeacherClassroomCurricularArea::class);
-    }
+    protected $attributes = [
+        'status' => 'draft',
+        'score_max' => 0.00,
+    ];
 
     public function learningSession(): BelongsTo
     {
         return $this->belongsTo(LearningSession::class);
+    }
+
+    public function teacherClassroomCurricularAreaCycle(): BelongsTo
+    {
+        return $this->belongsTo(TeacherClassroomCurricularAreaCycle::class);
+    }
+
+    public function teacher()
+    {
+        return $this->belongsTo(Teacher::class, 'teacher_id');
     }
 
     public function applicationFormQuestions(): HasMany

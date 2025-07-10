@@ -1,13 +1,13 @@
+import DataTable from '@/components/organisms/data-table'
 import FlashMessages from '@/components/organisms/flash-messages'
-import Table from '@/components/organisms/table'
 import AppLayout from '@/layouts/app-layout'
 import { useTranslations } from '@/lib/translator'
 import { Capability, Competency, CurricularArea } from '@/types/academic'
 import { BreadcrumbItem } from '@/types/core'
 import { PaginatedResponse, ResourcePageProps } from '@/types/core/api-types'
-import { Column } from '@/types/core/ui-types'
 import { Question, QuestionDifficulty, QuestionType } from '@/types/question'
 import { Head } from '@inertiajs/react'
+import { ColumnDef } from '@tanstack/react-table'
 import { useState } from 'react'
 import { CreateQuestionDialog } from './components/form-create'
 
@@ -32,7 +32,7 @@ export default function Questions({ questions, question_types, capabilities, dif
   const { t } = useTranslations()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
-  const columns: Column<Question>[] = [
+  const columns: ColumnDef<Question>[] = [
     {
       header: 'ID',
       accessorKey: 'id'
@@ -48,12 +48,12 @@ export default function Questions({ questions, question_types, capabilities, dif
     {
       header: 'Dificultad',
       accessorKey: 'difficulty',
-      renderCell: (row) => t(row.difficulty)
+      cell: (row) => t(row.getValue() as string)
     },
     {
       header: 'Acciones',
       accessorKey: 'actions',
-      renderCell: () => <></>
+      cell: () => <></>
     }
   ]
 
@@ -73,7 +73,7 @@ export default function Questions({ questions, question_types, capabilities, dif
           onSuccess={() => setIsCreateModalOpen(false)}
         />
 
-        <Table columns={columns} data={questions} />
+        <DataTable columns={columns} data={questions} />
       </div>
     </AppLayout>
   )

@@ -13,27 +13,33 @@ class LearningSession extends Model
         'name',
         'purpose_learning',
         'application_date',
-        'educational_institution_id',
-        'teacher_classroom_curricular_area_cycle_id',
-        'competency_id',
+        'status',
+        'performances',
         'start_sequence',
         'end_sequence',
+        'educational_institution_id',
+        'teacher_id',
+        'competency_id',
     ];
 
     protected $casts = [
         'application_date' => 'date',
+        'performances' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
+    ];
+
+    protected $dates = [
+        'application_date',
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
 
     public function educationalInstitution(): BelongsTo
     {
         return $this->belongsTo(EducationalInstitution::class);
-    }
-
-    public function teacherClassroomCurricularArea(): BelongsTo
-    {
-        return $this->belongsTo(TeacherClassroomCurricularArea::class);
     }
 
     public function competency(): BelongsTo

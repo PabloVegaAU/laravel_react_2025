@@ -21,7 +21,7 @@ class Question extends Model
         'description',
         'difficulty',
         'explanation_required',
-        'nivel',
+        'level',
         'grades',
     ];
 

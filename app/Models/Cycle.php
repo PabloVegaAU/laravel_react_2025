@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Cycle extends Model
@@ -18,13 +17,8 @@ class Cycle extends Model
         'deleted_at' => 'datetime',
     ];
 
-    public function classrooms(): HasMany
+    public function curricularAreaCycles()
     {
-        return $this->hasMany(Classroom::class);
-    }
-
-    public function curricularAreas(): HasMany
-    {
-        return $this->hasMany(CurricularArea::class);
+        return $this->hasMany(CurricularAreaCycle::class);
     }
 }

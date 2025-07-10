@@ -5,6 +5,7 @@ use App\Http\Controllers\Student\ApplicationFormController as StudentApplication
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
 use App\Http\Controllers\Teacher\ApplicationFormController as TeacherApplicationFormController;
 use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
+use App\Http\Controllers\Teacher\LearningSessionController as TeacherLearningSessionController;
 use App\Http\Controllers\Teacher\QuestionController as TeacherQuestionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -27,8 +28,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // routes teacher
     Route::get('teacher/dashboard', [TeacherDashboardController::class, 'index'])->name('teacher.dashboard');
-    Route::resource('teacher/questions', TeacherQuestionController::class)->names('teacher.questions');
+    Route::resource('teacher/learning-sessions', TeacherLearningSessionController::class)->names('teacher.learning-sessions');
     Route::resource('teacher/application-forms', TeacherApplicationFormController::class)->names('teacher.application-forms');
+    Route::resource('teacher/questions', TeacherQuestionController::class)->names('teacher.questions');
 
     // routes student
     Route::get('student/dashboard', [StudentDashboardController::class, 'index'])->name('student.dashboard');

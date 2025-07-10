@@ -44,6 +44,10 @@ return new class extends Migration
             $table->softDeletes();
 
             // Relaciones
+            $table->foreignId('teacher_id')
+                ->constrained('teachers')
+                ->cascadeOnDelete()
+                ->comment('Referencia al profesor relacionado');
             $table->foreignId('learning_session_id')
                 ->constrained('learning_sessions')
                 ->restrictOnDelete()

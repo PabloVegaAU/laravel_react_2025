@@ -69,17 +69,23 @@ class RoleSeeder extends Seeder
         Permission::create(['name' => 'admin.backgrounds.destroy'])->syncRoles([$admin]);
 
         // ********************* PERMISOS TEACHER *****************************
-        // CRUD QUESTIONS
-        Permission::create(['name' => 'teacher.questions.index'])->syncRoles([$teacher]);
-        Permission::create(['name' => 'teacher.questions.create'])->syncRoles([$teacher]);
-        Permission::create(['name' => 'teacher.questions.edit'])->syncRoles([$teacher]);
-        Permission::create(['name' => 'teacher.questions.destroy'])->syncRoles([$teacher]);
+        // CRUD LEARNING SESSIONS
+        Permission::create(['name' => 'teacher.learning-sessions.index'])->syncRoles([$teacher]);
+        Permission::create(['name' => 'teacher.learning-sessions.create'])->syncRoles([$teacher]);
+        Permission::create(['name' => 'teacher.learning-sessions.edit'])->syncRoles([$teacher]);
+        Permission::create(['name' => 'teacher.learning-sessions.destroy'])->syncRoles([$teacher]);
 
         // CRUD APPLICATION FORMS
         Permission::create(['name' => 'teacher.application-forms.index'])->syncRoles([$teacher]);
         Permission::create(['name' => 'teacher.application-forms.create'])->syncRoles([$teacher]);
         Permission::create(['name' => 'teacher.application-forms.edit'])->syncRoles([$teacher]);
         Permission::create(['name' => 'teacher.application-forms.destroy'])->syncRoles([$teacher]);
+
+        // CRUD QUESTIONS
+        Permission::create(['name' => 'teacher.questions.index'])->syncRoles([$teacher]);
+        Permission::create(['name' => 'teacher.questions.create'])->syncRoles([$teacher]);
+        Permission::create(['name' => 'teacher.questions.edit'])->syncRoles([$teacher]);
+        Permission::create(['name' => 'teacher.questions.destroy'])->syncRoles([$teacher]);
 
         // ********************* PERMISOS STUDENT *****************************
         // CRUD APPLICATION FORMS

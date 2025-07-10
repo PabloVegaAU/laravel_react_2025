@@ -20,8 +20,8 @@ export interface TeacherClassroomCurricularAreaCycle {
   /** ID del aula */
   classroom_id: number
 
-  /** ID del área curricular */
-  curricular_area_id: number
+  /** ID del área curricular ciclo */
+  curricular_area_cycle_id: number
 
   /** Año académico */
   academic_year: number

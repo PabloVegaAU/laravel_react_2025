@@ -26,15 +26,14 @@ class Classroom extends Model
         'deleted_at',
     ];
 
-    public function cycle(): BelongsTo
-    {
-        return $this->belongsTo(Cycle::class);
-    }
-
     public function teachers(): BelongsToMany
     {
-        return $this->belongsToMany(Teacher::class, 'teacher_classroom_curricular_areas', 'classroom_id', 'teacher_id')
-            ->withTimestamps();
+        return $this->belongsToMany(
+            Teacher::class,
+            'teacher_classroom_curricular_area_cycles',
+            'classroom_id',
+            'teacher_id'
+        )->withPivot(['curricular_area_cycle_id', 'academic_year']);
     }
 
     public function enrollments(): HasMany
@@ -44,18 +43,21 @@ class Classroom extends Model
 
     public function students(): BelongsToMany
     {
-        return $this->belongsToMany(Student::class, 'enrollments', 'classroom_id', 'student_id')
-            ->withTimestamps();
+        return $this->belongsToMany(Student::class, 'enrollments', 'classroom_id', 'student_id');
     }
 
-    public function applicationForms(): HasMany
+    public function teacherClassroomCurricularAreaCycles(): HasMany
     {
-        return $this->hasMany(ApplicationForm::class);
+        return $this->hasMany(TeacherClassroomCurricularAreaCycle::class, 'classroom_id');
     }
 
-    public function curricularAreas(): BelongsToMany
+    public function curricularAreaCycles(): BelongsToMany
     {
-        return $this->belongsToMany(CurricularArea::class, 'teacher_classroom_curricular_areas', 'classroom_id', 'curricular_area_id')
-            ->withTimestamps();
+        return $this->belongsToMany(
+            CurricularAreaCycle::class,
+            'teacher_classroom_curricular_area_cycles',
+            'classroom_id',
+            'curricular_area_cycle_id'
+        )->withPivot(['teacher_id', 'academic_year']);
     }
 }

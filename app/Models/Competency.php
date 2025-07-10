@@ -16,9 +16,9 @@ class Competency extends Model
         'updated_at' => 'datetime',
     ];
 
-    public function curricularArea(): BelongsTo
+    public function curricularAreaCycle(): BelongsTo
     {
-        return $this->belongsTo(CurricularArea::class, 'curricular_area_id', 'id');
+        return $this->belongsTo(CurricularAreaCycle::class, 'curricular_area_cycle_id', 'id');
     }
 
     public function capabilities(): HasMany

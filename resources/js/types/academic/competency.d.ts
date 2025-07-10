@@ -1,5 +1,5 @@
-import { CurricularArea } from '../academic/curricular-area'
 import { Capability } from './capability'
+import { CurricularAreaCycle } from './curricular_area_cycle'
 import { Question } from './question'
 
 /**
@@ -19,10 +19,7 @@ export interface Competency {
   description: string
 
   /** ID del área curricular a la que pertenece esta competencia */
-  area_id: number
-
-  /** Alias for area_id used in some components */
-  curricular_area_id: number
+  curricular_area_cycle_id: number
 
   /** Orden de visualización */
   order: number
@@ -40,7 +37,7 @@ export interface Competency {
 
   // Relaciones
   /** Área curricular a la que pertenece esta competencia */
-  area?: CurricularArea
+  curricular_area_cycle?: CurricularAreaCycle
 
   /** Capacidades asociadas a esta competencia */
   capabilities?: Capability[]
@@ -52,12 +49,15 @@ export interface Competency {
 /**
  * Tipo para crear una nueva competencia
  */
-export type CreateCompetency = Omit<Competency, 'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'area' | 'capabilities' | 'questions'>
+export type CreateCompetency = Omit<
+  Competency,
+  'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'curricular_area_cycle' | 'capabilities' | 'questions'
+>
 
 /**
  * Tipo para actualizar una competencia existente
  */
-export type UpdateCompetency = Partial<Omit<CreateCompetency, 'area_id'>>
+export type UpdateCompetency = Partial<Omit<CreateCompetency, 'curricular_area_cycle_id'>>
 
 /**
  * Tipo para filtros de búsqueda de competencias
@@ -66,8 +66,8 @@ export interface CompetencyFilters {
   /** Término de búsqueda */
   search?: string
 
-  /** Filtrar por ID de área curricular */
-  area_id?: number | number[]
+  /** Filtrar por ID de ciclo de área curricular */
+  curricular_area_cycle_id?: number | number[]
 
   /** Incluir registros eliminados */
   with_trashed?: boolean

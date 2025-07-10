@@ -95,7 +95,6 @@ const MultiSelectTrigger = forwardRef<HTMLButtonElement, MultiSelectTriggerProps
   ({ className, id, value, options, placeholder, disabled, toggle }, ref) => {
     return (
       <PopoverTrigger
-        asChild
         ref={ref}
         id={id}
         className={cn(
@@ -165,19 +164,21 @@ function MultiSelectContent({ options, value, toggle, triggerWidth, maxSelection
           <label
             key={opt.value}
             className={cn(
-              'hover:bg-accent hover:text-accent-foreground relative flex cursor-pointer items-center rounded-sm px-2 py-1.5 text-sm outline-none',
-              isSelected && 'bg-accent text-accent-foreground',
+              'flex items-center justify-between gap-2 rounded px-2 py-1 text-sm select-none',
+              isSelected ? 'bg-accent text-accent-foreground' : 'hover:bg-muted',
               isDisabled && 'cursor-not-allowed opacity-50'
             )}
           >
-            <input
-              type='checkbox'
-              className='mr-2 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500'
-              checked={isSelected}
-              onChange={() => !isDisabled && toggle(opt.value)}
-              disabled={isDisabled}
-            />
-            {opt.label}
+            <div className='flex items-center gap-2'>
+              <input
+                type='checkbox'
+                checked={isSelected}
+                onChange={() => toggle(opt.value)}
+                className={cn(isDisabled ? 'cursor-not-allowed' : '')}
+                disabled={isDisabled}
+              />
+              {opt.label}
+            </div>
           </label>
         )
       })}

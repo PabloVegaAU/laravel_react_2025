@@ -38,19 +38,19 @@ class Teacher extends Model
 
     public function classrooms(): BelongsToMany
     {
-        return $this->belongsToMany(Classroom::class, 'teacher_classroom_curricular_areas', 'teacher_id', 'classroom_id')
+        return $this->belongsToMany(Classroom::class, 'teacher_classroom_curricular_area_cycles', 'teacher_id', 'classroom_id')
             ->withTimestamps();
     }
 
     public function curricularAreas(): BelongsToMany
     {
-        return $this->belongsToMany(CurricularArea::class, 'teacher_classroom_curricular_areas', 'teacher_id', 'curricular_area_id')
+        return $this->belongsToMany(CurricularArea::class, 'teacher_classroom_curricular_area_cycles', 'teacher_id', 'curricular_area_id')
             ->withTimestamps();
     }
 
     public function teacherAssignments(): HasMany
     {
-        return $this->hasMany(TeacherClassroomCurricularArea::class, 'teacher_id', 'user_id');
+        return $this->hasMany(TeacherClassroomCurricularAreaCycle::class, 'teacher_id', 'user_id');
     }
 
     public function applicationForms(): HasMany

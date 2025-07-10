@@ -25,29 +25,36 @@ export function getQuestionTypeNameById(id: string, questionTypes: QuestionType[
 
 // Helper to get default options for a question type
 export function getDefaultOptions(typeId: string): CreateQuestionOption[] {
+  const baseOption = {
+    correct_order: 0,
+    pair_key: null,
+    pair_side: null,
+    feedback: null
+  }
+
   switch (typeId) {
     case '1': // Opción Múltiple
       return [
-        { value: 'Opción 1', is_correct: true, order: 1, score: 1 },
-        { value: 'Opción 2', is_correct: false, order: 2, score: 0 }
+        { ...baseOption, value: 'Opción 1', is_correct: true, order: 1, score: 1 },
+        { ...baseOption, value: 'Opción 2', is_correct: false, order: 2, score: 0 }
       ]
     case '2': // Verdadero/Falso
       return [
-        { value: 'Verdadero', is_correct: true, order: 1, score: 1 },
-        { value: 'Falso', is_correct: false, order: 2, score: 0 }
+        { ...baseOption, value: 'Verdadero', is_correct: true, order: 1, score: 1 },
+        { ...baseOption, value: 'Falso', is_correct: false, order: 2, score: 0 }
       ]
     case '3': // Emparejamiento
       return [
-        { value: 'Opción A', pair_key: '1', pair_side: 'left', is_correct: true, order: 1, score: 1 },
-        { value: 'Opción 1', pair_key: '1', pair_side: 'right', is_correct: true, order: 2, score: 1 },
-        { value: 'Opción B', pair_key: '2', pair_side: 'left', is_correct: true, order: 3, score: 1 },
-        { value: 'Opción 2', pair_key: '2', pair_side: 'right', is_correct: true, order: 4, score: 1 }
+        { ...baseOption, value: 'Opción A', pair_key: '1', pair_side: 'left', is_correct: true, order: 1, score: 1 },
+        { ...baseOption, value: 'Opción 1', pair_key: '1', pair_side: 'right', is_correct: true, order: 2, score: 1 },
+        { ...baseOption, value: 'Opción B', pair_key: '2', pair_side: 'left', is_correct: true, order: 3, score: 1 },
+        { ...baseOption, value: 'Opción 2', pair_key: '2', pair_side: 'right', is_correct: true, order: 4, score: 1 }
       ]
     case '4': // Ordenamiento
       return [
-        { value: 'Primer paso', is_correct: true, order: 1, correct_order: 1, score: 1 },
-        { value: 'Segundo paso', is_correct: true, order: 2, correct_order: 2, score: 1 },
-        { value: 'Tercer paso', is_correct: true, order: 3, correct_order: 3, score: 1 }
+        { ...baseOption, value: 'Primer paso', is_correct: true, order: 1, correct_order: 1, score: 1 },
+        { ...baseOption, value: 'Segundo paso', is_correct: true, order: 2, correct_order: 2, score: 1 },
+        { ...baseOption, value: 'Tercer paso', is_correct: true, order: 3, correct_order: 3, score: 1 }
       ]
     default:
       return []

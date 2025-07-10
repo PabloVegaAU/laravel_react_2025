@@ -1,12 +1,11 @@
+import DataTable from '@/components/organisms/data-table'
 import FlashMessages from '@/components/organisms/flash-messages'
-import Table from '@/components/organisms/table'
 import { Button } from '@/components/ui/button'
 import AppLayout from '@/layouts/app-layout'
 import { useTranslations } from '@/lib/translator'
 import { ApplicationForm } from '@/types/application-form'
-import { BreadcrumbItem } from '@/types/core'
+import { BreadcrumbItem, TypedColumnDef } from '@/types/core'
 import { PaginatedResponse, ResourcePageProps } from '@/types/core/api-types'
-import { Column } from '@/types/core/ui-types'
 import { Head, Link } from '@inertiajs/react'
 import { format } from 'date-fns'
 
@@ -24,7 +23,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function ApplicationsForm({ applicationForms }: PageProps) {
   const { t } = useTranslations()
 
-  const columns: Column<ApplicationForm>[] = [
+  const columns: TypedColumnDef<ApplicationForm>[] = [
     {
       header: 'ID',
       accessorKey: 'id'
@@ -36,32 +35,29 @@ export default function ApplicationsForm({ applicationForms }: PageProps) {
     {
       header: 'Fecha de inicio',
       accessorKey: 'start_date',
-      renderCell(row) {
-        return format(new Date(row.start_date), 'dd/MM/yyyy')
-      }
+      cell: (row) => format(new Date(row.getValue() as string), 'dd/MM/yyyy')
     },
     {
       header: 'Fecha de fin',
       accessorKey: 'end_date',
-      renderCell(row) {
-        return format(new Date(row.end_date), 'dd/MM/yyyy')
-      }
+      cell: (row) => format(new Date(row.getValue() as string), 'dd/MM/yyyy')
     },
     {
       header: 'Estado',
       accessorKey: 'status',
-      renderCell: (row) => {
-        const status = String(row.status || '').toLowerCase()
+      cell: (row) => {
+        const status = String(row.getValue() || '').toLowerCase()
         return t(status, '')
       }
     },
     {
       header: 'Acciones',
-      accessorKey: 'actions',
-      renderCell: (row) => (
+      accessorKey: 'id',
+      accessorFn: (row) => row.id,
+      cell: (row) => (
         <div className='flex space-x-2'>
           <Button variant='info'>Editar</Button>
-          <Link href={`/teacher/application-forms/${row.id}/edit`}>
+          <Link href={`/teacher/application-forms/${row.getValue()}/edit`}>
             <Button variant='outline' size='sm'>
               Ver
             </Button>
@@ -80,12 +76,8 @@ export default function ApplicationsForm({ applicationForms }: PageProps) {
         <Link href='/teacher/application-forms/create'>
           <Button>Crear Ficha de Aplicación</Button>
         </Link>
-        <div className='rounded-md border'>
-          <Table columns={columns} data={applicationForms} />
-          {applicationForms.data.length === 0 && (
-            <div className='text-muted-foreground p-4 text-center text-sm'>No se encontraron fichas de aplicación</div>
-          )}
-        </div>
+
+        <DataTable columns={columns} data={applicationForms} />
       </div>
     </AppLayout>
   )

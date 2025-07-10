@@ -1,12 +1,12 @@
+import DataTable from '@/components/organisms/data-table'
 import FlashMessages from '@/components/organisms/flash-messages'
-import Table from '@/components/organisms/table'
 import { Button } from '@/components/ui/button'
 import AppLayout from '@/layouts/app-layout'
 import { useTranslations } from '@/lib/translator'
 import { ApplicationForm } from '@/types/application-form'
 import { BreadcrumbItem } from '@/types/core'
 import { PaginatedResponse, ResourcePageProps } from '@/types/core/api-types'
-import { Column } from '@/types/core/ui-types'
+import { TypedColumnDef } from '@/types/core/ui-types'
 import { Head } from '@inertiajs/react'
 import { format } from 'date-fns'
 
@@ -24,7 +24,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function ApplicationsForm({ applicationForms }: PageProps) {
   const { t } = useTranslations()
 
-  const columns: Column<ApplicationForm>[] = [
+  const columns: TypedColumnDef<ApplicationForm>[] = [
     {
       header: 'ID',
       accessorKey: 'id'
@@ -36,29 +36,25 @@ export default function ApplicationsForm({ applicationForms }: PageProps) {
     {
       header: 'Fecha de inicio',
       accessorKey: 'start_date',
-      renderCell(row) {
-        return format(row.start_date, 'dd/MM/yyyy')
-      }
+      cell: (row) => format(row.getValue() as string, 'dd/MM/yyyy')
     },
     {
       header: 'Fecha de fin',
       accessorKey: 'end_date',
-      renderCell(row) {
-        return format(row.end_date, 'dd/MM/yyyy')
-      }
+      cell: (row) => format(row.getValue() as string, 'dd/MM/yyyy')
     },
     {
       header: 'Estado',
       accessorKey: 'status',
-      renderCell: (row) => {
-        const status = String(row.status || '').toLowerCase()
+      cell: (row) => {
+        const status = String(row.getValue() || '').toLowerCase()
         return t(status, 'status')
       }
     },
     {
       header: 'Acciones',
       accessorKey: 'actions',
-      renderCell: () => <Button>Completar</Button>
+      cell: () => <Button>Completar</Button>
     }
   ]
 
@@ -68,7 +64,7 @@ export default function ApplicationsForm({ applicationForms }: PageProps) {
       <FlashMessages />
 
       <div className='flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
-        <Table columns={columns} data={applicationForms} />
+        <DataTable columns={columns} data={applicationForms} />
       </div>
     </AppLayout>
   )

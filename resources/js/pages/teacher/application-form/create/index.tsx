@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import AppLayout from '@/layouts/app-layout'
 import { cn, getNestedError } from '@/lib/utils'
 import { Competency } from '@/types/academic'
-import { TeacherClassroomCurricularArea } from '@/types/academic/teacher-classroom-area'
+import { TeacherClassroomCurricularAreaCycle } from '@/types/academic/teacher-classroom-area-cycle'
 import { ApplicationFormStatus } from '@/types/application-form/application-form'
 import { BreadcrumbItem } from '@/types/core'
 import { Question } from '@/types/question'
@@ -32,7 +32,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 interface CreateApplicationFormProps {
-  teacherClassroomAreas: TeacherClassroomCurricularArea[]
+  teacherClassroomAreaCycles: TeacherClassroomCurricularAreaCycle[]
   questions: Question[]
 }
 
@@ -43,7 +43,7 @@ type QuestionWithScore = {
   order: number
 }
 
-export default function ApplicationsForm({ teacherClassroomAreas, questions }: CreateApplicationFormProps) {
+export default function ApplicationsForm({ teacherClassroomAreaCycles, questions }: CreateApplicationFormProps) {
   const startDate = new Date()
   const endDate = new Date()
   endDate.setDate(startDate.getDate() + 7)
@@ -73,7 +73,8 @@ export default function ApplicationsForm({ teacherClassroomAreas, questions }: C
 
   useEffect(() => {
     setCompetencies(
-      teacherClassroomAreas.find((area) => area.id === Number(data.teacher_classroom_curricular_area_id))?.curricular_area?.competencies || []
+      teacherClassroomAreaCycles.find((area) => area.id === Number(data.teacher_classroom_curricular_area_id))?.curricular_area_cycle?.curricular_area
+        ?.competencies || []
     )
     setData('ls_competency_id', '')
   }, [data.teacher_classroom_curricular_area_id])
@@ -192,9 +193,9 @@ export default function ApplicationsForm({ teacherClassroomAreas, questions }: C
                   <SelectValue placeholder='Selecciona un área curricular' />
                 </SelectTrigger>
                 <SelectContent>
-                  {teacherClassroomAreas.map((area) => (
+                  {teacherClassroomAreaCycles.map((area) => (
                     <SelectItem key={area.id} value={area.id.toString()}>
-                      {area.curricular_area?.name} - {area.classroom?.level} {area.classroom?.grade} {area.classroom?.section}
+                      {area.curricular_area_cycle?.curricular_area?.name} - {area.classroom?.level} {area.classroom?.grade} {area.classroom?.section}
                     </SelectItem>
                   ))}
                 </SelectContent>

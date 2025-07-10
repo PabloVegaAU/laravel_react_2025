@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import AppLayout from '@/layouts/app-layout'
 import { cn } from '@/lib/utils'
 import { Competency } from '@/types/academic'
-import { TeacherClassroomCurricularArea } from '@/types/academic/teacher-classroom-area'
+import { TeacherClassroomCurricularAreaCycle } from '@/types/academic/teacher-classroom-area-cycle'
 import { ApplicationFormStatus } from '@/types/application-form/application-form'
 import { BreadcrumbItem } from '@/types/core'
 import { Head, useForm } from '@inertiajs/react'
@@ -31,7 +31,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface ApplicationFormProps {
   applicationForm?: any
-  teacherClassroomAreas: TeacherClassroomCurricularArea[]
+  teacherClassroomAreas: TeacherClassroomCurricularAreaCycle[]
   isEdit?: boolean
 }
 

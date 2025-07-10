@@ -9,8 +9,8 @@ import { Textarea } from '@/components/ui/textarea'
 import AppLayout from '@/layouts/app-layout'
 import { cn } from '@/lib/utils'
 import { Competency } from '@/types/academic'
-import { TeacherClassroomCurricularArea } from '@/types/academic/teacher-classroom-area'
-import { ApplicationFormStatus } from '@/types/application-form/application-form'
+import { TeacherClassroomCurricularAreaCycle } from '@/types/academic/teacher-classroom-area-cycle'
+import { ApplicationForm, ApplicationFormStatus } from '@/types/application-form/application-form'
 import { BreadcrumbItem } from '@/types/core'
 import { Head, useForm } from '@inertiajs/react'
 import { endOfDay, format, startOfDay } from 'date-fns'
@@ -30,8 +30,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 interface ApplicationFormProps {
-  applicationForm?: any
-  teacherClassroomAreas: TeacherClassroomCurricularArea[]
+  applicationForm: ApplicationForm
+  teacherClassroomAreas: TeacherClassroomCurricularAreaCycle[]
   isEdit?: boolean
 }
 
@@ -64,19 +64,19 @@ export default function EditApplicationForm({ applicationForm, teacherClassroomA
   const dateLocale = es
 
   const { data, setData, put, post, processing, errors, reset } = useForm({
-    teacher_classroom_curricular_area_id: applicationForm?.teacher_classroom_curricular_area_id || '',
+    teacher_classroom_curricular_area_id: applicationForm.teacher_classroom_curricular_area_id.toString(),
     /* Campos Sesión de Aprendizaje */
-    ls_name: applicationForm?.learning_session?.name || '',
-    ls_purpose_learning: applicationForm?.learning_session?.purpose_learning || '',
+    ls_name: applicationForm.learning_session?.name || '',
+    ls_purpose_learning: applicationForm.learning_session?.purpose_learning || '',
     ls_application_date: learningSessionDate.toISOString().split('T')[0],
-    ls_competency_id: applicationForm?.learning_session?.competency_id || '',
+    ls_competency_id: applicationForm.learning_session?.competency_id || '',
     /* Campos Ficha de Aplicación */
-    name: applicationForm?.name || '',
-    description: applicationForm?.description || '',
-    start_date: applicationForm?.start_date ? new Date(applicationForm.start_date) : defaultStartDate,
-    end_date: applicationForm?.end_date ? new Date(applicationForm.end_date) : defaultEndDate,
-    status: (applicationForm?.status as ApplicationFormStatus) || 'draft',
-    score_max: applicationForm?.score_max || 100,
+    name: applicationForm.name || '',
+    description: applicationForm.description || '',
+    start_date: applicationForm.start_date ? new Date(applicationForm.start_date) : defaultStartDate,
+    end_date: applicationForm.end_date ? new Date(applicationForm.end_date) : defaultEndDate,
+    status: (applicationForm.status as ApplicationFormStatus) || 'draft',
+    score_max: applicationForm.score_max || 100,
     _method: isEdit ? 'put' : 'post'
   })
 
