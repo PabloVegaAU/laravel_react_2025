@@ -1,72 +1,219 @@
 # Modelo ApplicationForm
 
-## Ubicación del archivo
-- `app/Models/ApplicationForm.php`
+## 📌 Ubicación
+- **Modelo**: `app/Models/ApplicationForm.php`
+- **Migración**: `database/migrations/2025_06_22_100330_create_application_forms_table.php`
+- **Tabla Pivote**: `application_form_questions`
+- **Controladores**: `app/Http/Controllers/Teacher/ApplicationFormController.php`
+- **Vistas React**: `resources/js/pages/teacher/application-forms/`
+- **TypeScript**: `resources/js/types/application-form.d.ts`
 
-## Migración relacionada
-- `database/migrations/2025_06_22_100330_create_application_forms_table.php`
+## 📝 Descripción
+El modelo `ApplicationForm` representa un formulario de evaluación o práctica que los profesores pueden crear para evaluar a los estudiantes en el contexto de una sesión de aprendizaje. Cada formulario puede contener múltiples preguntas y está asociado a un área curricular específica dentro de un aula a través de `teacher_classroom_curricular_area_cycle_id`.
 
-## Descripción
-El modelo ApplicationForm representa un formulario de aplicación o práctica que los profesores pueden crear para sus estudiantes.
+## 🏗️ Estructura de la Base de Datos
 
-## Estructura de la base de datos
-### Tabla: `application_forms`
-- **Clave primaria**: `id` (bigint autoincremental)
-- **Soft deletes**: Sí
+### 📊 Tabla: `application_forms`
+
+#### 🔑 Claves
+- **Primaria**: `id` (bigint autoincremental)
+- **Foráneas**:
+  - `teacher_id` → `teachers(id)` (cascadeOnDelete)
+  - `learning_session_id` → `learning_sessions(id)` (restrictOnDelete)
+  - `teacher_classroom_curricular_area_cycle_id` → `teacher_classroom_curricular_area_cycles(id)`
 - **Índices**:
   - `idx_application_form_status` (status)
   - `idx_application_form_start_date` (start_date)
   - `idx_application_form_end_date` (end_date)
-  - `idx_application_form_tcca` (teacher_classroom_curricular_area_id)
-  - `idx_application_form_teacher` (teacher_id)
   - `idx_application_form_learning_session` (learning_session_id)
   - `idx_application_form_scheduling` (status, start_date, end_date) - Índice compuesto
 
-### Estructura de columnas
-| Columna | Tipo | Nulo | Default | Comentario |
-|---------|------|------|---------|------------|
+#### 📋 Columnas
+| Columna | Tipo | Nulo | Default | Descripción |
+|---------|------|------|---------|-------------|
 | id | bigint | No | Auto | Identificador único |
 | name | string | No | - | Nombre del formulario |
 | description | text | Sí | null | Descripción detallada |
-| teacher_classroom_curricular_area_id | bigint | No | - | FK a teacher_classroom_curricular_areas |
-| teacher_id | bigint | No | - | FK a teachers (user_id) |
-| learning_session_id | bigint | No | - | FK a learning_sessions |
-| status | enum | No | 'draft' | Estado del formulario |
-| score_max | decimal(10,2) | No | - | Puntuación máxima posible |
-| start_date | datetime | No | - | Fecha de inicio |
-| end_date | datetime | No | - | Fecha de finalización |
-| created_at | timestamp | No | - | Fecha de creación |
-| updated_at | timestamp | No | - | Fecha de actualización |
-| deleted_at | timestamp | Sí | null | Fecha de eliminación |
+| teacher_id | bigint | No | - | ID del profesor creador |
+| learning_session_id | bigint | No | - | Sesión de aprendizaje relacionada |
+| teacher_classroom_curricular_area_cycle_id | bigint | No | - | Relación con el aula/área curricular |
+| status | enum | No | 'draft' | Estado del formulario (draft, scheduled, active, inactive, archived) |
+| score_max | decimal(10,2) | No | 0.00 | Puntuación máxima posible |
+| start_date | datetime | No | - | Fecha/hora de inicio de disponibilidad |
+| end_date | datetime | No | - | Fecha/hora de finalización de disponibilidad |
+| created_at | timestamp | No | current_timestamp | Fecha de creación |
+| updated_at | timestamp | No | current_timestamp | Fecha de actualización |
+| deleted_at | timestamp | Sí | null | Fecha de eliminación (soft delete) |
 
-### Valores de status
+#### 📌 Enumeraciones
+**status**: Estados posibles del formulario
 - `draft`: Borrador (solo visible para el profesor)
-- `scheduled`: Programada (visible pero no accesible)
-- `active`: Activa (disponible para los estudiantes)
-- `inactive`: Inactiva (no visible)
-- `archived`: Archivada (solo lectura)
+- `scheduled`: Programado (visible pero no accesible)
+- `active`: Activo (disponible para los estudiantes)
+- `inactive`: Inactivo (no visible)
+- `archived`: Archivado (solo lectura)
+- `inactive`: Inactivo (no visible)
+- `archived`: Archivado (solo lectura)
 
-### Restricciones de clave foránea
-- `teacher_classroom_curricular_area_id` referencia a `teacher_classroom_curricular_areas(id)` con `ON DELETE RESTRICT`
-- `teacher_id` referencia a `teachers(user_id)` con `ON DELETE RESTRICT`
-- `learning_session_id` referencia a `learning_sessions(id)` con `ON DELETE RESTRICT`
+## 🤝 Relaciones
 
-## Relaciones
-- `teacherClassroomCurricularArea`: Relación BelongsTo con TeacherClassroomCurricularArea
-- `teacher`: Relación BelongsTo con Teacher
-- `learningSession`: Relación BelongsTo con LearningSession
-- `applicationFormQuestions`: Relación HasMany con ApplicationFormQuestion
-- `questions`: Relación HasManyThrough con Question a través de ApplicationFormQuestion
-- `applicationFormResponses`: Relación HasMany con ApplicationFormResponse
+### 🔄 Uno a Muchos (Inversa)
+- **`teacher`**: `BelongsTo`
+  - Relación con el profesor creador del formulario
+  - Clave foránea: `teacher_id`
+  - Método: `$this->belongsTo(Teacher::class, 'teacher_id')`
 
-## Métodos importantes
-- `isActive()`: Verifica si el formulario está activo
-- `isScheduled()`: Verifica si el formulario está programado
-- `isAvailable()`: Verifica si el formulario está disponible para los estudiantes
-- `isEditable()`: Verifica si el formulario se puede editar
+- **`learningSession`**: `BelongsTo`
+  - Relación con la sesión de aprendizaje asociada
+  - Clave foránea: `learning_session_id`
+  - Método: `$this->belongsTo(LearningSession::class)`
 
-## Notas adicionales
-- Utiliza SoftDeletes para eliminación lógica
-- Incluye índices optimizados para consultas frecuentes
-- Mantiene un historial de cambios a través de los timestamps
-- La relación con Teacher es redundante (ya existe a través de TeacherClassroomCurricularArea) pero mejora el rendimiento de consultas
+- **`teacherClassroomCurricularAreaCycle`**: `BelongsTo`
+  - Relación con la asignación de aula/área curricular
+  - Clave foránea: `teacher_classroom_curricular_area_cycle_id`
+  - Método: `$this->belongsTo(TeacherClassroomCurricularAreaCycle::class)`
+
+### 🔄 Uno a Muchos
+- **`applicationFormQuestions`**: `HasMany`
+  - Preguntas asociadas a este formulario
+  - Clave foránea: `application_form_id` en `application_form_questions`
+  - Método: `$this->hasMany(ApplicationFormQuestion::class)`
+
+- **`questions`**: `HasManyThrough`
+  - Preguntas asociadas a través de la tabla `application_form_questions`
+  - Método: `$this->hasManyThrough(Question::class, ApplicationFormQuestion::class, 'application_form_id', 'id', 'id', 'question_id')`
+  - Permite acceder directamente a las preguntas relacionadas
+
+- **`responses`**: `HasMany`
+  - Respuestas recibidas para este formulario
+  - Clave foránea: `application_form_id` en `application_form_responses`
+  - Método: `$this->hasMany(ApplicationFormResponse::class)`
+  - Se eliminan en cascada cuando se elimina el formulario
+
+## 🛠️ Métodos
+
+### Scopes
+- `scopeActive(Builder $query)`: Filtra formularios activos
+- `scopeForTeacher(Builder $query, int $teacherId)`: Filtra formularios por profesor
+- `scopeScheduledBetween(Builder $query, $start, $end)`: Filtra formularios programados en un rango de fechas
+
+### Helpers
+- `isActive()`: `bool`
+  - Verifica si el formulario está activo actualmente
+  - Retorna `true` si el estado es 'active' y la fecha actual está entre start_date y end_date
+
+  - Retorna el promedio de puntuación de todas las respuestas
+  - Retorna null si no hay respuestas
+
+### Gestión de Preguntas
+- `addQuestion(Question $question, int $points, int $order = null)`: `ApplicationFormQuestion`
+  - Añade una pregunta al formulario
+  - Parámetros:
+    - `question`: Instancia de Question
+    - `points`: Puntos que vale la pregunta
+    - `order`: Orden de la pregunta (opcional)
+
+## Eventos
+- `creating`: Valida las fechas y el estado antes de crear
+- `updating`: Valida los cambios en fechas y estado
+- `deleting`: Impide la eliminación si tiene respuestas
+
+## Validaciones
+- El `start_date` debe ser anterior a `end_date`
+- No se puede cambiar el estado a `active` sin preguntas
+- No se puede editar si el estado es `archived`
+
+## Uso con API
+### Endpoints Relacionados
+- `GET /api/application-forms` - Listar formularios
+- `POST /api/application-forms` - Crear formulario
+- `GET /api/application-forms/{id}` - Ver formulario
+- `PUT /api/application-forms/{id}` - Actualizar formulario
+- `DELETE /api/application-forms/{id}` - Eliminar formulario
+- `POST /api/application-forms/{id}/questions` - Añadir pregunta
+
+### Ejemplo de Respuesta JSON
+```json
+{
+  "id": 1,
+  "name": "Evaluación de Matemáticas",
+  "description": "Evaluación sobre álgebra básica",
+  "status": "active",
+  "score_max": 100.00,
+  "start_date": "2025-07-10T08:00:00.000000Z",
+  "end_date": "2025-07-17T23:59:59.000000Z",
+  "teacher_classroom_curricular_area_cycle_id": 5,
+  "teacher_id": 3,
+  "learning_session_id": 12,
+  "created_at": "2025-07-01T10:30:00.000000Z",
+  "updated_at": "2025-07-01T10:30:00.000000Z",
+  "questions_count": 10,
+  "responses_count": 25
+}
+```
+
+## TypeScript
+```typescript
+interface ApplicationForm {
+  id: number;
+  name: string;
+  description: string | null;
+  status: 'draft' | 'scheduled' | 'active' | 'inactive' | 'archived';
+  score_max: number;
+  start_date: string; // ISO 8601
+  end_date: string;   // ISO 8601
+  teacher_classroom_curricular_area_cycle_id: number;
+  teacher_id: number;
+  learning_session_id: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  
+  // Relación con asignación profesor/aula/área/ciclo
+  teacherClassroomCurricularAreaCycle: {
+    id: number;
+    teacher: {
+      id: number;
+      user: {
+        name: string;
+      };
+    };
+    classroom: {
+      id: number;
+      name: string;
+    };
+    curricularAreaCycle: {
+      id: number;
+      curricularArea: {
+        id: number;
+        name: string;
+      };
+      cycle: {
+        id: number;
+        name: string;
+      };
+    };
+  };
+  // Relaciones opcionales
+  teacherClassroomCurricularAreaCycle?: TeacherClassroomCurricularAreaCycle;
+  teacher?: Teacher;
+  learningSession?: LearningSession;
+  questions?: ApplicationFormQuestion[];
+  responses?: ApplicationFormResponse[];
+  classroom?: Classroom;
+  curricularArea?: CurricularArea;
+}
+```
+
+## Buenas Prácticas
+1. **Validación**: Usar Form Requests para validar la creación/actualización
+2. **Autorización**: Implementar políticas para controlar el acceso
+3. **Rendimiento**: Cargar relaciones con `with()` cuando sea necesario
+4. **Transacciones**: Usar transacciones para operaciones atómicas
+5. **Eventos**: Escuchar eventos para lógica de negocio compleja
+
+## Consideraciones de Seguridad
+- Solo los profesores pueden crear/editar formularios
+- Los estudiantes solo pueden ver formularios activos
+- Validar permisos para ver respuestas
+- Sanitizar entradas para prevenir XSS
