@@ -1,5 +1,5 @@
 import { useUserStore } from '@/store/useUserStore'
-import { SharedData } from '@/types'
+import { SharedData } from '@/types/core'
 import { Head, Link, usePage } from '@inertiajs/react'
 import { useEffect } from 'react'
 

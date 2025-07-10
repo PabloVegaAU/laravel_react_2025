@@ -1,6 +1,6 @@
 import { Classroom } from '../academic/classroom'
 import { CurricularArea } from '../academic/curricular-area'
-import { TeacherClassroomCurricularArea } from '../academic/teacher-classroom-area'
+import { TeacherClassroomCurricularArea } from '../academic/teacher-classroom-area-cycle'
 import { ApplicationForm } from '../application-form/application-form'
 import { User } from './user'
 

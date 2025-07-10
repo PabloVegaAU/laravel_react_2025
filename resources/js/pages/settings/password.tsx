@@ -1,7 +1,7 @@
 import InputError from '@/components/input-error'
 import AppLayout from '@/layouts/app-layout'
 import SettingsLayout from '@/layouts/settings/layout'
-import { type BreadcrumbItem } from '@/types'
+import { type BreadcrumbItem } from '@/types/core'
 import { Transition } from '@headlessui/react'
 import { Head, useForm } from '@inertiajs/react'
 import { FormEventHandler, useRef } from 'react'

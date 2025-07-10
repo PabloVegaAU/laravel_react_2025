@@ -11,6 +11,9 @@ const buttonVariants = cva(
       variant: {
         // Base (filled)
         default: 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 dark:bg-primary/90 dark:hover:bg-primary/80',
+
+          secondary:"bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
+
         destructive: 'bg-destructive text-white shadow-xs hover:bg-destructive/90 dark:bg-destructive/90 dark:hover:bg-destructive/80',
         success: 'bg-green-600 text-white shadow-xs hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800',
         warning: 'bg-yellow-500 text-white shadow-xs hover:bg-yellow-600 dark:bg-yellow-600 dark:hover:bg-yellow-700',

@@ -2,7 +2,7 @@ import { Enrollment } from '../enrollment'
 import { Student } from '../user/student'
 import { Teacher } from '../user/teacher'
 import { Cycle } from './cycle'
-import { TeacherClassroomCurricularArea } from './teacher-classroom-area'
+import { TeacherClassroomCurricularArea } from './teacher-classroom-area-cycle'
 
 /**
  * Representa un aula en la institución educativa

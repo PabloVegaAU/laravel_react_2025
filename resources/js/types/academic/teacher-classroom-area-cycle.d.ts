@@ -2,14 +2,15 @@ import { ApplicationForm } from '../../application-form/form'
 import { Teacher } from '../user/teacher'
 import { Classroom } from './classroom'
 import { CurricularArea } from './curricular-area'
+import { CurricularAreaCycle } from './curricular_area_cycle'
 
 /**
  * Relación entre profesor, aula y área curricular
  * Basado en:
- * - Migración: database/migrations/2025_06_22_100150_create_teacher_classroom_curricular_areas_table.php
- * - Modelo: app/Models/TeacherClassroomCurricularArea.php
+ * - Migración: database/migrations/2025_06_22_100150_create_teacher_classroom_curricular_area_cycles_table.php
+ * - Modelo: app/Models/TeacherClassroomCurricularAreaCycle.php
  */
-export interface TeacherClassroomCurricularArea {
+export interface TeacherClassroomCurricularAreaCycle {
   /** ID único */
   id: number
 
@@ -40,7 +41,7 @@ export interface TeacherClassroomCurricularArea {
   classroom?: Classroom
 
   /** Área curricular */
-  curricular_area?: CurricularArea
+  curricular_area_cycle?: CurricularAreaCycle
 
   /** Formularios de aplicación asociados */
   application_forms?: ApplicationForm[]

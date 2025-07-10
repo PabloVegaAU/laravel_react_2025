@@ -1,6 +1,6 @@
 import { Classroom } from '../academic/classroom'
 import { CurricularArea } from '../academic/curricular-area'
-import { TeacherClassroomCurricularArea } from '../academic/teacher-classroom-area'
+import { TeacherClassroomCurricularArea } from '../academic/teacher-classroom-area-cycle'
 import { LearningSession } from '../learning/learning-session'
 import { Teacher } from '../user/teacher'
 import { ApplicationFormQuestion } from './application-form-question'
@@ -46,7 +46,7 @@ export interface ApplicationForm {
   teacher?: Teacher
 
   /** The learning session this form is associated with */
-  learningSession?: LearningSession
+  learning_session?: LearningSession
 
   /** Questions in this form */
   questions?: ApplicationFormQuestion[]
@@ -72,7 +72,7 @@ export type CreateApplicationForm = Omit<
   | 'deleted_at'
   | 'teacherClassroomCurricularArea'
   | 'teacher'
-  | 'learningSession'
+  | 'learning_session'
   | 'questions'
   | 'responses'
   | 'classroom'
