@@ -12,7 +12,6 @@ use App\Models\Question;
 use App\Models\TeacherClassroomCurricularAreaCycle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
@@ -168,55 +167,53 @@ class ApplicationFormController extends Controller
                 ApplicationFormQuestion::insert($applicationFormQuestions);
             }
 
+            // Después de insertar las preguntas del formulario, obtenemos los IDs generados
+            $insertedQuestions = ApplicationFormQuestion::where('application_form_id', $applicationForm->id)->get();
+
+            // Creamos un mapa de question_id a application_form_question_id
+            $questionIdMap = $insertedQuestions->pluck('id', 'question_id');
+
             // Obtener estudiantes del aula para crear respuestas
-            $classroom = TeacherClassroomCurricularAreaCycle::with(['classroom.students' => function ($query) {
-                $query->whereHas('enrollments', function ($q) {
-                    $q->where('status', 'active');
-                });
+            $teacherClassroomCurricularAreaCycle = TeacherClassroomCurricularAreaCycle::with(['classroom.students' => function ($query) {
+                $query->select('students.*')
+                    ->whereHas('enrollments', function ($q) {
+                        $q->where('status', 'active');
+                    });
             }])->findOrFail($validated['teacher_classroom_curricular_area_cycle_id']);
 
-            if ($classroom->classroom && $classroom->classroom->students->isNotEmpty()) {
-                $applicationFormResponses = [];
-                $applicationFormResponseQuestions = [];
+            if ($teacherClassroomCurricularAreaCycle->classroom && $teacherClassroomCurricularAreaCycle->classroom->students->isNotEmpty()) {
                 $now = now();
 
-                foreach ($classroom->classroom->students as $student) {
-                    $responseId = (string) Str::uuid();
-
-                    $applicationFormResponses[] = [
-                        'id' => $responseId,
-                        'student_id' => $student->id,
-                        'application_form_id' => $applicationForm->id,
-                        'status' => 'pending',
+                foreach ($teacherClassroomCurricularAreaCycle->classroom->students as $student) {
+                    $applicationFormResponses = [
                         'score' => 0,
+                        'status' => 'pending',
                         'started_at' => null,
-                        'completed_at' => null,
-                        'created_at' => $now,
-                        'updated_at' => $now,
+                        'submitted_at' => null,
+                        'graded_at' => null,
+                        'application_form_id' => $applicationForm->id,
+                        'student_id' => $student->user_id,
                     ];
 
+                    $applicationFormResponse = ApplicationFormResponse::create($applicationFormResponses);
+
                     // Preparar preguntas de respuesta para inserción masiva
+                    $applicationFormResponseQuestions = [];
                     foreach ($validated['questions'] as $question) {
+                        // Usamos el mapa para obtener el ID correcto
+                        $appFormQuestionId = $questionIdMap[$question['id']] ?? null;
+
                         $applicationFormResponseQuestions[] = [
-                            'id' => (string) Str::uuid(),
-                            'application_form_response_id' => $responseId,
-                            'question_id' => $question['id'],
-                            'score' => 0,
-                            'is_correct' => false,
-                            'feedback' => null,
-                            'created_at' => $now,
-                            'updated_at' => $now,
+                            'application_form_response_id' => $applicationFormResponse->id,
+                            'application_form_question_id' => $appFormQuestionId,
+                            'question_option_id' => null,
+                            'explanation' => '',
+                            'score' => $question['score'],
+                            'points_store' => $question['points_store'],
                         ];
                     }
-                }
 
-                // Insertar respuestas y preguntas de forma masiva
-                if (! empty($applicationFormResponses)) {
-                    ApplicationFormResponse::insert($applicationFormResponses);
-                }
-
-                if (! empty($applicationFormResponseQuestions)) {
-                    ApplicationFormResponseQuestion::insert($applicationFormResponseQuestions);
+                    ApplicationFormResponseQuestion::insert(values: $applicationFormResponseQuestions);
                 }
             }
 
@@ -227,7 +224,6 @@ class ApplicationFormController extends Controller
                 ->with('success', 'Ficha de aplicación creada exitosamente');
         } catch (ValidationException $e) {
             DB::rollBack();
-            dd($e);
 
             return back()
                 ->withInput()
@@ -235,7 +231,6 @@ class ApplicationFormController extends Controller
                 ->with('error', 'Ocurrió un error inesperado al guardar la sesión. Intenta nuevamente.');
         } catch (\Throwable $e) {
             DB::rollBack();
-            dd($e);
 
             return back()
                 ->withInput()

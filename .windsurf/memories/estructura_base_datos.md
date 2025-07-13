@@ -975,7 +975,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `student_id`: FK a users (bigint)
   - `score`: Puntuación obtenida (decimal 10,2, nullable)
   - `status`: Estado (enum: 'pending', 'in_progress', 'submitted', 'in_review', 'graded', 'returned', 'late')
-  - `started_at`, `completed_at`: Marcas de tiempo
+  - `started_at`, `submitted_at`: Marcas de tiempo
   - `feedback`: Retroalimentación general (text, nullable)
   - `created_at`, `updated_at`: Marcas de tiempo
 
