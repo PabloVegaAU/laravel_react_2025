@@ -9,21 +9,151 @@
 - **TypeScript**: `resources/js/types/learning-session.d.ts`
 
 ## 📝 Descripción
-El modelo `LearningSession` representa una sesión de aprendizaje dentro del sistema educativo. Está diseñado para que los profesores puedan planificar y gestionar sus clases, vinculando competencias, capacidades y desempeños esperados.
+El modelo `LearningSession` representa una sesión de aprendizaje dentro del sistema educativo. Permite a los profesores planificar y gestionar sus clases, vinculando competencias, capacidades y desempeños esperados. El modelo utiliza `SoftDeletes` para eliminación lógica y sigue las mejores prácticas de Laravel con tipado estricto y relaciones bien definidas.
 
-## 🏗️ Estructura de la Base de Datos
+## 🏗️ Estructura del Modelo
+
+### 📋 Atributos
+
+#### 🔹 Fillable
+- `name`: Nombre de la sesión
+- `purpose_learning`: Propósito de aprendizaje
+- `application_date`: Fecha de aplicación
+- `status`: Estado (draft/active/inactive)
+- `performances`: Desempeños esperados (array)
+- `start_sequence`: Secuencia de inicio
+- `end_sequence`: Secuencia de cierre
+- `educational_institution_id`: ID de la institución
+- `teacher_classroom_curricular_area_cycle_id`: Asignación profesor-aula-área-ciclo
+- `competency_id`: ID de la competencia
+
+#### 🔹 Casts
+- `application_date` → `date`
+- `performances` → `array`
+- `created_at` → `datetime`
+- `updated_at` → `datetime`
+- `deleted_at` → `datetime`
+
+## 🔄 Relaciones
+
+### belongsTo
+- `educationalInstitution()`: Institución educativa
+- `competency()`: Competencia relacionada
+- `teacherClassroomCurricularAreaCycle()`: Asignación de profesor
+
+### hasMany
+- `applicationForms()`: Formularios de aplicación asociados
+
+### belongsToMany
+- `capabilities()`: Capacidades vinculadas (a través de `learning_session_capabilities`)
+
+## 🗃️ Estructura de la Base de Datos
 
 ### 📊 Tabla: `learning_sessions`
 
 #### 🔑 Claves
-- **Primaria**: `id` (bigint autoincremental)
+- **Primaria**: `id` (bigint UNSIGNED)
 - **Foráneas**:
-  - `educational_institution_id` (referencia a `educational_institutions.id`)
-  - `teacher_classroom_curricular_area_cycle_id` (referencia a `teacher_classroom_curricular_area_cycles.id`)
-  - `competency_id` (referencia a `competencies.id`)
-- **Índices**:
-  - `idx_learning_sessions_status` (status)
-  - `idx_learning_sessions_application_date` (application_date)
+  - `educational_institution_id` → `educational_institutions.id`
+  - `teacher_classroom_curricular_area_cycle_id` → `teacher_classroom_curricular_area_cycles.id`
+  - `competency_id` → `competencies.id`
+
+#### 📋 Columnas
+- `id`: bigint UNSIGNED, NOT NULL, AUTO_INCREMENT
+- `name`: varchar(255), NOT NULL
+- `purpose_learning`: text, NOT NULL
+- `application_date`: date, NOT NULL
+- `status`: enum('draft','active','inactive'), NOT NULL DEFAULT 'draft'
+- `performances`: text, NOT NULL
+- `start_sequence`: text, NOT NULL
+- `end_sequence`: text, NOT NULL
+- `educational_institution_id`: bigint UNSIGNED, NOT NULL
+- `teacher_classroom_curricular_area_cycle_id`: bigint UNSIGNED, NOT NULL
+- `competency_id`: bigint UNSIGNED, NOT NULL
+- `created_at`: timestamp, NULL
+- `updated_at`: timestamp, NULL
+- `deleted_at`: timestamp, NULL
+
+#### 🔍 Índices
+- `learning_sessions_educational_institution_id_foreign` (`educational_institution_id`)
+- `learning_sessions_teacher_classroom_curricular_area_cycle_id_foreign` (`teacher_classroom_curricular_area_cycle_id`)
+- `learning_sessions_competency_id_foreign` (`competency_id`)
+- `idx_learning_sessions_status` (`status`)
+- `idx_learning_sessions_application_date` (`application_date`)
+
+## 🛠️ Uso y Ejemplos
+
+### Crear una nueva sesión
+```php
+$session = LearningSession::create([
+    'name' => 'Álgebra Básica',
+    'purpose_learning' => 'Aprender conceptos fundamentales de álgebra',
+    'application_date' => '2025-08-15',
+    'status' => 'draft',
+    'performances' => json_encode(['Resolver ecuaciones', 'Graficar funciones']),
+    'start_sequence' => 'Introducción al álgebra...',
+    'end_sequence' => 'Cierre de la sesión...',
+    'educational_institution_id' => 1,
+    'teacher_classroom_curricular_area_cycle_id' => 1,
+    'competency_id' => 1
+]);
+```
+
+### Obtener sesiones activas
+```php
+$activeSessions = LearningSession::where('status', 'active')
+    ->where('application_date', '>=', now())
+    ->with(['capabilities', 'competency'])
+    ->get();
+```
+
+### Añadir capacidades a una sesión
+```php
+$session->capabilities()->attach([1, 2, 3]);
+```
+
+## 🔍 Scopes Útiles
+
+```php
+// En el modelo LearningSession
+public function scopeActive($query)
+{
+    return $query->where('status', 'active');
+}
+
+public function scopeUpcoming($query)
+{
+    return $query->where('application_date', '>=', now());
+}
+
+public function scopeForTeacher($query, $teacherId)
+{
+    return $query->whereHas('teacherClassroomCurricularAreaCycle', function($q) use ($teacherId) {
+        $q->where('teacher_id', $teacherId);
+    });
+}
+```
+
+## 🔄 Eventos
+
+- `creating`: Validar fechas y estados
+- `updating`: Registrar cambios importantes
+- `deleting`: Verificar restricciones
+
+## 📝 Notas de Implementación
+
+1. **Validaciones**:
+   - La fecha de aplicación debe ser futura
+   - El estado debe ser uno de los permitidos
+   - Los IDs de relaciones deben existir
+
+2. **Seguridad**:
+   - Verificar permisos antes de crear/editar/eliminar
+   - Usar políticas para control de acceso
+
+3. **Rendimiento**:
+   - Usar eager loading para relaciones
+   - Considerar caché para consultas frecuentes
   - `idx_learning_sessions_institution` (educational_institution_id)
   - `idx_learning_sessions_competency` (competency_id)
 

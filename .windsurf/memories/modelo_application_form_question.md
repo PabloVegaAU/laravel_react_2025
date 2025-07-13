@@ -1,18 +1,19 @@
-# Modelo ApplicationFormQuestion
+# 🗂️ Modelo ApplicationFormQuestion
 
 ## 📌 Ubicación
 - **Modelo**: `app/Models/ApplicationFormQuestion.php`
 - **Migración**: `database/migrations/2025_06_22_100350_create_application_form_questions_table.php`
-- **Controladores**: `app/Http/Controllers/Teacher/ApplicationFormQuestionController.php`
-- **TypeScript**: `resources/js/types/application-form-question.d.ts`
+- **Tipo TypeScript**: `resources/js/types/application-form-question.d.ts`
+
+## 🔄 Modelos Relacionados
+- `ApplicationForm` (belongsTo)
+- `Question` (belongsTo)
+- `ApplicationFormResponseQuestion` (hasMany)
+- `QuestionOption` (a través de Question)
+- `ApplicationFormResponseQuestionOption` (a través de ApplicationFormResponseQuestion)
 
 ## 📝 Descripción
-El modelo `ApplicationFormQuestion` representa la relación entre un formulario de aplicación (ApplicationForm) y las preguntas que lo componen. Este modelo permite:
-
-- Definir el orden de las preguntas dentro de un formulario
-- Establecer puntuaciones específicas por pregunta
-- Asignar puntos de tienda por respuestas correctas
-- Gestionar la relación muchos a muchos entre formularios y preguntas
+El modelo `ApplicationFormQuestion` establece la relación entre `ApplicationForm` y `Question`, permitiendo la reutilización de preguntas en múltiples formularios con configuraciones específicas.
 
 ## 🏗️ Estructura de la Base de Datos
 
@@ -21,8 +22,8 @@ El modelo `ApplicationFormQuestion` representa la relación entre un formulario 
 #### 🔑 Claves
 - **Primaria**: `id` (bigint autoincremental)
 - **Foráneas**:
-  - `application_form_id` → `application_forms(id)` (cascadeOnDelete)
-  - `question_id` → `questions(id)` (restrictOnDelete)
+  - `application_form_id` → `application_forms.id` (cascadeOnDelete)
+  - `question_id` → `questions.id` (restrictOnDelete)
 - **Índices**:
   - `uq_application_form_question` (application_form_id, question_id) - Índice único compuesto
   - `idx_application_form_question_application_form` (application_form_id)
@@ -35,80 +36,72 @@ El modelo `ApplicationFormQuestion` representa la relación entre un formulario 
 | id | bigint | No | Auto | Identificador único |
 | application_form_id | bigint | No | - | Referencia al formulario de aplicación |
 | question_id | bigint | No | - | Referencia a la pregunta |
-| order | int | No | - | Orden de la pregunta en el formulario (1-based) |
-| score | decimal(10,2) | No | 0.00 | Puntaje máximo de la pregunta |
-| points_store | decimal(10,2) | No | 0.00 | Puntos que otorga en la tienda al responder correctamente |
-| created_at | timestamp | No | current_timestamp | Fecha de creación |
-| updated_at | timestamp | No | current_timestamp | Fecha de actualización |
+| order | int | No | 0 | Orden de la pregunta en el formulario |
+| is_required | boolean | No | true | Indica si la pregunta es obligatoria |
+| created_at | timestamp | No | CURRENT_TIMESTAMP | Fecha de creación |
+| updated_at | timestamp | No | CURRENT_TIMESTAMP | Fecha de actualización |
+| deleted_at | timestamp | Sí | NULL | Fecha de eliminación (soft delete) |
 
 ## 🤝 Relaciones
 
-### 🔄 Pertenece a (Belongs To)
-- **`applicationForm`**: `BelongsTo`
-  - Relación con el formulario de aplicación
-  - Clave foránea: `application_form_id`
-  - Eliminación en cascada
-  - Método: `$this->belongsTo(ApplicationForm::class)->cascadeOnDelete()`
+### applicationForm (BelongsTo)
+- **Modelo**: `ApplicationForm`
+- **Clave foránea**: `application_form_id`
+- **Eliminación**: `cascadeOnDelete`
+- **Índice**: `idx_application_form_question_application_form`
 
-- **`question`**: `BelongsTo`
-  - Relación con la pregunta
-  - Clave foránea: `question_id`
-  - Restricción de eliminación (no se puede eliminar una pregunta usada en formularios)
-  - Método: `$this->belongsTo(Question::class)->restrictOnDelete()`
+### question (BelongsTo)
+- **Modelo**: `Question`
+- **Clave foránea**: `question_id`
+- **Eliminación**: `restrictOnDelete`
+- **Índice**: `idx_application_form_question_question`
 
-### 🔄 Tiene muchos (Has Many)
-- **`responseQuestions`**: `HasMany`
-  - Relación con las respuestas a esta pregunta específica en el formulario
-  - Clave foránea: `application_form_question_id` en `application_form_response_questions`
-  - Método: `$this->hasMany(ApplicationFormResponseQuestion::class, 'application_form_question_id')`
+### responseQuestions (HasMany)
+- **Modelo**: `ApplicationFormResponseQuestion`
+- **Clave foránea**: `application_form_question_id`
+- **Eliminación**: `cascadeOnDelete`
 
 ## 🛠️ Métodos
 
-### Getters/Setters
-- `getOrderedQuestions(int $formId)`: Obtiene las preguntas ordenadas de un formulario
-- `calculateTotalScore(int $formId)`: Calcula la puntuación total del formulario
-- `getQuestionsWithAnswers(int $formId, int $responseId)`: Obtiene preguntas con respuestas de un estudiante
+### boot()
+- **Propósito**: Inicializar los observadores del modelo
+- **Comportamiento**:
+  - Agrega el evento `creating` para establecer el orden de la pregunta si no se proporciona
 
-### Helpers
-- `reorderQuestions(array $questionIds)`: Reordena las preguntas del formulario
-- `attachQuestion(int $formId, int $questionId, array $attributes)`: Añade una pregunta al formulario
-- `detachQuestion(int $formId, int $questionId)`: Elimina una pregunta del formulario
+### applicationForm()
+- **Tipo**: belongsTo
+- **Modelo**: `ApplicationForm`
+- **Retorna**: Relación con el formulario de aplicación
 
-## 📊 Ejemplo de Uso
+### question()
+- **Tipo**: belongsTo
+- **Modelo**: `Question`
+- **Retorna**: Relación con la pregunta base
 
-```php
-// Obtener todas las preguntas de un formulario ordenadas
-$questions = ApplicationFormQuestion::where('application_form_id', $formId)
-    ->orderBy('order')
-    ->with('question')
-    ->get();
+### responseQuestions()
+- **Tipo**: hasMany
+- **Modelo**: `ApplicationFormResponseQuestion`
+- **Retorna**: Colección de respuestas a esta pregunta en formularios
 
-// Añadir una pregunta a un formulario
-ApplicationFormQuestion::create([
-    'application_form_id' => $formId,
-    'question_id' => $questionId,
-    'order' => $nextOrder,
-    'score' => 10.00,
-    'points_store' => 5.00
-]);
+## 📦 Tipo TypeScript
 
-// Obtener el formulario y sus preguntas con información relacionada
-$form = ApplicationForm::with(['questions' => function($query) {
-    $query->orderBy('order');
-}, 'questions.question', 'questions.question.options'])->find($formId);
+```typescript
+interface ApplicationFormQuestion {
+  id: number;
+  application_form_id: number;
+  question_id: number;
+  order: number;
+  is_required: boolean;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  
+  // Relaciones
+  application_form?: ApplicationForm;
+  question?: Question;
+  response_questions?: ApplicationFormResponseQuestion[];
+  
+  // Relaciones anidadas
+  question_options?: QuestionOption[];
+}
 ```
-
-## 🔍 Consideraciones
-
-1. **Integridad Referencial**:
-   - La eliminación de un formulario eliminará automáticamente sus preguntas (cascadeOnDelete)
-   - No se puede eliminar una pregunta que esté siendo usada en formularios (restrictOnDelete)
-
-2. **Rendimiento**:
-   - Los índices están optimizados para consultas frecuentes de ordenación y búsqueda
-   - Se recomienda cargar las relaciones necesarias (with) para evitar el problema N+1
-
-3. **Validaciones**:
-   - El orden de las preguntas debe ser único dentro de un mismo formulario
-   - Los valores de score y points_store deben ser positivos
-   - No se permiten preguntas duplicadas en el mismo formulario (índice único compuesto)

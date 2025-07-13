@@ -9,11 +9,12 @@ Este proyecto utiliza una arquitectura moderna con:
 - **Enrutamiento**: Rutas web de Laravel con respuestas Inertia
 - **Formato de Respuesta**: JSON API con estructura consistente
 - **Versionado**: API v1 (ruta base: `/api/v1`)
-- **Autenticación**: Bearer Token (Sanctum)
+- **Autenticación**: Sesión Laravel + CSRF Token
 - **Paginación**: Implementada en colecciones (15 items por defecto)
 - **Ordenamiento**: Parámetro `sort` (ej: `?sort=-created_at`)
 - **Filtrado**: Parámetros de consulta específicos por recurso
 - **Búsqueda**: Parámetro `q` para búsqueda global
+- **Incluir relaciones**: Parámetro `include` (ej: `?include=capabilities,competency`)
 
 ## Autenticación
 
@@ -35,10 +36,177 @@ POST /login
 
 ## Estructura de Rutas
 
-Las rutas de la API están organizadas por roles:
-- **Admin**: `/admin/*`
-- **Profesor**: `/teacher/*`
-- **Estudiante**: `/student/*`
+Las rutas de la API están organizadas por roles y recursos:
+
+### Comunes
+- **Autenticación**: `/login`, `/logout`, `/forgot-password`
+- **Perfil**: `/user`, `/user/profile`
+
+### Rol: Administrador (`/admin/*`)
+- Gestión de usuarios
+- Configuración del sistema
+- Reportes avanzados
+
+### Rol: Profesor (`/teacher/*`)
+- **Sesiones de Aprendizaje**: `/teacher/learning-sessions/*`
+- **Fichas de Aplicación**: `/teacher/application-forms/*`
+- **Preguntas**: `/teacher/questions/*`
+- **Estudiantes**: `/teacher/students/*`
+- **Reportes**: `/teacher/reports/*`
+
+### Rol: Estudiante (`/student/*`)
+- **Mis Cursos**: `/student/courses`
+- **Tareas**: `/student/assignments`
+- **Progreso**: `/student/progress`
+- **Recompensas**: `/student/rewards`
+
+## Endpoints de Sesiones de Aprendizaje
+
+### Listar Sesiones de Aprendizaje
+```
+GET /api/v1/teacher/learning-sessions
+```
+
+**Parámetros de consulta:**
+- `status`: Filtrar por estado (`draft`, `active`, `inactive`)
+- `from_date`: Filtrar por fecha de inicio (formato: YYYY-MM-DD)
+- `to_date`: Filtrar por fecha de fin (formato: YYYY-MM-DD)
+- `competency_id`: Filtrar por ID de competencia
+- `include`: Incluir relaciones (ej: `capabilities,competency`)
+- `sort`: Ordenar por campo (ej: `-created_at` para descendente)
+- `per_page`: Número de items por página (default: 15)
+
+**Ejemplo de respuesta exitosa (200 OK):**
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "Introducción al Álgebra",
+      "purpose_learning": "Aprender conceptos básicos de álgebra",
+      "application_date": "2025-08-15",
+      "status": "draft",
+      "competency_id": 1,
+      "created_at": "2025-07-10T15:30:00Z",
+      "updated_at": "2025-07-10T15:30:00Z",
+      "capabilities": [
+        {
+          "id": 1,
+          "name": "Resolución de ecuaciones lineales",
+          "pivot": {
+            "score": 85.5,
+            "feedback": "Buen progreso"
+          }
+        }
+      ]
+    }
+  ],
+  "links": {
+    "first": "http://example.com/api/v1/teacher/learning-sessions?page=1",
+    "last": "http://example.com/api/v1/teacher/learning-sessions?page=1",
+    "prev": null,
+    "next": null
+  },
+  "meta": {
+    "current_page": 1,
+    "from": 1,
+    "last_page": 1,
+    "path": "http://example.com/api/v1/teacher/learning-sessions",
+    "per_page": 15,
+    "to": 1,
+    "total": 1
+  }
+}
+```
+
+### Obtener una Sesión de Aprendizaje
+```
+GET /api/v1/teacher/learning-sessions/{learning_session}
+```
+
+**Parámetros de URL:**
+- `learning_session`: ID de la sesión de aprendizaje
+
+**Parámetros de consulta:**
+- `include`: Relaciones a incluir (opcional)
+
+### Crear una Sesión de Aprendizaje
+```
+POST /api/v1/teacher/learning-sessions
+```
+
+**Cuerpo de la solicitud (JSON):**
+```json
+{
+  "name": "Nueva Sesión",
+  "purpose_learning": "Objetivos de aprendizaje",
+  "application_date": "2025-08-15",
+  "status": "draft",
+  "performances": ["Desempeño 1", "Desempeño 2"],
+  "start_sequence": "Secuencia de inicio...",
+  "end_sequence": "Secuencia de cierre...",
+  "competency_id": 1,
+  "capabilities": [
+    {
+      "id": 1,
+      "score": 85.5,
+      "feedback": "Comentarios adicionales"
+    }
+  ]
+}
+```
+
+### Actualizar una Sesión de Aprendizaje
+```
+PUT/PATCH /api/v1/teacher/learning-sessions/{learning_session}
+```
+
+**Parámetros de URL:**
+- `learning_session`: ID de la sesión de aprendizaje
+
+**Cuerpo de la solicitud (JSON):**
+Igual que la creación, pero con campos opcionales.
+
+### Eliminar una Sesión de Aprendizaje
+```
+DELETE /api/v1/teacher/learning-sessions/{learning_session}
+```
+
+**Parámetros de URL:**
+- `learning_session`: ID de la sesión de aprendizaje
+
+### Gestionar Capacidades de una Sesión
+
+#### Añadir/Actualizar Capacidades
+```
+POST /api/v1/teacher/learning-sessions/{learning_session}/capabilities
+```
+
+**Cuerpo de la solicitud (JSON):**
+```json
+[
+  {
+    "id": 1,
+    "score": 90,
+    "feedback": "Excelente desempeño"
+  },
+  {
+    "id": 2,
+    "score": 75,
+    "feedback": "Necesita mejorar"
+  }
+]
+```
+
+#### Eliminar Capacidades
+```
+DELETE /api/v1/teacher/learning-sessions/{learning_session}/capabilities
+```
+
+**Cuerpo de la solicitud (JSON):**
+```json
+[1, 2, 3] // IDs de capacidades a eliminar
+```
 
 ## Endpoints de Preguntas de Fichas de Aplicación
 
@@ -788,6 +956,70 @@ GET /api/application-forms/1?include=learningSession,teacherClassroomCurricularA
   "message": "Error interno del servidor.",
   "error": "Mensaje detallado del error (solo en entorno de desarrollo)"
 }
+```
+
+## Manejo de Errores
+
+### Códigos de Estado HTTP
+
+- `200 OK`: Operación exitosa (GET, PUT, PATCH)
+- `201 Created`: Recurso creado exitosamente (POST)
+- `204 No Content`: Operación exitosa sin contenido (DELETE)
+- `400 Bad Request`: Solicitud mal formada
+- `401 Unauthorized`: No autenticado
+- `403 Forbidden`: No tiene permisos
+- `404 Not Found`: Recurso no encontrado
+- `422 Unprocessable Entity`: Error de validación
+- `500 Internal Server Error`: Error del servidor
+
+### Formato de Respuesta de Error
+
+```json
+{
+  "message": "El campo nombre es obligatorio.",
+  "errors": {
+    "name": ["El campo nombre es obligatorio."]
+  }
+}
+```
+
+## Autenticación y Autorización
+
+### Inicio de Sesión
+```
+POST /login
+```
+
+**Cuerpo de la solicitud (JSON):**
+```json
+{
+  "email": "usuario@ejemplo.com",
+  "password": "contraseña",
+  "remember": false
+}
+```
+
+**Respuesta exitosa (200 OK):**
+```json
+{
+  "user": {
+    "id": 1,
+    "name": "Nombre Usuario",
+    "email": "usuario@ejemplo.com",
+    "roles": ["teacher"],
+    "permissions": ["learning-sessions.create", "learning-sessions.edit"]
+  }
+}
+```
+
+### Cerrar Sesión
+```
+POST /logout
+```
+
+### Obtener Usuario Actual
+```
+GET /api/user
 ```
 
 ## Convenciones de Códigos de Estado HTTP
