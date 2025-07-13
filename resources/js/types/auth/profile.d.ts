@@ -1,4 +1,4 @@
-import { User } from './user'
+import { User } from '../user/user'
 
 /**
  * Representa la información extendida del perfil de un usuario

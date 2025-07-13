@@ -1,3 +1,26 @@
+// Tipos principales
 export * from './application-form'
-export * from './application-form-question'
-export * from './application-form-response'
+
+// Tipos para formularios
+export * from './form/application-form-question'
+export * from './form/response/application-form-response'
+export * from './form/response/application-form-response-question'
+export * from './form/response/application-form-response-question-option'
+
+// Tipos para preguntas
+export * from './question/question'
+export * from './question/question-option'
+export * from './question/question-type'
+
+// Re-exportar tipos comunes
+export type {
+  ApplicationForm,
+  ApplicationFormFilters,
+  ApplicationFormStats,
+  ApplicationFormStatus,
+  CreateApplicationFormData,
+  DuplicateApplicationFormData,
+  SubmitApplicationFormData,
+  UpdateApplicationFormData,
+  UpdateApplicationFormStatusData
+} from './application-form'

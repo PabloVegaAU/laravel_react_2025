@@ -1,5 +1,5 @@
 import { Capability } from './capability'
-import { CurricularAreaCycle } from './curricular_area_cycle'
+import { CurricularAreaCycle } from './curricular-area-cycle'
 import { Question } from './question'
 
 /**

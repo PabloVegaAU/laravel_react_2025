@@ -4,11 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Capability extends Model
 {
     protected $table = 'capabilities';
+
+    protected $fillable = [
+        'competency_id',
+        'name',
+        'color',
+    ];
 
     protected $casts = [
         'created_at' => 'datetime',
@@ -22,11 +29,16 @@ class Capability extends Model
 
     public function competency(): BelongsTo
     {
-        return $this->belongsTo(Competency::class, 'competency_id', 'id');
+        return $this->belongsTo(Competency::class);
     }
 
     public function questions(): HasMany
     {
         return $this->hasMany(Question::class);
+    }
+
+    public function learningSessions(): BelongsToMany
+    {
+        return $this->belongsToMany(LearningSession::class, 'learning_session_capabilities');
     }
 }

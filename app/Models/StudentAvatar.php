@@ -2,19 +2,30 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class StudentAvatar extends Model
 {
-    use HasFactory;
-
     protected $table = 'student_avatars';
 
+    protected $fillable = [
+        'student_id',
+        'avatar_id',
+        'active',
+        'points_store',
+        'exchange_date',
+    ];
+
     protected $casts = [
+        'active' => 'boolean',
         'points_store' => 'decimal:2',
-        'exchange_date' => 'datetime',
+    ];
+
+    protected $dates = [
+        'exchange_date',
+        'created_at',
+        'updated_at',
     ];
 
     public function student(): BelongsTo
@@ -25,5 +36,10 @@ class StudentAvatar extends Model
     public function avatar(): BelongsTo
     {
         return $this->belongsTo(Avatar::class);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('active', true);
     }
 }

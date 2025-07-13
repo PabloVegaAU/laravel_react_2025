@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,16 +20,18 @@ class Teacher extends Model
 
     public $incrementing = false;
 
+    protected $fillable = [
+        'status',
+    ];
+
+    protected $attributes = [
+        'status' => 'active',
+    ];
+
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
-    ];
-
-    protected $dates = [
-        'created_at',
-        'updated_at',
-        'deleted_at',
     ];
 
     public function user(): BelongsTo
@@ -39,12 +42,22 @@ class Teacher extends Model
     public function classrooms(): BelongsToMany
     {
         return $this->belongsToMany(Classroom::class, 'teacher_classroom_curricular_area_cycles', 'teacher_id', 'classroom_id')
+            ->withPivot(['academic_year', 'curricular_area_cycle_id'])
             ->withTimestamps();
     }
 
     public function curricularAreas(): BelongsToMany
     {
-        return $this->belongsToMany(CurricularArea::class, 'teacher_classroom_curricular_area_cycles', 'teacher_id', 'curricular_area_id')
+        return $this->belongsToMany(CurricularArea::class, 'teacher_classroom_curricular_area_cycles', 'teacher_id', 'curricular_area_cycle_id')
+            ->using(TeacherClassroomCurricularAreaCycle::class)
+            ->withPivot(['classroom_id', 'academic_year'])
+            ->withTimestamps();
+    }
+
+    public function curricularAreaCycles(): BelongsToMany
+    {
+        return $this->belongsToMany(CurricularAreaCycle::class, 'teacher_classroom_curricular_area_cycles', 'teacher_id', 'curricular_area_cycle_id')
+            ->withPivot(['classroom_id', 'academic_year'])
             ->withTimestamps();
     }
 
@@ -56,5 +69,45 @@ class Teacher extends Model
     public function applicationForms(): HasMany
     {
         return $this->hasMany(ApplicationForm::class, 'teacher_id', 'user_id');
+    }
+
+    public function learningSessions(): HasMany
+    {
+        return $this->hasMany(LearningSession::class, 'teacher_id', 'user_id');
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('status', 'active');
+    }
+
+    public function scopeInactive(Builder $query): Builder
+    {
+        return $query->where('status', 'inactive');
+    }
+
+    public function scopeOnLeave(Builder $query): Builder
+    {
+        return $query->where('status', 'on leave');
+    }
+
+    public function scopeRetired(Builder $query): Builder
+    {
+        return $query->where('status', 'retired');
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    public function isOnLeave(): bool
+    {
+        return $this->status === 'on leave';
+    }
+
+    public function isRetired(): bool
+    {
+        return $this->status === 'retired';
     }
 }

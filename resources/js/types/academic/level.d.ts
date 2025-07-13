@@ -1,5 +1,6 @@
 import { StudentLevelHistory } from '../student/student-level-history'
 import { Student } from '../user/student'
+import { Classroom } from './classroom'
 
 /**
  * Represents a level in the educational system
@@ -14,11 +15,11 @@ export interface Level {
   /** Level number (1, 2, 3, ...) */
   level: number
 
+  /** Maximum experience points for this level */
+  experience_max: number
+
   /** Experience points required to reach this level */
   experience_required: number
-
-  /** Description of the level and its benefits */
-  description: string | null
 
   /** Timestamp when the record was created */
   created_at: string
@@ -28,6 +29,11 @@ export interface Level {
 
   /** Timestamp when the record was soft deleted (if applicable) */
   deleted_at: string | null
+
+  /** Relationships */
+  student_level_histories?: StudentLevelHistory[]
+  students?: Student[]
+  classrooms?: Classroom[]
 
   // Relations
 

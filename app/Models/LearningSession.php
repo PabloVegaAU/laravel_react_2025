@@ -4,9 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class LearningSession extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'learning_sessions';
 
     protected $fillable = [
@@ -18,7 +22,7 @@ class LearningSession extends Model
         'start_sequence',
         'end_sequence',
         'educational_institution_id',
-        'teacher_id',
+        'teacher_classroom_curricular_area_cycle_id',
         'competency_id',
     ];
 
@@ -47,7 +51,12 @@ class LearningSession extends Model
         return $this->belongsTo(Competency::class);
     }
 
-    public function applicationForms()
+    public function teacherClassroomCurricularAreaCycle(): BelongsTo
+    {
+        return $this->belongsTo(TeacherClassroomCurricularAreaCycle::class);
+    }
+
+    public function applicationForms(): HasMany
     {
         return $this->hasMany(ApplicationForm::class);
     }

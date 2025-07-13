@@ -1,3 +1,4 @@
+import { StudentLevelHistory } from '../student/student-level-history'
 import { Level } from './level'
 
 /**
@@ -13,10 +14,7 @@ export interface Range {
   /** Name of the range (e.g., 'Novato', 'Aprendiz', 'Experto') */
   name: string
 
-  /** Minimum level required to achieve this range */
-  level_required: number
-
-  /** Color code for UI representation */
+  /** Color code for UI representation (hex code) */
   color: string
 
   /** URL of the range's representative image */
@@ -28,6 +26,9 @@ export interface Range {
   /** Display order for sorting */
   order: number
 
+  /** Minimum level required to achieve this range */
+  level_required: number
+
   /** Timestamp when the record was created */
   created_at: string
 
@@ -37,13 +38,16 @@ export interface Range {
   /** Timestamp when the record was soft deleted (if applicable) */
   deleted_at: string | null
 
-  // Relations
+  /** Relationships */
 
   /** The level required to achieve this range */
   level?: Level
 
   /** All levels that belong to this range */
   levels?: Level[]
+
+  /** Student level history entries for this range */
+  student_level_histories?: StudentLevelHistory[]
 }
 
 /**

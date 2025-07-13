@@ -1,45 +1,34 @@
-import { Profile } from './profile'
-import { Student } from './student'
+import { Profile } from '../auth/profile'
+import { Student } from './student/types'
 import { Teacher } from './teacher'
 
 type UserRole = 'admin' | 'teacher' | 'student' | 'guest'
 
 /**
  * Representa un usuario en el sistema
- * Basado en:
- * - Migración: database/migrations/0001_01_01_000000_create_users_table.php
- * - Modelo: app/Models/User.php
+ * @see database/migrations/0001_01_01_000000_create_users_table.php
+ * @see app/Models/User.php
  */
 export interface User {
-  /** Identificador único */
   id: number
-
-  /** Nombre completo del usuario */
   name: string
-
-  /** Dirección de correo electrónico del usuario (única, opcional) */
   email: string | null
-
-  /** Marca de tiempo cuando se verificó el correo electrónico */
   email_verified_at: string | null
-
-  /** Contraseña encriptada (oculta en respuestas de la API) */
   password?: string
-
-  /** Token de recordatorio para inicio de sesión persistente */
   remember_token?: string | null
-
-  /** Marca de tiempo cuando se creó el registro */
   created_at: string
-
-  /** Marca de tiempo de la última actualización del registro */
   updated_at: string
-
-  /** Marca de tiempo de eliminación lógica (si aplica) */
   deleted_at: string | null
 
   // Relaciones
-  /** Información del perfil del usuario */
+  profile?: Profile
+  student?: Student
+  teacher?: Teacher
+
+  // Métodos de utilidad
+  isAdmin(): boolean
+  isStudent(): boolean
+  isTeacher(): boolean
   profile?: Profile
 
   /** Si el usuario es estudiante, su registro de estudiante */

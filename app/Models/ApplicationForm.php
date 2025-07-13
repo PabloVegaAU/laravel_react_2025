@@ -2,42 +2,36 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ApplicationForm extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'application_forms';
 
     protected $fillable = [
         'name',
         'description',
+        'status',
         'start_date',
         'end_date',
-        'status',
         'score_max',
-        'teacher_classroom_curricular_area_cycle_id',
+        'teacher_id',
         'learning_session_id',
     ];
 
     protected $casts = [
+        'score_max' => 'decimal:2',
         'start_date' => 'datetime',
         'end_date' => 'datetime',
-        'score_max' => 'decimal:2',
-        'status' => 'string',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
-    ];
-
-    protected $dates = [
-        'start_date',
-        'end_date',
-        'created_at',
-        'updated_at',
-        'deleted_at',
     ];
 
     protected $attributes = [
@@ -47,38 +41,55 @@ class ApplicationForm extends Model
 
     public function learningSession(): BelongsTo
     {
-        return $this->belongsTo(LearningSession::class);
+        return $this->belongsTo(LearningSession::class, 'learning_session_id', 'id');
     }
 
-    public function teacherClassroomCurricularAreaCycle(): BelongsTo
+    public function teacher(): BelongsTo
     {
-        return $this->belongsTo(TeacherClassroomCurricularAreaCycle::class);
+        return $this->belongsTo(Teacher::class, 'teacher_id', 'user_id');
     }
 
-    public function teacher()
+    public function questions(): HasMany
     {
-        return $this->belongsTo(Teacher::class, 'teacher_id');
-    }
-
-    public function applicationFormQuestions(): HasMany
-    {
-        return $this->hasMany(ApplicationFormQuestion::class);
-    }
-
-    public function questions(): HasManyThrough
-    {
-        return $this->hasManyThrough(
-            Question::class,
-            ApplicationFormQuestion::class,
-            'application_form_id',
-            'id',
-            'id',
-            'question_id'
-        );
+        return $this->hasMany(ApplicationFormQuestion::class, 'application_form_id', 'id')
+            ->orderBy('order');
     }
 
     public function responses(): HasMany
     {
-        return $this->hasMany(ApplicationFormResponse::class);
+        return $this->hasMany(ApplicationFormResponse::class, 'application_form_id', 'id');
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        $now = now();
+
+        return $query->where('status', 'active')
+            ->where('start_date', '<=', $now)
+            ->where('end_date', '>=', $now);
+    }
+
+    public function scopeForTeacher(Builder $query, int $teacherId): Builder
+    {
+        return $query->where('teacher_id', $teacherId);
+    }
+
+    public function isActive(): bool
+    {
+        $now = now();
+
+        return $this->status === 'active' &&
+               $this->start_date <= $now &&
+               $this->end_date >= $now;
+    }
+
+    public function isUpcoming(): bool
+    {
+        return $this->status === 'scheduled' && $this->start_date > now();
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->end_date < now();
     }
 }

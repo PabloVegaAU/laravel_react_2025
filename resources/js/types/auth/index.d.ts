@@ -1,7 +1,10 @@
-import { User } from '../user'
+// Core auth types
+export * from './types'
 
-export interface Auth {
-  user: User
-  roles: string[]
-  permissions: string[]
-}
+// Role and permission types
+export * from './permission'
+export * from './role'
+
+// Re-export for backward compatibility
+export * from './auth'
+export * from './profile'

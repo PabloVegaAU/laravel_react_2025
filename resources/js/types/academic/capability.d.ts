@@ -1,93 +1,71 @@
-import { LearningSession } from '../learning/learning-session'
-import { Performance } from '../performance/performance'
-import { Competency } from './competency'
-import { Question } from './question'
+import type { LearningSession } from '../learning-session/learning-session'
+import type { Competency } from './competency'
+import type { Question } from './question'
 
 /**
- * Representa una capacidad específica en el sistema educativo
- * Basado en:
- * - Migración: database/migrations/2025_06_22_100080_create_capabilities_table.php
- * - Modelo: app/Models/Capability.php
+ * Representa una capacidad en el sistema educativo
+ * @see database/migrations/2025_06_22_100080_create_capabilities_table.php
+ * @see app/Models/Capability.php
  */
 export interface Capability {
-  /** Identificador único */
+  // Campos principales
   id: number
-
-  /** Nombre de la capacidad */
-  name: string
-
-  /** Descripción detallada de la capacidad */
-  description: string
-
-  /** ID de la competencia a la que pertenece esta capacidad */
   competency_id: number
-
-  /** Orden de visualización */
-  order: number
-
-  /** Nivel de la capacidad */
-  level: number
-
-  /** Código de color para la interfaz de usuario */
+  name: string
   color: string
-
-  /** Nivel de dominio esperado (0-100) */
-  mastery_level: number
-
-  /** Marcas de tiempo */
   created_at: string
   updated_at: string
-  deleted_at: string | null
 
   // Relaciones
-  /** Competencia a la que pertenece esta capacidad */
   competency?: Competency
-
-  /** Preguntas asociadas a esta capacidad */
   questions?: Question[]
-
-  /** Sesiones de aprendizaje que incluyen esta capacidad */
   learningSessions?: LearningSession[]
 
-  /** Desempeños asociados a esta capacidad */
-  performances?: Performance[]
+  // Métodos de relación
+  competency(): Promise<Competency>
+  questions(): Promise<Question[]>
+  learningSessions(): Promise<LearningSession[]>
 }
 
 /**
- * Tipo para crear una nueva capacidad
+ * Datos para crear una capacidad
+ * @see database/migrations/2025_06_22_100080_create_capabilities_table.php
  */
-export type CreateCapability = Omit<
-  Capability,
-  'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'competency' | 'questions' | 'learningSessions' | 'performances'
->
+export interface CreateCapabilityData {
+  competency_id: number
+  name: string
+  color: string
+}
 
 /**
- * Tipo para actualizar una capacidad existente
+ * Datos para actualizar una capacidad
+ * @see database/migrations/2025_06_22_100080_create_capabilities_table.php
  */
-export type UpdateCapability = Partial<Omit<CreateCapability, 'competency_id'>>
+export type UpdateCapabilityData = Partial<CreateCapabilityData>
 
 /**
- * Tipo para filtros de búsqueda de capacidades
+ * Filtros para buscar capacidades
+ * @see app/Models/Capability.php
  */
 export interface CapabilityFilters {
-  /** Término de búsqueda */
   search?: string
-
-  /** Filtrar por ID de competencia */
   competency_id?: number | number[]
-
-  /** Incluir registros eliminados */
   with_trashed?: boolean
-
-  /** Número de página para paginación */
+  only_trashed?: boolean
   page?: number
-
-  /** Cantidad de registros por página */
   per_page?: number
-
-  /** Campo para ordenar */
-  sort_by?: 'name' | 'order' | 'level' | 'mastery_level' | 'created_at' | 'updated_at'
-
-  /** Dirección del orden */
+  sort_by?: 'name' | 'created_at' | 'updated_at'
   sort_order?: 'asc' | 'desc'
+}
+
+/**
+ * Datos para asignar una capacidad a una sesión de aprendizaje
+ * @see database/migrations/2025_06_22_100080_create_learning_session_capabilities_table.php
+ */
+export interface AssignCapabilityToSessionData {
+  capability_id: number
+  learning_session_id: number
+  status?: 'pending' | 'in_progress' | 'completed'
+  feedback?: string
+  score?: number
 }

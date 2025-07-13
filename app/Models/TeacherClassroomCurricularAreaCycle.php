@@ -5,12 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TeacherClassroomCurricularAreaCycle extends Model
 {
     use HasFactory;
 
     protected $table = 'teacher_classroom_curricular_area_cycles';
+
+    protected $fillable = [
+        'teacher_id',
+        'classroom_id',
+        'curricular_area_cycle_id',
+        'academic_year',
+    ];
 
     protected $casts = [
         'academic_year' => 'integer',
@@ -33,7 +41,7 @@ class TeacherClassroomCurricularAreaCycle extends Model
         return $this->belongsTo(CurricularAreaCycle::class);
     }
 
-    public function learningSessions()
+    public function learningSessions(): HasMany
     {
         return $this->hasMany(LearningSession::class, 'teacher_classroom_curricular_area_cycle_id');
     }

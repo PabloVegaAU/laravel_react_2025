@@ -23,7 +23,7 @@ class StudentFactory extends Factory
             'experience_achieved' => 0,
             'points_store_achieved' => 0,
             'points_store' => 0,
-            'graduation_date' => null
+            'graduation_date' => null,
         ];
     }
 

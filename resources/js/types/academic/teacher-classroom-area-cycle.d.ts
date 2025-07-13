@@ -1,8 +1,8 @@
 import { ApplicationForm } from '../../application-form/form'
 import { Teacher } from '../user/teacher'
 import { Classroom } from './classroom'
-import { CurricularArea } from './curricular-area'
-import { CurricularAreaCycle } from './curricular_area_cycle'
+import { CurricularAreaCycle } from './curricular-area-cycle'
+import { LearningSession } from './learning-session'
 
 /**
  * Relación entre profesor, aula y área curricular
@@ -40,11 +40,17 @@ export interface TeacherClassroomCurricularAreaCycle {
   /** Aula asignada */
   classroom?: Classroom
 
-  /** Área curricular */
+  /** Área curricular del ciclo */
   curricular_area_cycle?: CurricularAreaCycle
+
+  /** Área curricular (acceso directo) */
+  curricular_area?: CurricularAreaCycle['curricular_area']
 
   /** Formularios de aplicación asociados */
   application_forms?: ApplicationForm[]
+
+  /** Sesiones de aprendizaje asociadas */
+  learning_sessions?: LearningSession[]
 }
 
 /**

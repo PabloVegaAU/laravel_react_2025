@@ -2,15 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class StudentAchievement extends Model
 {
-    use HasFactory;
-
     protected $table = 'student_achievements';
+
+    public $timestamps = false;
+
+    protected $fillable = [
+        'achieved_at',
+    ];
 
     protected $casts = [
         'achieved_at' => 'datetime',
@@ -23,6 +26,16 @@ class StudentAchievement extends Model
 
     public function achievement(): BelongsTo
     {
-        return $this->belongsTo(Achievement::class);
+        return $this->belongsTo(Achievement::class, 'achievement_id', 'id');
+    }
+
+    public function scopeAchievedBetween($query, $from, $to)
+    {
+        return $query->whereBetween('achieved_at', [$from, $to]);
+    }
+
+    public function scopeByStudent($query, $studentId)
+    {
+        return $query->where('student_id', $studentId);
     }
 }

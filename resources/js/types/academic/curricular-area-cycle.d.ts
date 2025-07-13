@@ -12,6 +12,7 @@ export type CurricularAreaCycle = {
   curricular_area_id: number
   created_at: string
   updated_at: string
+  // Relaciones
   cycle?: Cycle
   curricular_area?: CurricularArea
 }

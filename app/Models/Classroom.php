@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -14,7 +13,15 @@ class Classroom extends Model
 
     protected $table = 'classrooms';
 
+    protected $fillable = [
+        'grade',
+        'section',
+        'level',
+        'academic_year',
+    ];
+
     protected $casts = [
+        'academic_year' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -32,7 +39,9 @@ class Classroom extends Model
             Teacher::class,
             'teacher_classroom_curricular_area_cycles',
             'classroom_id',
-            'teacher_id'
+            'teacher_id',
+            'id',
+            'user_id'
         )->withPivot(['curricular_area_cycle_id', 'academic_year']);
     }
 
@@ -43,7 +52,14 @@ class Classroom extends Model
 
     public function students(): BelongsToMany
     {
-        return $this->belongsToMany(Student::class, 'enrollments', 'classroom_id', 'student_id');
+        return $this->belongsToMany(
+            Student::class,
+            'enrollments',
+            'classroom_id',
+            'student_id',
+            'id',
+            'user_id'
+        );
     }
 
     public function teacherClassroomCurricularAreaCycles(): HasMany
@@ -59,5 +75,15 @@ class Classroom extends Model
             'classroom_id',
             'curricular_area_cycle_id'
         )->withPivot(['teacher_id', 'academic_year']);
+    }
+
+    public function learningSessions(): HasMany
+    {
+        return $this->hasMany(LearningSession::class);
+    }
+
+    public function applicationForms(): HasMany
+    {
+        return $this->hasMany(ApplicationForm::class);
     }
 }

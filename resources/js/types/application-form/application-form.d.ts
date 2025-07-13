@@ -1,140 +1,151 @@
-import { Classroom } from '../academic/classroom'
-import { CurricularArea } from '../academic/curricular-area'
-import { TeacherClassroomCurricularArea } from '../academic/teacher-classroom-area-cycle'
-import { LearningSession } from '../learning/learning-session'
-import { Teacher } from '../user/teacher'
-import { ApplicationFormQuestion } from './application-form-question'
-import { ApplicationFormResponse } from './application-form-response'
-
-type ApplicationFormStatus = 'draft' | 'scheduled' | 'active' | 'inactive' | 'archived'
+import type { LearningSession } from '../learning-session/learning-session'
+import type { Teacher } from '../user/teacher'
+import type { ApplicationFormQuestion } from './form/application-form-question'
+import type { ApplicationFormResponse } from './form/response/application-form-response'
 
 /**
- * Represents an application form in the system
- * Based on:
- * - Migration: database/migrations/2025_06_22_100330_create_application_forms_table.php
- * - Model: app/Models/ApplicationForm.php
+ * Estado posible de un formulario de aplicación
+ * @see database/migrations/2025_06_22_100330_create_application_forms_table.php
+ * @see app/Models/ApplicationForm.php
+ */
+export type ApplicationFormStatus = 'draft' | 'scheduled' | 'active' | 'inactive' | 'archived'
+
+/**
+ * Representa un formulario de aplicación en el sistema
+ * @see database/migrations/2025_06_22_100330_create_application_forms_table.php
+ * @see app/Models/ApplicationForm.php
  */
 export interface ApplicationForm {
-  /** Unique identifier */
+  // Campos principales
   id: number
-
-  /** Basic information */
   name: string
   description: string
-
-  /** Status information */
   status: ApplicationFormStatus
   score_max: number
   start_date: string // ISO date string
   end_date: string // ISO date string
-
-  /** Timestamps */
+  teacher_id: number
+  learning_session_id: number
   created_at: string
   updated_at: string
   deleted_at: string | null
 
-  // Foreign keys
-  teacher_classroom_curricular_area_id: number
+  // Relaciones
+  teacher: Teacher
+  learningSession: LearningSession
+  questions: ApplicationFormQuestion[]
+  responses: ApplicationFormResponse[]
+
+  // Métodos de instancia
+  isActive(): boolean
+  isUpcoming(): boolean
+  isExpired(): boolean
+}
+
+/**
+ * Datos para crear un nuevo formulario de aplicación
+ * @see database/migrations/2025_06_22_100330_create_application_forms_table.php
+ * @see app/Models/ApplicationForm.php
+ */
+export interface CreateApplicationFormData {
+  name: string
+  description: string
+  status?: ApplicationFormStatus
+  score_max?: number
+  start_date: string
+  end_date: string
   teacher_id: number
   learning_session_id: number
-
-  // Relations
-  /** The teacher-classroom-curricular area assignment */
-  teacherClassroomCurricularArea?: TeacherClassroomCurricularArea
-
-  /** The teacher who created this form */
-  teacher?: Teacher
-
-  /** The learning session this form is associated with */
-  learning_session?: LearningSession
-
-  /** Questions in this form */
-  questions?: ApplicationFormQuestion[]
-
-  /** Responses to this form */
-  responses?: ApplicationFormResponse[]
-
-  /** Classroom this form is assigned to (via teacherClassroomCurricularArea) */
-  classroom?: Classroom
-
-  /** Curricular area this form is for (via teacherClassroomCurricularArea) */
-  curricularArea?: CurricularArea
-}
-
-/**
- * Type for creating a new application form
- */
-export type CreateApplicationForm = Omit<
-  ApplicationForm,
-  | 'id'
-  | 'created_at'
-  | 'updated_at'
-  | 'deleted_at'
-  | 'teacherClassroomCurricularArea'
-  | 'teacher'
-  | 'learning_session'
-  | 'questions'
-  | 'responses'
-  | 'classroom'
-  | 'curricularArea'
-> & {
-  /** Array of question IDs to associate with this form */
   question_ids?: number[]
 }
 
 /**
- * Type for updating an existing application form
+ * Datos para actualizar un formulario de aplicación
+ * @see database/migrations/2025_06_22_100330_create_application_forms_table.php
+ * @see app/Models/ApplicationForm.php
  */
-export type UpdateApplicationForm = Partial<
-  Omit<CreateApplicationForm, 'teacher_classroom_curricular_area_id' | 'teacher_id' | 'learning_session_id'>
-> & {
-  /** Array of question IDs to update the form's questions */
+export interface UpdateApplicationFormData {
+  id: number
+  name?: string
+  description?: string
+  status?: ApplicationFormStatus
+  score_max?: number
+  start_date?: string
+  end_date?: string
   question_ids?: number[]
 }
 
 /**
- * Type for application form statistics
+ * Datos para actualizar el estado de un formulario
+ * @see app/Models/ApplicationForm.php
  */
-export interface ApplicationFormStats {
-  total_questions: number
-  total_responses: number
-  average_score: number | null
-  completion_rate: number
-  status_distribution: {
-    draft: number
-    scheduled: number
-    active: number
-    inactive: number
-    archived: number
-  }
-  recent_activity: {
-    date: string
-    action: string
-    details: string
-  }[]
+export interface UpdateApplicationFormStatusData {
+  id: number
+  status: ApplicationFormStatus
+  start_date?: string
+  end_date?: string
 }
 
 /**
- * Type for filtering application forms
+ * Datos para duplicar un formulario existente
+ * @see app/Models/ApplicationForm.php
  */
-export interface ApplicationFormFilters {
-  status?: ApplicationFormStatus | ''
-  teacher_id?: number | ''
-  classroom_id?: number | ''
-  curricular_area_id?: number | ''
-  date_from?: string
-  date_to?: string
-  search?: string
+export interface DuplicateApplicationFormData {
+  id: number
+  name: string
+  status?: ApplicationFormStatus
+  start_date: string
+  end_date: string
+  include_responses?: boolean
 }
 
 /**
- * Type for application form submission
+ * Datos para enviar un formulario de aplicación
+ * @see database/migrations/2025_06_22_100340_create_application_form_responses_table.php
  */
 export interface SubmitApplicationFormData {
   form_id: number
   student_id: number
-  responses: {
+  responses: Array<{
     question_id: number
     answer: string | number | boolean | string[] | number[]
-  }[]
+  }>
+}
+
+/**
+ * Estadísticas de un formulario de aplicación
+ * @see app/Models/ApplicationForm.php
+ */
+export interface ApplicationFormStats {
+  total_questions: number
+  total_responses: number
+  average_score: number
+  completion_rate: number
+  responses_by_question: Array<{
+    question_id: number
+    question_text: string
+    response_count: number
+    average_score: number
+  }>
+  responses_by_date: Array<{
+    date: string
+    count: number
+  }>
+}
+
+/**
+ * Filtros para buscar formularios de aplicación
+ * @see app/Models/ApplicationForm.php
+ */
+export interface ApplicationFormFilters {
+  search?: string
+  status?: ApplicationFormStatus | ''
+  teacher_id?: number | ''
+  learning_session_id?: number | ''
+  date_from?: string
+  date_to?: string
+  with_trashed?: boolean
+  only_trashed?: boolean
+  sort_by?: 'name' | 'start_date' | 'end_date' | 'created_at' | 'updated_at'
+  sort_order?: 'asc' | 'desc'
 }
