@@ -13,6 +13,7 @@ use App\Models\TeacherClassroomCurricularAreaCycle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class ApplicationFormController extends Controller
@@ -28,7 +29,7 @@ class ApplicationFormController extends Controller
         $applicationForms = ApplicationForm::select([
             'application_forms.*',
             'learning_sessions.name as session_name',
-            'classrooms.name as classroom_name',
+            DB::raw("CONCAT(classrooms.grade, ' - ', classrooms.section) as classroom_name"),
             'curricular_areas.name as curricular_area_name',
         ])
             ->join('learning_sessions', 'learning_sessions.id', '=', 'application_forms.learning_session_id')
@@ -59,37 +60,42 @@ class ApplicationFormController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
+        // Validar datos de Learning sessión
+        $validated = $request->validate([
+            'learning_session_id' => 'required|exists:learning_sessions,id',
+            'teacher_classroom_curricular_area_cycle_id' => 'required|exists:teacher_classroom_curricular_area_cycles,id',
+            'competency_id' => 'required|exists:competencies,id',
+        ]);
+
         $currentYear = now()->year;
 
-        // Obtener asignaciones de aula-área-curricular con eager loading optimizado
-        $teacherClassroomAreaCycles = TeacherClassroomCurricularAreaCycle::select([
-            'id', 'classroom_id', 'curricular_area_cycle_id', 'academic_year',
-        ])
-            ->with([
-                'classroom',
-                'curricularAreaCycle.curricularArea',
-                'curricularAreaCycle.curricularArea.competencies',
-            ])
-            ->where('teacher_id', auth()->id())
-            ->where('academic_year', $currentYear)
-            ->get();
+        $learningSession = LearningSession::with([
+            'teacherClassroomCurricularAreaCycle',
+            'competency',
+        ])->findOrFail($validated['learning_session_id']);
+
+        // Obtener datos de asignación de aula-área-curricular-ciclo
+        $teacherClassroomAreaCycle = $learningSession->teacherClassroomCurricularAreaCycle;
 
         // Obtener preguntas con relaciones mínimas necesarias
-        $questions = Question::select(['id', 'name', 'capability_id'])
+        $questions = Question::select(['questions.id', 'questions.name', 'questions.capability_id', 'questions.difficulty'])
+            ->join('capabilities', 'capabilities.id', '=', 'questions.capability_id')
             ->with([
                 'capability:id,name,competency_id',
                 'capability.competency:id,name',
             ])
-            ->where('teacher_id', auth()->id())
-            ->orderBy('created_at', 'desc')
+            ->where('capabilities.competency_id', $validated['competency_id'])
+            ->where('questions.teacher_id', auth()->id())
+            ->orderBy('questions.created_at', 'desc')
             ->get();
 
         return Inertia::render('teacher/application-form/create/index', [
-            'teacherClassroomAreaCycles' => $teacherClassroomAreaCycles,
+            'learning_session' => $learningSession,
+            'teacher_classroom_area_cycles' => $teacherClassroomAreaCycle,
             'questions' => $questions,
-            'currentYear' => $currentYear,
+            'current_year' => $currentYear,
         ]);
     }
 
@@ -98,68 +104,26 @@ class ApplicationFormController extends Controller
      */
     public function store(Request $request)
     {
-        // Validar los datos del formulario
-        $validated = $request->validate([
-            // Datos del área curricular
-            'teacher_classroom_curricular_area_cycle_id' => [
-                'required',
-                'exists:teacher_classroom_curricular_area_cycles,id',
-                function ($attribute, $value, $fail) {
-                    $exists = TeacherClassroomCurricularAreaCycle::where('id', $value)
-                        ->where('teacher_id', auth()->id())
-                        ->where('academic_year', now()->year)
-                        ->exists();
-
-                    if (! $exists) {
-                        $fail('La asignación de aula-área-curricular no es válida.');
-                    }
-                },
-            ],
-
-            // Datos de la sesión de aprendizaje
-            'ls_name' => 'required|string|max:255',
-            'ls_purpose_learning' => 'required|string',
-            'ls_application_date' => 'required|date|after_or_equal:today',
-            'ls_competency_id' => [
-                'required',
-                'exists:competencies,id',
-                function ($attribute, $value, $fail) use ($request) {
-                    $exists = DB::table('teacher_classroom_curricular_area_cycles as tccac')
-                        ->join('curricular_area_cycles as cac', 'cac.id', '=', 'tccac.curricular_area_cycle_id')
-                        ->join('competencies as c', 'c.curricular_area_cycle_id', '=', 'cac.id')
-                        ->where('tccac.id', $request->teacher_classroom_curricular_area_cycle_id)
-                        ->where('c.id', $value)
-                        ->exists();
-
-                    if (! $exists) {
-                        $fail('La competencia seleccionada no pertenece al área curricular.');
-                    }
-                },
-            ],
-
-            // Datos de la ficha de aplicación
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'start_date' => 'required|date|after_or_equal:today',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'status' => 'required|in:draft,scheduled,active,inactive,archived',
-            'score_max' => 'required|numeric|min:1',
-            'questions' => 'required|array|min:1',
-            'questions.*.id' => 'required|exists:questions,id',
-            'questions.*.order' => 'required|integer|min:1',
-            'questions.*.score' => 'required|numeric|min:0.1|max:100',
-            'questions.*.points_store' => 'required|numeric|min:0.1|max:100',
-        ]);
-
-        DB::beginTransaction();
-
         try {
-            // Obtener la institución educativa del profesor
-            $institutionId = auth()->user()->educational_institution_id;
+            // Validar los datos del formulario
+            $validated = $request->validate([
+                'learning_session_id' => 'required|exists:learning_sessions,id',
+                'teacher_classroom_curricular_area_cycle_id' => 'required|exists:teacher_classroom_curricular_area_cycles,id',
+                'competency_id' => 'required|exists:competencies,id',
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string',
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after_or_equal:start_date',
+                'status' => 'required|in:draft,scheduled,active,inactive,archived',
+                'score_max' => 'required|numeric|min:1',
+                'questions' => 'required|array|min:1',
+                'questions.*.id' => 'required|exists:questions,id',
+                'questions.*.order' => 'required|integer|min:1',
+                'questions.*.score' => 'required|numeric|min:0.1|max:100',
+                'questions.*.points_store' => 'required|numeric|min:0.1|max:100',
+            ]);
 
-            if (! $institutionId) {
-                throw new \Exception('El profesor no tiene una institución educativa asignada.');
-            }
+            DB::beginTransaction();
 
             // Verificar que el profesor sea dueño de las preguntas
             $questionIds = collect($validated['questions'])->pluck('id');
@@ -171,28 +135,16 @@ class ApplicationFormController extends Controller
                 throw new \Exception('No tienes permiso para usar una o más preguntas seleccionadas.');
             }
 
-            // Crear la sesión de aprendizaje
-            $learningSession = LearningSession::create([
-                'name' => $validated['ls_name'],
-                'purpose_learning' => $validated['ls_purpose_learning'],
-                'application_date' => $validated['ls_application_date'],
-                'educational_institution_id' => $institutionId,
-                'teacher_classroom_curricular_area_cycle_id' => $validated['teacher_classroom_curricular_area_cycle_id'],
-                'competency_id' => $validated['ls_competency_id'],
-                'status' => 'draft', // Estado inicial
-            ]);
-
             // Crear la ficha de aplicación
             $applicationForm = ApplicationForm::create([
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
+                'status' => $validated['status'],
                 'start_date' => $validated['start_date'],
                 'end_date' => $validated['end_date'],
-                'status' => $validated['status'],
                 'score_max' => $validated['score_max'],
-                'teacher_classroom_curricular_area_cycle_id' => $validated['teacher_classroom_curricular_area_cycle_id'],
-                'learning_session_id' => $learningSession->id,
-                'created_by' => auth()->id(),
+                'teacher_id' => auth()->id(),
+                'learning_session_id' => $validated['learning_session_id'],
             ]);
 
             // Preparar datos para la inserción masiva
@@ -218,7 +170,9 @@ class ApplicationFormController extends Controller
 
             // Obtener estudiantes del aula para crear respuestas
             $classroom = TeacherClassroomCurricularAreaCycle::with(['classroom.students' => function ($query) {
-                $query->where('status', 'active');
+                $query->whereHas('enrollments', function ($q) {
+                    $q->where('status', 'active');
+                });
             }])->findOrFail($validated['teacher_classroom_curricular_area_cycle_id']);
 
             if ($classroom->classroom && $classroom->classroom->students->isNotEmpty()) {
@@ -271,10 +225,17 @@ class ApplicationFormController extends Controller
             return redirect()
                 ->route('teacher.application-forms.index')
                 ->with('success', 'Ficha de aplicación creada exitosamente');
-
-        } catch (\Exception $e) {
+        } catch (ValidationException $e) {
             DB::rollBack();
-            \Log::error('Error al crear ficha de aplicación: '.$e->getMessage());
+            dd($e);
+
+            return back()
+                ->withInput()
+                ->withErrors($e->validator)
+                ->with('error', 'Ocurrió un error inesperado al guardar la sesión. Intenta nuevamente.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            dd($e);
 
             return back()
                 ->withInput()

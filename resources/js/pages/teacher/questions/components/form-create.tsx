@@ -6,8 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Capability, Competency } from '@/types/academic'
 import { CurricularArea } from '@/types/academic/curricular-area'
-import { CreateQuestion, CreateQuestionOption, QuestionType } from '@/types/question'
-import { QuestionDifficulty } from '@/types/question/question'
+import { CreateQuestion, CreateQuestionOption, QuestionDifficulty, QuestionType } from '@/types/application-form/question'
 import { useForm } from '@inertiajs/react'
 import { LoaderCircle } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
@@ -41,7 +40,7 @@ export function CreateQuestionDialog({
     difficulty: 'medium' as QuestionDifficulty,
     question_type_id: '1',
     capability_id: '',
-    curricular_area_id: '',
+    curricular_area_cycle_id: '',
     competency_id: '',
     options: [],
     help_message: '',
@@ -57,7 +56,7 @@ export function CreateQuestionDialog({
   // Crea mapas de acceso rápido
   const { competenciesByCurricularArea, capabilitiesByCompetency } = useMemo(() => {
     const competenciesMap = allCompetencies.reduce<Record<string, Competency[]>>((acc, competency) => {
-      const areaId = competency.curricular_area_id.toString()
+      const areaId = competency.curricular_area_cycle_id.toString()
       if (!acc[areaId]) acc[areaId] = []
       acc[areaId].push(competency)
       return acc
@@ -80,8 +79,8 @@ export function CreateQuestionDialog({
 
   // Filtra competencias según área curricular seleccionada
   const filteredCompetencies = useMemo(() => {
-    return data.curricular_area_id ? competenciesByCurricularArea[data.curricular_area_id] || [] : []
-  }, [data.curricular_area_id, competenciesByCurricularArea])
+    return data.curricular_area_cycle_id ? competenciesByCurricularArea[data.curricular_area_cycle_id] || [] : []
+  }, [data.curricular_area_cycle_id, competenciesByCurricularArea])
 
   // Filtra capacidades según competencia seleccionada
   const filteredCapabilities = useMemo(() => {
@@ -90,11 +89,11 @@ export function CreateQuestionDialog({
 
   // Reinicia campos dependientes al cambiar el padre
   useEffect(() => {
-    if (data.curricular_area_id) {
+    if (data.curricular_area_cycle_id) {
       setData('competency_id', '')
       setData('capability_id', '')
     }
-  }, [data.curricular_area_id, setData])
+  }, [data.curricular_area_cycle_id, setData])
 
   useEffect(() => {
     if (data.competency_id) {
@@ -128,9 +127,9 @@ export function CreateQuestionDialog({
         <form onSubmit={handleSubmit} className='flex flex-col gap-6'>
           {/* Selección de área curricular */}
           <div className='flex flex-col gap-2'>
-            <Label htmlFor='curricular_area_id'>Área Curricular *</Label>
-            <Select value={data.curricular_area_id} onValueChange={(value) => setData('curricular_area_id', value)}>
-              <SelectTrigger id='curricular_area_id' name='curricular_area_id'>
+            <Label htmlFor='curricular_area_cycle_id'>Área Curricular *</Label>
+            <Select value={data.curricular_area_cycle_id} onValueChange={(value) => setData('curricular_area_cycle_id', value)}>
+              <SelectTrigger id='curricular_area_cycle_id' name='curricular_area_cycle_id'>
                 <SelectValue placeholder='Selecciona un área curricular' />
               </SelectTrigger>
               <SelectContent>
@@ -141,15 +140,15 @@ export function CreateQuestionDialog({
                 ))}
               </SelectContent>
             </Select>
-            {errors.curricular_area_id && <p className='text-sm text-red-500'>{errors.curricular_area_id}</p>}
+            {errors.curricular_area_cycle_id && <p className='text-sm text-red-500'>{errors.curricular_area_cycle_id}</p>}
           </div>
 
           {/* Selección de competencia */}
           <div className='flex flex-col gap-2'>
             <Label htmlFor='competency_id'>Competencia *</Label>
-            <Select value={data.competency_id} onValueChange={(value) => setData('competency_id', value)} disabled={!data.curricular_area_id}>
+            <Select value={data.competency_id} onValueChange={(value) => setData('competency_id', value)} disabled={!data.curricular_area_cycle_id}>
               <SelectTrigger id='competency_id' name='competency_id'>
-                <SelectValue placeholder={!data.curricular_area_id ? 'Primero selecciona un área curricular' : 'Selecciona una competencia'} />
+                <SelectValue placeholder={!data.curricular_area_cycle_id ? 'Primero selecciona un área curricular' : 'Selecciona una competencia'} />
               </SelectTrigger>
               <SelectContent>
                 {filteredCompetencies.map((competency) => (
@@ -264,7 +263,7 @@ export function CreateQuestionDialog({
             className='mt-2 w-full'
             disabled={
               processing ||
-              !data.curricular_area_id ||
+              !data.curricular_area_cycle_id ||
               !data.competency_id ||
               !data.capability_id ||
               !data.question_type_id ||

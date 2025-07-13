@@ -7,13 +7,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import AppLayout from '@/layouts/app-layout'
 import { useTranslations } from '@/lib/translator'
 import { cn } from '@/lib/utils'
 import { Capability, Classroom, Competency } from '@/types/academic'
-import { CurricularAreaCycle } from '@/types/academic/curricular_area_cycle'
-import { EducationalInstitution } from '@/types/academic/educational_institution'
+import { CurricularAreaCycle } from '@/types/academic/curricular-area-cycle'
+import { EducationalInstitution } from '@/types/academic/educational-institution'
 import { TeacherClassroomCurricularAreaCycle } from '@/types/academic/teacher-classroom-area-cycle'
 import { ApplicationForm } from '@/types/application-form'
 import { BreadcrumbItem, SharedData } from '@/types/core'
@@ -47,7 +48,9 @@ export default function LearningSession({ educational_institution, teacher_class
 
   const dateLocale = es
 
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, errors } = useForm({
+    redirect: true as boolean,
+    educational_institution_id: educational_institution.id,
     status: 'draft',
     name: '',
     application_date: new Date(),
@@ -103,13 +106,24 @@ export default function LearningSession({ educational_institution, teacher_class
     setData('capability_ids', [])
   }, [data.competency_id])
 
+  useEffect(() => {
+    const teacherClassroomAreaCycle = teacher_classroom_area_cycles.find(
+      (area) => area.curricular_area_cycle_id === Number(data.curricular_area_cycle_id) && area.classroom_id === Number(data.classroom_id)
+    )
+
+    if (!teacherClassroomAreaCycle) {
+      return
+    }
+
+    setData('teacher_classroom_curricular_area_cycle_id', teacherClassroomAreaCycle.id.toString())
+  }, [data.curricular_area_cycle_id, data.classroom_id])
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
     post(route('teacher.learning-sessions.store'), {
-      onSuccess: () => {
-        reset()
-      }
+      preserveScroll: true,
+      preserveState: true
     })
   }
 
@@ -291,32 +305,35 @@ export default function LearningSession({ educational_institution, teacher_class
             {/* Campo: Secuencia de desarrollo (Formulario de aplicación) */}
             <div className='space-y-2'>
               <Label htmlFor='application_form_ids'>Formularios de aplicación</Label>
+              {/* {application_forms
+                .filter((form) => data.application_form_ids.includes(form.id.toString()))
+                .map((form) => (
+                  <div key={form.id}>
+                    <Label>NOMBRE:</Label>
+                    <p>{form.name}</p>
+                    <Label>FECHA INICIO:</Label>
+                    <p>{form.start_date}</p>
+                    <Label>FECHA FIN:</Label>
+                    <p>{form.end_date}</p>
+                  </div>
+                ))}
+              <div>
+                <MultiSelect
+                  options={application_forms.map((form) => ({
+                    label: form.name,
+                    value: form.id.toString()
+                  }))}
+                  value={data.application_form_ids}
+                  onChange={(values) => setData('application_form_ids', values)}
+                  placeholder='Selecciona un o más formularios de aplicación'
+                  id='application_form_ids'
+                  name='application_form_ids'
+                />
+              </div> */}
               <div className='flex gap-6'>
-                {/* Mostrar datos */}
-                {application_forms
-                  .filter((form) => data.application_form_ids.includes(form.id.toString()))
-                  .map((form) => (
-                    <div key={form.id}>
-                      <Label>NOMBRE:</Label>
-                      <p>{form.name}</p>
-                      <Label>FECHA INICIO:</Label>
-                      <p>{form.start_date}</p>
-                      <Label>FECHA FIN:</Label>
-                      <p>{form.end_date}</p>
-                    </div>
-                  ))}
-                <div>
-                  <MultiSelect
-                    options={application_forms.map((form) => ({
-                      label: form.name,
-                      value: form.id.toString()
-                    }))}
-                    value={data.application_form_ids}
-                    onChange={(values) => setData('application_form_ids', values)}
-                    placeholder='Selecciona un o más formularios de aplicación'
-                    id='application_form_ids'
-                    name='application_form_ids'
-                  />
+                <div className='flex items-center space-x-2'>
+                  <Switch id='redirect-to-form' checked={data.redirect} onCheckedChange={(checked) => setData('redirect', checked)} />
+                  <Label htmlFor='redirect-to-form'>Crear Ficha luego de guardar</Label>
                 </div>
               </div>
               <InputError message={errors.application_form_ids} className='mt-1' />

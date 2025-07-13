@@ -1,4 +1,4 @@
-import { CreateQuestionOption } from '@/types/question'
+import { CreateQuestionOption } from '@/types/application-form'
 import { BaseQuestionType } from './BaseQuestionType'
 import { QuestionTypeProps } from './types'
 

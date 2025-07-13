@@ -73,10 +73,6 @@ export default function ApplicationsForm({ applicationForms }: PageProps) {
       <FlashMessages />
 
       <div className='flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
-        <Link href='/teacher/application-forms/create'>
-          <Button>Crear Ficha de Aplicación</Button>
-        </Link>
-
         <DataTable columns={columns} data={applicationForms} />
       </div>
     </AppLayout>

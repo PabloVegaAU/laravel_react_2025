@@ -1,4 +1,4 @@
-import { CreateQuestionOption, QuestionType } from '@/types/question'
+import { CreateQuestionOption, QuestionType } from '@/types/application-form'
 
 // Propiedades para tipos de pregunta
 export interface QuestionTypeProps {

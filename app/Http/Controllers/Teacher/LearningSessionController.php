@@ -9,6 +9,7 @@ use App\Models\LearningSession;
 use App\Models\TeacherClassroomCurricularAreaCycle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class LearningSessionController extends Controller
@@ -61,22 +62,25 @@ class LearningSessionController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'purpose_learning' => 'required|string',
-            'application_date' => 'required|date',
-            'status' => 'required|in:draft,active,inactive',
-            'performances' => 'required|string',
-            'start_sequence' => 'required|string',
-            'end_sequence' => 'required|string',
-            'teacher_classroom_area_cycle_id' => 'required|exists:teacher_classroom_curricular_area_cycles,id',
-            'application_form_ids' => 'required|array',
-            'application_form_ids.*' => 'required|exists:application_forms,id',
-        ]);
-
-        DB::beginTransaction();
-
         try {
+            $validated = $request->validate([
+                'redirect' => 'nullable|boolean',
+                'educational_institution_id' => 'required|exists:educational_institutions,id',
+                'name' => 'required|string|max:255',
+                'purpose_learning' => 'required|string',
+                'application_date' => 'required|date',
+                'status' => 'required|in:draft,active,inactive',
+                'performances' => 'required|string',
+                'start_sequence' => 'required|string',
+                'end_sequence' => 'required|string',
+                'teacher_classroom_curricular_area_cycle_id' => 'required|exists:teacher_classroom_curricular_area_cycles,id',
+                'application_form_ids' => 'nullable|array',
+                'application_form_ids.*' => 'nullable|exists:application_forms,id',
+                'competency_id' => 'required|exists:competencies,id',
+            ]);
+
+            DB::beginTransaction();
+
             $learningSession = LearningSession::create([
                 'name' => $validated['name'],
                 'purpose_learning' => $validated['purpose_learning'],
@@ -85,20 +89,40 @@ class LearningSessionController extends Controller
                 'performances' => $validated['performances'],
                 'start_sequence' => $validated['start_sequence'],
                 'end_sequence' => $validated['end_sequence'],
-                'teacher_classroom_area_cycle_id' => $validated['teacher_classroom_area_cycle_id'],
+                'teacher_classroom_curricular_area_cycle_id' => $validated['teacher_classroom_curricular_area_cycle_id'],
                 'competency_id' => $validated['competency_id'],
                 'educational_institution_id' => $validated['educational_institution_id'],
             ]);
 
-            $learningSession->applicationForms()->attach($validated['application_form_ids']);
+            if (! empty($validated['application_form_ids'])) {
+                $learningSession->applicationForms()->attach($validated['application_form_ids']);
+            }
 
             DB::commit();
 
-            return redirect()->route('teacher.learning-sessions.index')->with('success', 'Learning session created successfully');
-        } catch (\Exception $e) {
+            if ($request->boolean('redirect')) {
+                return redirect()->route('teacher.application-forms.create', [
+                    'learning_session_id' => $learningSession->id,
+                    'teacher_classroom_curricular_area_cycle_id' => $validated['teacher_classroom_curricular_area_cycle_id'],
+                    'competency_id' => $validated['competency_id'],
+                ]);
+            }
+
+            return redirect()->route('teacher.learning-sessions.index')
+                ->with('success', 'Sesión creada exitosamente');
+        } catch (ValidationException $e) {
             DB::rollBack();
 
-            return redirect()->back()->with('error', $e->getMessage());
+            return back()
+                ->withInput()
+                ->withErrors($e->validator)
+                ->with('error', 'Ocurrió un error inesperado al guardar la sesión. Intenta nuevamente.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return back()
+                ->withInput()
+                ->with('error', 'Ocurrió un error inesperado al guardar la sesión. Intenta nuevamente.');
         }
     }
 

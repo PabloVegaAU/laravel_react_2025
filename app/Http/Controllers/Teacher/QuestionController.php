@@ -17,89 +17,76 @@ use Inertia\Inertia;
 
 class QuestionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        // Obtener el año académico actual
-        $currentYear = date('Y');
+    private const DIFFICULTIES = ['easy', 'medium', 'hard'];
 
-        // Preguntas por defecto (array vacío)
-        $questions = [
+    private function emptyPagination(): array
+    {
+        return [
             'data' => [],
             'current_page' => 1,
             'last_page' => 1,
             'per_page' => 10,
             'total' => 0,
         ];
+    }
 
-        // Obtener áreas curriculares relacionadas con el profesor autenticado y año actual
-        $curricularAreas = CurricularArea::select('id', 'name')
-            ->whereHas('teachers', function ($query) use ($currentYear) {
-                $query->where('users.id', auth()->id())
-                    ->where('academic_year', $currentYear);
-            })
-            ->get();
+    public function index()
+    {
+        $currentYear = now()->year;
+        $teacherId = Auth::id();
 
-        // Si no hay áreas curriculares, retornar colecciones vacías
+        $curricularAreas = CurricularArea::whereHas('teacherClassroomCurricularAreaCycles', function ($query) use ($teacherId, $currentYear) {
+            $query->whereHas('teacher', function ($q) use ($teacherId) {
+                $q->where('user_id', $teacherId);
+            })->where('academic_year', $currentYear);
+        })->get(['id', 'name']);
+
         if ($curricularAreas->isEmpty()) {
             return Inertia::render('teacher/questions/index', [
-                'questions' => $questions,
+                'questions' => $this->emptyPagination(),
                 'question_types' => [],
                 'curricular_areas' => [],
                 'competencies' => [],
                 'capabilities' => [],
-                'difficulties' => ['easy', 'medium', 'hard'],
+                'difficulties' => self::DIFFICULTIES,
             ]);
         }
 
-        // Obtener competencias relacionadas con las áreas curriculares
         $competencies = Competency::select('id', 'name', 'curricular_area_cycle_id')
             ->whereIn('curricular_area_cycle_id', $curricularAreas->pluck('id'))
             ->get();
 
-        // Si no hay competencias, retornar colecciones vacías
         if ($competencies->isEmpty()) {
             return Inertia::render('teacher/questions/index', [
-                'questions' => $questions,
+                'questions' => $this->emptyPagination(),
                 'question_types' => [],
                 'curricular_areas' => $curricularAreas,
                 'competencies' => [],
                 'capabilities' => [],
-                'difficulties' => ['easy', 'medium', 'hard'],
+                'difficulties' => self::DIFFICULTIES,
             ]);
         }
 
-        // Obtener capacidades relacionadas con las competencias
         $capabilities = Capability::select('id', 'name', 'competency_id')
             ->whereIn('competency_id', $competencies->pluck('id'))
             ->get();
 
-        // Obtener tipos de pregunta con solo los campos necesarios
         $questionTypes = QuestionType::select('id', 'name')->get();
 
-        // Paginación de preguntas con eager loading optimizado
         $questions = Question::select([
-            'id',
-            'name',
-            'description',
-            'difficulty',
-            'question_type_id',
-            'capability_id',
-            'created_at',
-            'updated_at',
+            'id', 'name', 'description', 'difficulty', 'question_type_id',
+            'capability_id', 'created_at', 'updated_at',
         ])
-            ->when(! $capabilities->isEmpty(), function ($query) use ($capabilities) {
-                return $query->whereIn('capability_id', $capabilities->pluck('id'));
+            ->when($capabilities->isNotEmpty(), function ($query) use ($capabilities) {
+                $query->whereIn('capability_id', $capabilities->pluck('id'));
             }, function ($query) {
-                return $query->whereNull('capability_id');
+                $query->whereNull('capability_id');
             })
             ->with([
                 'questionType:id,name',
                 'capability:id,name,competency_id',
                 'capability.competency:id,name,curricular_area_cycle_id',
-                'capability.competency.curricularAreaCycle:id,name',
+                'capability.competency.curricularAreaCycle:id',
             ])
             ->latest('created_at')
             ->paginate(10);
@@ -110,20 +97,16 @@ class QuestionController extends Controller
             'curricular_areas' => $curricularAreas,
             'competencies' => $competencies,
             'capabilities' => $capabilities,
-            'difficulties' => ['easy', 'medium', 'hard'],
+            'difficulties' => self::DIFFICULTIES,
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create() {}
 
-    private function validateOrderingQuestion($options)
+    private function validateOrderingQuestion(array $options): void
     {
         $orders = collect($options)->pluck('order')->sort()->values();
 
-        // Verificar que los órdenes sean secuenciales empezando desde 0
         foreach ($orders as $index => $order) {
             if ($order !== $index) {
                 throw new \Exception('Los órdenes deben ser secuenciales empezando desde 0');
@@ -131,27 +114,22 @@ class QuestionController extends Controller
         }
     }
 
-    private function validateMatchingQuestion($options)
+    private function validateMatchingQuestion(array $options): void
     {
         $pairs = collect($options)->groupBy('pair_key');
 
-        // Verificar que cada par tenga exactamente 2 elementos
         foreach ($pairs as $pairKey => $pairItems) {
-            if (count($pairItems) !== 2) {
-                throw new \Exception('Cada par debe tener exactamente dos elementos');
+            if ($pairItems->count() !== 2) {
+                throw new \Exception("Cada par debe tener exactamente dos elementos (error en par: $pairKey)");
             }
 
-            // Validar que un lado sea 'left' y el otro 'right'
-            $sides = collect($pairItems)->pluck('pair_side');
+            $sides = $pairItems->pluck('pair_side');
             if (! $sides->contains('left') || ! $sides->contains('right')) {
-                throw new \Exception('Cada par debe tener un elemento "left" y otro "right"');
+                throw new \Exception("Cada par debe contener un lado 'left' y uno 'right' (error en par: $pairKey)");
             }
         }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -221,12 +199,6 @@ class QuestionController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    /**
-     * Display the specified question.
-     */
     public function show(Question $question)
     {
         // Verificar que el usuario es el propietario de la pregunta
@@ -248,12 +220,6 @@ class QuestionController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    /**
-     * Show the form for editing the specified question.
-     */
     public function edit(Question $question)
     {
         // Verificar que el usuario es el propietario de la pregunta
@@ -262,7 +228,7 @@ class QuestionController extends Controller
         }
 
         // Obtener el año académico actual
-        $currentYear = date('Y');
+        $currentYear = now()->year;
 
         // Cargar la pregunta con relaciones necesarias
         $question->load([
@@ -308,12 +274,6 @@ class QuestionController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    /**
-     * Update the specified question in storage.
-     */
     public function update(Request $request, Question $question)
     {
         // Verificar que el usuario es el propietario de la pregunta
@@ -393,12 +353,6 @@ class QuestionController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    /**
-     * Remove the specified question from storage.
-     */
     public function destroy(Question $question)
     {
         // Verificar que el usuario es el propietario de la pregunta

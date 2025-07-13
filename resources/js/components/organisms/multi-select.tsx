@@ -94,43 +94,53 @@ interface MultiSelectTriggerProps {
 const MultiSelectTrigger = forwardRef<HTMLButtonElement, MultiSelectTriggerProps>(
   ({ className, id, value, options, placeholder, disabled, toggle }, ref) => {
     return (
-      <PopoverTrigger
-        ref={ref}
-        id={id}
-        className={cn(
-          'border-input flex min-h-9 w-full items-center justify-between rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs outline-none',
-          value.length === 0 ? 'text-muted-foreground' : '',
-          className
-        )}
-        aria-haspopup='listbox'
-        aria-expanded='false'
-        aria-labelledby={id}
-        disabled={disabled}
-      >
-        <div className='flex min-w-0 flex-1 flex-wrap gap-1'>
-          {value.length > 0
-            ? value.map((v) => {
-                const opt = options.find((o) => o.value === v)
-                return (
-                  <span key={v} className='bg-muted flex items-center gap-1 rounded px-2 py-1 text-xs'>
-                    {opt?.label}
-                    <button
-                      type='button'
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        toggle(v)
-                      }}
-                      className='ml-1 flex items-center justify-center rounded hover:bg-red-200 dark:hover:bg-red-700'
-                      aria-label={`Quitar ${opt?.label}`}
-                    >
-                      <XIcon className='size-4 text-red-600' />
-                    </button>
-                  </span>
-                )
-              })
-            : placeholder}
+      <PopoverTrigger asChild>
+        <div
+          ref={ref as any}
+          id={id}
+          className={cn(
+            'border-input flex min-h-9 w-full items-center justify-between rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs outline-none',
+            value.length === 0 ? 'text-muted-foreground' : '',
+            className
+          )}
+          aria-haspopup='listbox'
+          aria-expanded='false'
+          aria-labelledby={id}
+          role='button'
+          tabIndex={0}
+        >
+          <div className='flex min-w-0 flex-1 flex-wrap gap-1'>
+            {value.length > 0
+              ? value.map((v) => {
+                  const opt = options.find((o) => o.value === v)
+                  return (
+                    <span key={v} className='bg-muted flex items-center gap-1 rounded px-2 py-1 text-xs'>
+                      {opt?.label}
+                      <span
+                        role='button'
+                        tabIndex={0}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggle(v)
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            toggle(v)
+                          }
+                        }}
+                        className='ml-1 flex cursor-pointer items-center justify-center rounded hover:bg-red-200 dark:hover:bg-red-700'
+                        aria-label={`Quitar ${opt?.label}`}
+                      >
+                        <XIcon className='size-4 text-red-600' />
+                      </span>
+                    </span>
+                  )
+                })
+              : placeholder}
+          </div>
+          <ChevronDownIcon className='size-4 opacity-50' />
         </div>
-        <ChevronDownIcon className='size-4 opacity-50' />
       </PopoverTrigger>
     )
   }
@@ -148,6 +158,7 @@ interface MultiSelectContentProps {
 
 function MultiSelectContent({ options, value, toggle, triggerWidth, maxSelections, disabled }: MultiSelectContentProps) {
   const reachedMax = maxSelections !== undefined && value.length >= maxSelections
+
   return (
     <PopoverContent
       style={{ width: triggerWidth }}
@@ -157,7 +168,6 @@ function MultiSelectContent({ options, value, toggle, triggerWidth, maxSelection
     >
       {options.map((opt) => {
         const isSelected = value.includes(opt.value)
-        // Si ya se alcanzó el máximo y esta opción NO está seleccionada, la deshabilitamos visualmente
         const isDisabled = disabled || (reachedMax && !isSelected)
 
         return (
