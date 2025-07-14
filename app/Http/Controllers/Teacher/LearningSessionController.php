@@ -19,7 +19,8 @@ class LearningSessionController extends Controller
      */
     public function index()
     {
-        $learningSessions = LearningSession::paginate(10);
+        $learningSessions = LearningSession::orderByDesc('id')
+            ->paginate(10);
 
         return Inertia::render('teacher/learning-session/index', [
             'learningSessions' => $learningSessions,
@@ -35,7 +36,7 @@ class LearningSessionController extends Controller
 
         $currentYear = now()->year;
 
-        $teacherClassroomAreaCycles = TeacherClassroomCurricularAreaCycle::with([
+        $teacherClassroomCurricularAreaCycles = TeacherClassroomCurricularAreaCycle::with([
             'classroom',
             'curricularAreaCycle.curricularArea', 'curricularAreaCycle.cycle',
             'curricularAreaCycle.curricularArea.competencies',
@@ -45,16 +46,9 @@ class LearningSessionController extends Controller
             ->where('academic_year', $currentYear)
             ->get();
 
-        $applicationForms = ApplicationForm::where('teacher_id', auth()->id())
-            ->where('status', '!=', 'inactive')
-            ->get();
-
         return Inertia::render('teacher/learning-session/create/index', [
             'educational_institution' => $educationalInstitution,
-            'teacher_classroom_area_cycles' => $teacherClassroomAreaCycles,
-            'application_forms' => $applicationForms,
-            'current_year' => $currentYear,
-        ]);
+            'teacher_classroom_curricular_area_cycles' => $teacherClassroomCurricularAreaCycles]);
     }
 
     /**
@@ -74,9 +68,9 @@ class LearningSessionController extends Controller
                 'start_sequence' => 'required|string',
                 'end_sequence' => 'required|string',
                 'teacher_classroom_curricular_area_cycle_id' => 'required|exists:teacher_classroom_curricular_area_cycles,id',
-                'application_form_ids' => 'nullable|array',
-                'application_form_ids.*' => 'nullable|exists:application_forms,id',
                 'competency_id' => 'required|exists:competencies,id',
+                'capability_ids' => 'nullable|array',
+                'capability_ids.*' => 'nullable|exists:capabilities,id',
             ]);
 
             DB::beginTransaction();
@@ -94,8 +88,8 @@ class LearningSessionController extends Controller
                 'educational_institution_id' => $validated['educational_institution_id'],
             ]);
 
-            if (! empty($validated['application_form_ids'])) {
-                $learningSession->applicationForms()->attach($validated['application_form_ids']);
+            if (! empty($validated['capability_ids'])) {
+                $learningSession->capabilities()->attach($validated['capability_ids']);
             }
 
             DB::commit();
@@ -137,23 +131,123 @@ class LearningSessionController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(LearningSession $learningSession)
+    public function edit(int $id)
     {
-        //
+        $learningSession = LearningSession::with([
+            'educationalInstitution',
+            'teacherClassroomCurricularAreaCycle.classroom',
+            'teacherClassroomCurricularAreaCycle.curricularAreaCycle.curricularArea',
+            'teacherClassroomCurricularAreaCycle.curricularAreaCycle.cycle',
+            'competency',
+            'capabilities',
+            'applicationForms',
+        ])->findOrFail($id);
+
+        $teacherClassroomCurricularAreaCycles = TeacherClassroomCurricularAreaCycle::with([
+            'classroom',
+            'curricularAreaCycle.curricularArea', 'curricularAreaCycle.cycle',
+            'curricularAreaCycle.curricularArea.competencies',
+            'curricularAreaCycle.curricularArea.competencies.capabilities',
+        ])
+            ->where('teacher_id', auth()->id())
+            ->where('academic_year', now()->year)
+            ->get();
+
+        return Inertia::render('teacher/learning-session/edit/index', [
+            'learning_session' => $learningSession,
+            'teacher_classroom_curricular_area_cycles' => $teacherClassroomCurricularAreaCycles,
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, LearningSession $learningSession)
+    public function update(Request $request, int $id)
     {
-        //
+        try {
+            $validated = $request->validate([
+                'redirect' => 'nullable|boolean',
+                'name' => 'required|string|max:255',
+                'purpose_learning' => 'required|string',
+                'application_date' => 'required|date',
+                'status' => 'required|in:draft,active,inactive',
+                'performances' => 'required|string',
+                'start_sequence' => 'required|string',
+                'end_sequence' => 'required|string',
+                'teacher_classroom_curricular_area_cycle_id' => 'required|exists:teacher_classroom_curricular_area_cycles,id',
+                'competency_id' => 'required|exists:competencies,id',
+                'capability_ids' => 'nullable|array',
+                'capability_ids.*' => 'nullable|exists:capabilities,id',
+                'application_form_ids' => 'nullable|array',
+                'application_form_ids.*' => 'nullable|exists:application_forms,id',
+            ]);
+
+            DB::beginTransaction();
+
+            $learningSession = LearningSession::findOrFail($id);
+
+            $learningSession->update([
+                'name' => $validated['name'],
+                'purpose_learning' => $validated['purpose_learning'],
+                'application_date' => $validated['application_date'],
+                'status' => $validated['status'],
+                'performances' => $validated['performances'],
+                'start_sequence' => $validated['start_sequence'],
+                'end_sequence' => $validated['end_sequence'],
+                'teacher_classroom_curricular_area_cycle_id' => $validated['teacher_classroom_curricular_area_cycle_id'],
+                'competency_id' => $validated['competency_id'],
+            ]);
+
+            if (isset($validated['application_form_ids'])) {
+                // Remover las formularios que ya no pertenecen a esta sesión
+                ApplicationForm::where('learning_session_id', $learningSession->id)
+                    ->whereNotIn('id', $validated['application_form_ids'])
+                    ->update(['learning_session_id' => null]);
+
+                // Asignar esta sesión a los nuevos formularios
+                ApplicationForm::whereIn('id', $validated['application_form_ids'])
+                    ->update(['learning_session_id' => $learningSession->id]);
+            }
+
+            if (! empty($validated['capability_ids'])) {
+                $learningSession->capabilities()->detach();
+                $learningSession->capabilities()->attach($validated['capability_ids']);
+            }
+
+            DB::commit();
+
+            if ($request->boolean('redirect')) {
+                return redirect()->route('teacher.application-forms.create', [
+                    'learning_session_id' => $learningSession->id,
+                    'teacher_classroom_curricular_area_cycle_id' => $validated['teacher_classroom_curricular_area_cycle_id'],
+                    'competency_id' => $validated['competency_id'],
+                ]);
+            }
+
+            return redirect()->route('teacher.learning-sessions.index')
+                ->with('success', 'Sesión de aprendizaje actualizada correctamente');
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            dd($e);
+
+            return back()
+                ->withInput()
+                ->withErrors($e->validator)
+                ->with('error', 'Ocurrió un error inesperado al guardar la sesión. Intenta nuevamente.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            dd($e);
+
+            return back()
+                ->withInput()
+                ->with('error', 'Ocurrió un error inesperado al guardar la sesión. Intenta nuevamente.');
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(LearningSession $learningSession)
+    public function destroy(int $id)
     {
         //
     }

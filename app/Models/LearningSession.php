@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -51,6 +52,16 @@ class LearningSession extends Model
         return $this->belongsTo(Competency::class);
     }
 
+    public function capabilities(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Capability::class,
+            'learning_session_capabilities',
+            'learning_session_id',
+            'capability_id'
+        )->withTimestamps();
+    }
+
     public function teacherClassroomCurricularAreaCycle(): BelongsTo
     {
         return $this->belongsTo(TeacherClassroomCurricularAreaCycle::class);
@@ -58,6 +69,6 @@ class LearningSession extends Model
 
     public function applicationForms(): HasMany
     {
-        return $this->hasMany(ApplicationForm::class);
+        return $this->hasMany(ApplicationForm::class, 'learning_session_id');
     }
 }

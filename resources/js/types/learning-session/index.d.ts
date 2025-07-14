@@ -7,9 +7,9 @@ export interface LearningSession {
   id: number
   name: string
   purpose_learning: string
-  application_date: string
+  application_date: string | Date
   status: string
-  performances: string[]
+  performances: string
   start_sequence: string | null
   end_sequence: string | null
   educational_institution_id: number
@@ -22,6 +22,7 @@ export interface LearningSession {
   // Relationships
   educational_institution?: EducationalInstitution
   competency?: Competency
+  capabilities?: Capability[]
   teacher_classroom_curricular_area_cycle?: TeacherClassroomCurricularAreaCycle
   application_forms?: ApplicationForm[]
 }

@@ -72,11 +72,14 @@ class ApplicationFormController extends Controller
 
         $learningSession = LearningSession::with([
             'teacherClassroomCurricularAreaCycle',
+            'teacherClassroomCurricularAreaCycle.curricularAreaCycle',
+            'teacherClassroomCurricularAreaCycle.curricularAreaCycle.curricularArea',
+            'teacherClassroomCurricularAreaCycle.classroom',
             'competency',
         ])->findOrFail($validated['learning_session_id']);
 
         // Obtener datos de asignación de aula-área-curricular-ciclo
-        $teacherClassroomAreaCycle = $learningSession->teacherClassroomCurricularAreaCycle;
+        $teacherClassroomCurricularAreaCycle = $learningSession->teacherClassroomCurricularAreaCycle;
 
         // Obtener preguntas con relaciones mínimas necesarias
         $questions = Question::select(['questions.id', 'questions.name', 'questions.capability_id', 'questions.difficulty'])
@@ -92,7 +95,7 @@ class ApplicationFormController extends Controller
 
         return Inertia::render('teacher/application-form/create/index', [
             'learning_session' => $learningSession,
-            'teacher_classroom_area_cycles' => $teacherClassroomAreaCycle,
+            'teacher_classroom_curricular_area_cycle' => $teacherClassroomCurricularAreaCycle,
             'questions' => $questions,
             'current_year' => $currentYear,
         ]);

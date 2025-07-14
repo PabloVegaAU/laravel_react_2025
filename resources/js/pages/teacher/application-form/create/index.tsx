@@ -20,19 +20,7 @@ import { Head, useForm } from '@inertiajs/react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Calendar as CalendarIcon } from 'lucide-react'
-import { useEffect, useState } from 'react'
-
-type FormDataConvertible =
-  | string
-  | number
-  | boolean
-  | null
-  | undefined
-  | Blob
-  | File
-  | Date
-  | FormDataConvertible[]
-  | { [key: string]: FormDataConvertible }
+import { useEffect } from 'react'
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -47,19 +35,19 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface CreateApplicationFormProps {
   learning_session: LearningSession
-  teacher_classroom_area_cycles: TeacherClassroomCurricularAreaCycle
+  teacher_classroom_curricular_area_cycle: TeacherClassroomCurricularAreaCycle
   questions: Question[]
 }
 
-export default function ApplicationsForm({ learning_session, teacher_classroom_area_cycles, questions }: CreateApplicationFormProps) {
+export default function ApplicationsForm({ learning_session, teacher_classroom_curricular_area_cycle, questions }: CreateApplicationFormProps) {
   // Estados para manejar las fechas
   const today = new Date()
-  const [startDate, setStartDate] = useState<Date>(today)
-  const [endDate, setEndDate] = useState<Date>(() => {
+  const startDate = today
+  const endDate = (() => {
     const inOneWeek = new Date(today)
     inOneWeek.setDate(inOneWeek.getDate() + 8)
     return inOneWeek
-  })
+  })()
 
   // Función para formatear fechas de string a Date
   const parseDateString = (date: Date | string | undefined): Date => {
@@ -97,7 +85,7 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_a
     questions: QuestionWithScore[]
   }>({
     learning_session_id: learning_session.id,
-    teacher_classroom_curricular_area_cycle_id: teacher_classroom_area_cycles.id,
+    teacher_classroom_curricular_area_cycle_id: teacher_classroom_curricular_area_cycle.id,
     competency_id: learning_session.competency_id,
 
     name: '',
@@ -282,13 +270,13 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_a
               <Label htmlFor='teacher_classroom_curricular_area_id'>Área Curricular</Label>
               <Input
                 defaultValue={
-                  teacher_classroom_area_cycles.classroom?.level +
+                  teacher_classroom_curricular_area_cycle.classroom?.level +
                   ' ' +
-                  teacher_classroom_area_cycles.classroom?.grade +
+                  teacher_classroom_curricular_area_cycle.classroom?.grade +
                   ' ' +
-                  teacher_classroom_area_cycles.classroom?.section +
+                  teacher_classroom_curricular_area_cycle.classroom?.section +
                   ' - ' +
-                  teacher_classroom_area_cycles.curricular_area_cycle?.curricular_area?.name
+                  teacher_classroom_curricular_area_cycle.curricular_area_cycle?.curricular_area?.name
                 }
                 readOnly
               />

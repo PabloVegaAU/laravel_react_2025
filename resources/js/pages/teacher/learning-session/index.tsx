@@ -34,11 +34,13 @@ export default function LearningSession({ learningSessions }: PageProps) {
     },
     {
       header: 'Acciones',
-      accessorKey: 'actions',
+      accessorKey: 'id',
       cell: (row) => (
         <div className='flex space-x-2'>
-          <Button variant='info'>Editar</Button>
           <Link href={`/teacher/learning-sessions/${row.getValue()}/edit`}>
+            <Button variant='info'>Editar</Button>
+          </Link>
+          <Link href={`/teacher/learning-sessions/${row.getValue()}`}>
             <Button variant='outline' size='sm'>
               Ver
             </Button>

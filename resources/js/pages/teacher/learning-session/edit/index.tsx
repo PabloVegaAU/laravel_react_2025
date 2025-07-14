@@ -12,11 +12,10 @@ import { Textarea } from '@/components/ui/textarea'
 import AppLayout from '@/layouts/app-layout'
 import { useTranslations } from '@/lib/translator'
 import { cn } from '@/lib/utils'
-import { Capability, Classroom, Competency } from '@/types/academic'
+import { Capability, Classroom, Competency, TeacherClassroomCurricularAreaCycle } from '@/types/academic'
 import { CurricularAreaCycle } from '@/types/academic/curricular-area-cycle'
-import { EducationalInstitution } from '@/types/academic/educational-institution'
-import { TeacherClassroomCurricularAreaCycle } from '@/types/academic/teacher-classroom-area-cycle'
 import { BreadcrumbItem, SharedData } from '@/types/core'
+import { LearningSession } from '@/types/learning-session'
 import { Head, useForm, usePage } from '@inertiajs/react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -24,7 +23,7 @@ import { CalendarIcon, LoaderCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 type PageProps = {
-  educational_institution: EducationalInstitution
+  learning_session: LearningSession
   teacher_classroom_curricular_area_cycles: TeacherClassroomCurricularAreaCycle[]
 }
 
@@ -35,7 +34,8 @@ const breadcrumbs: BreadcrumbItem[] = [
   }
 ]
 
-export default function LearningSessionCreate({ educational_institution, teacher_classroom_curricular_area_cycles }: PageProps) {
+export default function LearningSessionEdit({ learning_session, teacher_classroom_curricular_area_cycles }: PageProps) {
+  const { educational_institution, teacher_classroom_curricular_area_cycle } = learning_session
   const { auth } = usePage<SharedData>().props
   const { t } = useTranslations()
 
@@ -46,34 +46,40 @@ export default function LearningSessionCreate({ educational_institution, teacher
 
   const dateLocale = es
 
-  const { data, setData, post, processing, errors } = useForm({
-    redirect: true as boolean,
-    educational_institution_id: educational_institution.id,
-    status: 'draft',
-    name: '',
-    application_date: new Date(),
-    teacher_classroom_curricular_area_cycle_id: '',
-    classroom_id: '',
-    curricular_area_cycle_id: '',
-    competency_id: '',
-    capability_ids: [] as string[],
-    performances: '',
-    purpose_learning: '',
-    start_sequence: '',
-    end_sequence: ''
+  const { data, setData, put, processing, errors } = useForm({
+    redirect: (learning_session?.application_forms?.length ?? 0) === 0,
+    educational_institution_id: educational_institution?.id,
+    status: learning_session.status,
+    name: learning_session.name,
+    application_date: learning_session.application_date,
+    teacher_classroom_curricular_area_cycle_id: learning_session.teacher_classroom_curricular_area_cycle_id.toString(),
+    classroom_id: teacher_classroom_curricular_area_cycle?.classroom_id.toString(),
+    curricular_area_cycle_id: teacher_classroom_curricular_area_cycle?.curricular_area_cycle_id.toString(),
+    competency_id: learning_session.competency_id.toString(),
+    capability_ids: learning_session.capabilities?.map((capability) => capability.id.toString()) || [],
+    performances: learning_session.performances,
+    purpose_learning: learning_session.purpose_learning,
+    start_sequence: learning_session.start_sequence || '',
+    application_form_ids: learning_session?.application_forms?.map((form) => form.id.toString()) || [],
+    end_sequence: learning_session.end_sequence || ''
   })
 
-  // En el useEffect principal para la carga inicial
+  // UseEffect para cargar aulas disponibles
   useEffect(() => {
     const validClassrooms = (teacher_classroom_curricular_area_cycles || []).flatMap((area) => (area.classroom ? [area.classroom] : []))
-    setClassrooms(validClassrooms)
 
+    // Eliminar duplicados por ID
+    const uniqueClassrooms = Array.from(new Map(validClassrooms.map((item) => [item.id, item])).values())
+
+    setClassrooms(uniqueClassrooms)
+
+    // Inicializar como arrays vacíos en lugar de undefined
     setCurricularAreas([])
     setCompetencies([])
     setCapabilities([])
   }, [teacher_classroom_curricular_area_cycles])
 
-  // En el useEffect para cargar áreas curriculares
+  // UseEffect para cargar áreas curriculares disponibles
   useEffect(() => {
     const validCurricularAreas = (teacher_classroom_curricular_area_cycles || [])
       .filter((area) => area.classroom_id === Number(data.classroom_id))
@@ -86,7 +92,7 @@ export default function LearningSessionCreate({ educational_institution, teacher
     setCapabilities([])
   }, [data.classroom_id])
 
-  // En el useEffect para cargar competencias
+  // UseEffect para cargar competencias disponibles
   useEffect(() => {
     setCompetencies(
       teacher_classroom_curricular_area_cycles.find((area) => area.curricular_area_cycle_id === Number(data.curricular_area_cycle_id))
@@ -97,7 +103,7 @@ export default function LearningSessionCreate({ educational_institution, teacher
     setCapabilities([])
   }, [data.curricular_area_cycle_id])
 
-  // En el useEffect para cargar capacidades
+  // UseEffect para cargar capacidades disponibles
   useEffect(() => {
     setCapabilities(
       teacher_classroom_curricular_area_cycles
@@ -107,7 +113,7 @@ export default function LearningSessionCreate({ educational_institution, teacher
     setData('capability_ids', [])
   }, [data.competency_id])
 
-  // En el useEffect para cargar el área curricular y competencia
+  // UseEffect para cargar el ID del área curricular y la aula
   useEffect(() => {
     const teacherClassroomAreaCycle = teacher_classroom_curricular_area_cycles.find(
       (area) => area.curricular_area_cycle_id === Number(data.curricular_area_cycle_id) && area.classroom_id === Number(data.classroom_id)
@@ -120,10 +126,47 @@ export default function LearningSessionCreate({ educational_institution, teacher
     setData('teacher_classroom_curricular_area_cycle_id', teacherClassroomAreaCycle.id.toString())
   }, [data.curricular_area_cycle_id, data.classroom_id])
 
+  // UseEffect para cargar datos iniciales
+  useEffect(() => {
+    if (learning_session) {
+      // Setear datos principales
+      setData({
+        ...data,
+        name: learning_session.name,
+        status: learning_session.status,
+        application_date: learning_session.application_date,
+        purpose_learning: learning_session.purpose_learning,
+        performances: learning_session.performances,
+        start_sequence: learning_session.start_sequence || '',
+        end_sequence: learning_session.end_sequence || '',
+        teacher_classroom_curricular_area_cycle_id: learning_session.teacher_classroom_curricular_area_cycle_id?.toString() || '',
+        competency_id: learning_session.competency_id?.toString() || '',
+        capability_ids: learning_session.capabilities?.map((c) => c.id.toString()) || [],
+        application_form_ids: learning_session.application_forms?.map((f) => f.id.toString()) || []
+      })
+
+      // Setear el ID de la aula si está disponible
+      if (learning_session.teacher_classroom_curricular_area_cycle?.classroom_id) {
+        setData('classroom_id', learning_session.teacher_classroom_curricular_area_cycle.classroom_id.toString())
+      }
+
+      // Setear el ID de la área curricular si está disponible
+      if (learning_session.teacher_classroom_curricular_area_cycle?.curricular_area_cycle_id) {
+        setData('curricular_area_cycle_id', learning_session.teacher_classroom_curricular_area_cycle.curricular_area_cycle_id.toString())
+      }
+
+      // Cargar competencias y capacidades si están disponibles
+      if (learning_session.competency) {
+        setData('competency_id', learning_session.competency.id.toString())
+        setData('capability_ids', learning_session.capabilities?.map((c) => c.id.toString()) || [])
+      }
+    }
+  }, [])
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    post(route('teacher.learning-sessions.store'), {
+    put(route('teacher.learning-sessions.update', learning_session.id), {
       preserveScroll: true,
       preserveState: true
     })
@@ -137,8 +180,8 @@ export default function LearningSessionCreate({ educational_institution, teacher
       <div className='flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
         <form onSubmit={handleSubmit} className='space-y-6'>
           <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
-            <Label>UGEL: {educational_institution.ugel}</Label>
-            <Label>I.E: {educational_institution.name}</Label>
+            <Label>UGEL: {educational_institution?.ugel}</Label>
+            <Label>I.E: {educational_institution?.name}</Label>
             <Label>Docente: {auth.user.name}</Label>
           </div>
 
@@ -173,7 +216,7 @@ export default function LearningSessionCreate({ educational_institution, teacher
                 <PopoverContent className='w-auto p-0'>
                   <Calendar
                     mode='single'
-                    selected={data.application_date}
+                    selected={data.application_date ? new Date(data.application_date) : undefined}
                     onSelect={(date) => {
                       setData('application_date', date || new Date())
                     }}
@@ -307,15 +350,55 @@ export default function LearningSessionCreate({ educational_institution, teacher
               </div>
             </div>
 
-            {/* Campo: Secuencia de desarrollo (Formulario de aplicación) */}
+            {/* Campo: Secuencia de desarrollo */}
             <div className='grid grid-cols-8 items-center gap-6'>
               <div className='col-span-2 flex size-full flex-col items-center justify-center gap-2 border-6 border-emerald-600 bg-emerald-500'>
                 DESARROLLO
               </div>
               <div className='col-span-6 w-full space-y-2'>
                 <Label htmlFor='application_form_ids'>Formularios de aplicación</Label>
-                <div className='flex gap-6'>
-                  <div className='flex items-center space-x-2'>
+
+                <div>
+                  {learning_session?.application_forms
+                    ?.filter((form) => data.application_form_ids.includes(form.id.toString()))
+                    ?.map((form) => (
+                      <div key={form.id} className='grid grid-cols-2 items-center gap-2 space-y-2'>
+                        <div className='flex w-full flex-col gap-2'>
+                          <div className='flex items-center space-x-2'>
+                            <Label>NOMBRE:</Label>
+                            <p>{form.name}</p>
+                          </div>
+                          <div className='flex items-center space-x-2'>
+                            <Label>FECHA INICIO:</Label>
+                            <p>{format(form.start_date, 'dd/MM/yyyy')}</p>
+                          </div>
+                          <div className='flex items-center space-x-2'>
+                            <Label>FECHA FIN:</Label>
+                            <p>{format(form.end_date, 'dd/MM/yyyy')}</p>
+                          </div>
+                        </div>
+                        <div className='flex w-full flex-col gap-2'>
+                          <div className='flex items-center space-x-2'>
+                            <Label>ESTADO:</Label>
+                            <div>{t(form.status)}</div>
+                          </div>
+
+                          <div className='flex items-center space-x-2'>
+                            <Label>ACCIONES:</Label>
+                            <div className='flex gap-2'>
+                              <Button variant='info' size='sm'>
+                                Ver
+                              </Button>
+                              <Button variant='warning' size='sm'>
+                                Editar
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                  <div className={cn('flex items-center space-x-2', data.application_form_ids.length > 0 ? 'hidden' : '')}>
                     <Switch id='redirect-to-form' checked={data.redirect} onCheckedChange={(checked) => setData('redirect', checked)} />
                     <Label htmlFor='redirect-to-form'>Crear Ficha luego de guardar</Label>
                   </div>
