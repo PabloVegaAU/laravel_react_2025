@@ -3,9 +3,15 @@
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Student\ApplicationFormController as StudentApplicationFormController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
+use App\Http\Controllers\Student\ProfileController as StudentProfileController;
+use App\Http\Controllers\Student\StoreController as StudentStoreController;
+use App\Http\Controllers\Teacher\AchievementController as TeacherAchievementController;
 use App\Http\Controllers\Teacher\ApplicationFormController as TeacherApplicationFormController;
+use App\Http\Controllers\Teacher\AvatarController as TeacherAvatarController;
+use App\Http\Controllers\Teacher\BackgroundController as TeacherBackgroundController;
 use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
 use App\Http\Controllers\Teacher\LearningSessionController as TeacherLearningSessionController;
+use App\Http\Controllers\Teacher\PrizeController as TeacherPrizeController;
 use App\Http\Controllers\Teacher\QuestionController as TeacherQuestionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -28,13 +34,49 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // routes teacher
     Route::get('teacher/dashboard', [TeacherDashboardController::class, 'index'])->name('teacher.dashboard');
+
+    // Rutas para la gestión de logros
+    // REALIZADO POR CARLOS
+    Route::prefix('teacher/achievements')->name('teacher.achievements.')->group(function () {
+        Route::get('/', [TeacherAchievementController::class, 'index'])->name('index');
+        Route::post('/', [TeacherAchievementController::class, 'store'])->name('store');
+        Route::get('/{id}', [TeacherAchievementController::class, 'show'])->name('show');
+        Route::get('/list/achievements', [TeacherAchievementController::class, 'getAchievements'])->name('list.achievements');
+    });
+
     Route::resource('teacher/learning-sessions', TeacherLearningSessionController::class)->names('teacher.learning-sessions');
     Route::resource('teacher/application-forms', TeacherApplicationFormController::class)->names('teacher.application-forms');
     Route::resource('teacher/questions', TeacherQuestionController::class)->names('teacher.questions');
 
+    // Rutas para la gestión de fondos
+    // REALIZADO POR CARLOS
+    Route::resource('teacher/backgrounds', TeacherBackgroundController::class)
+        ->names('teacher.backgrounds');
+
+    // Rutas para la gestión de premios
+    // REALIZADO POR CARLOS
+    Route::resource('teacher/prizes', TeacherPrizeController::class)
+        ->names('teacher.prizes');
+
+    // Rutas para la gestión de avatares
+    // REALIZADO POR CARLOS
+    Route::resource('teacher/avatars', TeacherAvatarController::class)
+        ->names('teacher.avatars');
+
     // routes student
     Route::get('student/dashboard', [StudentDashboardController::class, 'index'])->name('student.dashboard');
     Route::resource('student/application-forms', StudentApplicationFormController::class)->names('student.application-forms');
+
+    // REALIZADO POR CARLOS
+    Route::get('student/store', [StudentStoreController::class, 'index'])->name('student.store');
+    Route::get('student/store/avatars', [StudentStoreController::class, 'avatars'])->name('student.store.avatars');
+    Route::get('student/store/backgrounds', [StudentStoreController::class, 'backgrounds'])->name('student.store.backgrounds');
+    Route::get('student/store/rewards', [StudentStoreController::class, 'rewards'])->name('student.store.rewards');
+    // REALIZADO POR CARLOS
+    Route::get('student/profile', [StudentProfileController::class, 'index'])->name('student.profile');
+    Route::get('student/objects', [StudentProfileController::class, 'objects'])->name('student.objects');
+
+    // REALIZADO POR CARLOS
 });
 
 require __DIR__.'/settings.php';

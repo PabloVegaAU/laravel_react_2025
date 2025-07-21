@@ -1,0 +1,165 @@
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import AppLayout from '@/layouts/app-layout'
+import { router } from '@inertiajs/react'
+import { Edit, Eye, Plus, Search, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { CreateBackgroundModal } from './create-background-modal'
+import { EditBackgroundModal } from './edit-background-modal'
+
+type Background = {
+  id: number
+  name: string
+  image: string
+  level_required: number
+  points_store: number
+  level_required_name?: string
+}
+
+export default function TeacherBackgroundsPage() {
+  const [searchTerm, setSearchTerm] = useState('')
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [selectedBackground, setSelectedBackground] = useState<Background | null>(null)
+  const [backgrounds, setBackgrounds] = useState<Background[]>([])
+
+  // Fetch backgrounds
+  useEffect(() => {
+    const fetchBackgrounds = async () => {
+      try {
+        const response = await fetch('/teacher/backgrounds')
+        const data = await response.json()
+        setBackgrounds(data.backgrounds || [])
+      } catch (error) {
+        console.error('Error fetching backgrounds:', error)
+      }
+    }
+
+    fetchBackgrounds()
+  }, [])
+
+  const filteredBackgrounds = backgrounds.filter(
+    (background) =>
+      background.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      background.level_required_name?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  const handleDelete = async (id: number) => {
+    if (confirm('¿Estás seguro de que deseas eliminar este fondo?')) {
+      try {
+        await router.delete(`/teacher/backgrounds/${id}`, {
+          onSuccess: () => {
+            setBackgrounds(backgrounds.filter((bg) => bg.id !== id))
+          }
+        })
+      } catch (error) {
+        console.error('Error deleting background:', error)
+      }
+    }
+  }
+
+  return (
+    <AppLayout>
+      <div className='container mx-auto p-6'>
+        <div className='mb-6 flex items-center justify-between'>
+          <h1 className='text-2xl font-bold text-gray-800'>Gestión de Fondos</h1>
+          <div className='flex items-center space-x-4'>
+            <div className='relative w-64'>
+              <Search className='absolute top-2.5 left-2.5 h-4 w-4 text-gray-500' />
+              <Input
+                type='search'
+                placeholder='Buscar fondo...'
+                className='pl-8'
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <Button onClick={() => setIsCreateModalOpen(true)}>
+              <Plus className='mr-2 h-4 w-4' />
+              Crear Fondo
+            </Button>
+          </div>
+        </div>
+
+        <div className='rounded-lg border bg-white'>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>N°</TableHead>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Nivel Requerido</TableHead>
+                <TableHead>Costo</TableHead>
+                <TableHead className='text-right'>Acción</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredBackgrounds.map((background, index) => (
+                <TableRow key={background.id}>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell className='font-medium'>{background.name}</TableCell>
+                  <TableCell>
+                    <span className='rounded-full bg-green-100 px-2 py-1 text-xs text-green-800'>Activo</span>
+                  </TableCell>
+                  <TableCell>Nivel {background.level_required}</TableCell>
+                  <TableCell>{background.points_store} pts</TableCell>
+                  <TableCell className='flex justify-end space-x-2'>
+                    <Button
+                      variant='ghost'
+                      size='icon'
+                      onClick={() => {
+                        setSelectedBackground(background)
+                        // You can implement view functionality here if needed
+                      }}
+                    >
+                      <Eye className='h-4 w-4' />
+                    </Button>
+                    <Button
+                      variant='ghost'
+                      size='icon'
+                      onClick={() => {
+                        setSelectedBackground(background)
+                        setIsEditModalOpen(true)
+                      }}
+                    >
+                      <Edit className='h-4 w-4' />
+                    </Button>
+                    <Button variant='ghost' size='icon' className='text-red-600 hover:text-red-800' onClick={() => handleDelete(background.id)}>
+                      <Trash2 className='h-4 w-4' />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      <CreateBackgroundModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={(newBackground) => {
+          setBackgrounds([...backgrounds, newBackground])
+          setIsCreateModalOpen(false)
+        }}
+      />
+
+      {selectedBackground && (
+        <EditBackgroundModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false)
+            setSelectedBackground(null)
+          }}
+          background={selectedBackground}
+          onSuccess={(updatedBackground) => {
+            setBackgrounds(backgrounds.map((bg) => (bg.id === updatedBackground.id ? updatedBackground : bg)))
+            setIsEditModalOpen(false)
+            setSelectedBackground(null)
+          }}
+        />
+      )}
+    </AppLayout>
+  )
+}

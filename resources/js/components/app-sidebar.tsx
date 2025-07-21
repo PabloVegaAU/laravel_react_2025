@@ -14,12 +14,13 @@ export function AppSidebar() {
   const { currentDashboardRole, permissions } = useUserStore()
 
   // Obtener los items de navegación filtrados por permisos
-  const { noTitleNavItems, peopleNavItems, schoolNavItems, applicationFormsNavItems } = createNavItems(permissions)
+  const { noTitleNavItems, peopleNavItems, schoolNavItems, applicationFormsNavItems, storeNavItems } = createNavItems(permissions)
 
   // Mostrar la sección de personas solo si hay al menos un ítem
   const showPeopleSection = peopleNavItems.length > 0
   const showSchoolSection = schoolNavItems.length > 0
   const showApplicationFormsSection = applicationFormsNavItems.length > 0
+  const showStoreSection = storeNavItems.length >= 0
 
   return (
     <Sidebar collapsible='icon' variant='inset'>
@@ -40,6 +41,7 @@ export function AppSidebar() {
         {showPeopleSection && <NavMain title='PERSONAS' items={peopleNavItems} />}
         {showSchoolSection && <NavMain title='COLEGIO' items={schoolNavItems} />}
         {showApplicationFormsSection && <NavMain title='FICHAS DE APLICACIÓN' items={applicationFormsNavItems} />}
+        {showStoreSection && <NavMain title='TIENDA DE PUNTOS' items={storeNavItems} />}
       </SidebarContent>
 
       <SidebarFooter>

@@ -3,30 +3,49 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Avatar extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'avatars';
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
     protected $fillable = [
         'name',
-        'image',
-        'level_required',
-        'points_store',
+        'image_url',
+        'price',
+        'is_active',
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
     protected $casts = [
-        'points_store' => 'decimal:2',
+        'price' => 'decimal:2',
+        'is_active' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
     ];
 
+    /**
+     * The attributes that should be mutated to dates.
+     *
+     * @var array
+     */
     protected $dates = [
         'created_at',
         'updated_at',
+        'deleted_at',
     ];
 
     public function studentAvatars(): HasMany
