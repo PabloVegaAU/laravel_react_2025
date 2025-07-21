@@ -75,10 +75,22 @@ export const createNavItems = (permissions: string[] = []) => {
 
   const applicationFormsNavItems: NavItem[] = [
     {
+      title: 'Gestión de Logros',
+      href: '/teacher/achievements',
+      icon: FileQuestion,
+      permission: 'teacher.achievements.index'
+    },
+    {
       title: 'Sesiones de aprendizaje',
       href: '/teacher/learning-sessions',
       icon: FileQuestion,
       permission: 'teacher.learning-sessions.index'
+    },
+    {
+      title: 'Sesiones de aprendizaje',
+      href: '/student/learning-sessions',
+      icon: FileQuestion,
+      permission: 'student.learning-sessions.index'
     },
     {
       title: 'Fichas de Aplicación',
@@ -87,16 +99,43 @@ export const createNavItems = (permissions: string[] = []) => {
       permission: 'teacher.application-forms.index'
     },
     {
-      title: 'Fichas de Aplicación',
-      href: '/student/application-forms',
+      title: 'Respuestas de fichas de aplicación',
+      href: '/student/application-form-responses',
       icon: FileQuestion,
-      permission: 'student.application-forms.index'
+      permission: 'student.application-form-responses.index'
     },
     {
       title: 'Preguntas',
       href: '/teacher/questions',
       icon: FileQuestion,
       permission: 'teacher.questions.index'
+    }
+    /* {
+      title: 'Respuestas de fichas de aplicación',
+      href: '/teacher/application-form-responses',
+      icon: FileQuestion,
+      permission: 'teacher.application-form-responses.index'
+    } */
+  ]
+
+  const storeNavItems: NavItem[] = [
+    {
+      title: 'Tienda de Puntos',
+      href: '/student/store',
+      icon: FileQuestion,
+      permission: 'student.store.index'
+    },
+    {
+      title: 'Puntos',
+      href: '/student/store/points',
+      icon: FileQuestion,
+      permission: 'student.store.points.index'
+    },
+    {
+      title: 'Objetos',
+      href: '/teacher/objects',
+      icon: FileQuestion,
+      permission: 'teacher.objects.index'
     }
   ]
 
@@ -109,6 +148,7 @@ export const createNavItems = (permissions: string[] = []) => {
     noTitleNavItems: filterByPermission(noTitleNavItems),
     peopleNavItems: filterByPermission(peopleNavItems),
     schoolNavItems: filterByPermission(schoolNavItems),
-    applicationFormsNavItems: filterByPermission(applicationFormsNavItems)
+    applicationFormsNavItems: filterByPermission(applicationFormsNavItems),
+    storeNavItems: filterByPermission(storeNavItems)
   }
 }

@@ -1,9 +1,17 @@
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern'
+import { Label } from '@/components/ui/label'
 import AppLayout from '@/layouts/app-layout'
+import { useTranslations } from '@/lib/translator'
 import { useUserStore } from '@/store/useUserStore'
+import { Enrollment } from '@/types/academic'
+import { ApplicationFormResponse } from '@/types/application-form'
 import { BreadcrumbItem } from '@/types/core'
-import { Head } from '@inertiajs/react'
+import { Head, Link } from '@inertiajs/react'
 import { useEffect } from 'react'
+
+type PageProps = {
+  application_form_responses: ApplicationFormResponse[]
+  enrollment: Enrollment
+}
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -12,7 +20,8 @@ const breadcrumbs: BreadcrumbItem[] = [
   }
 ]
 
-export default function Dashboard() {
+export default function Dashboard({ application_form_responses, enrollment }: PageProps) {
+  const { t } = useTranslations()
   const { setCurrentDashboardRole } = useUserStore()
 
   useEffect(() => {
@@ -22,20 +31,51 @@ export default function Dashboard() {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title='Dashboard' />
-      <div className='flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
-        <div className='grid auto-rows-min gap-4 md:grid-cols-3'>
-          <div className='border-sidebar-border/70 dark:border-sidebar-border relative aspect-video overflow-hidden rounded-xl border'>
-            <PlaceholderPattern className='absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20' />
-          </div>
-          <div className='border-sidebar-border/70 dark:border-sidebar-border relative aspect-video overflow-hidden rounded-xl border'>
-            <PlaceholderPattern className='absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20' />
-          </div>
-          <div className='border-sidebar-border/70 dark:border-sidebar-border relative aspect-video overflow-hidden rounded-xl border'>
-            <PlaceholderPattern className='absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20' />
+      <div className='relative flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4 pb-96'>
+        {/* Application Forms| */}
+        <div className='flex flex-col gap-4'>
+          <h2 className='text-xl font-semibold'>Fichas de aplicación pendientes</h2>
+          <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
+            {application_form_responses.map((application_form_response) => (
+              <Link
+                key={application_form_response.id}
+                className='border-sidebar-border/70 dark:border-sidebar-border hover:bg-sidebar-border/10 dark:hover:bg-sidebar-border overflow-hidden rounded-xl border p-2'
+                href={`/student/application-form-responses/${application_form_response.id}/edit`}
+              >
+                <h3 className='flex flex-col gap-1'>
+                  <span className='truncate font-semibold'>{application_form_response.application_form.name}</span>
+                  <span className='text-sm text-gray-500 dark:text-gray-400'>
+                    {
+                      application_form_response.application_form.learning_session?.teacher_classroom_curricular_area_cycle?.curricular_area_cycle
+                        ?.curricular_area?.name
+                    }
+                  </span>
+                </h3>
+              </Link>
+            ))}
           </div>
         </div>
-        <div className='border-sidebar-border/70 dark:border-sidebar-border relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border md:min-h-min'>
-          <PlaceholderPattern className='absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20' />
+
+        {/* Enrollment */}
+        <div className='fixed right-4 bottom-4'>
+          <div className='border-sidebar-border/70 dark:border-sidebar-border dark:bg-sidebar flex flex-col gap-4 rounded-xl border bg-white p-4'>
+            <div className='space-y-1'>
+              <Label className='text-base'>Nivel</Label>
+              <p className='text-muted-foreground text-sm'>{t(enrollment?.classroom?.level)}</p>
+            </div>
+            <div className='space-y-1'>
+              <Label className='text-base'>Grado</Label>
+              <p className='text-muted-foreground text-sm'>{t(enrollment?.classroom?.grade)}</p>
+            </div>
+            <div className='space-y-1'>
+              <Label className='text-base'>Sección</Label>
+              <p className='text-muted-foreground text-sm'>{enrollment?.classroom?.section}</p>
+            </div>
+            <div className='space-y-1'>
+              <Label className='text-base'>Año escolar</Label>
+              <p className='text-muted-foreground text-sm'>{enrollment.academic_year}</p>
+            </div>
+          </div>
         </div>
       </div>
     </AppLayout>

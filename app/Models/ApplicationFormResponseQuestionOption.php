@@ -18,6 +18,8 @@ class ApplicationFormResponseQuestionOption extends Model
         'question_option_id',
         'score',
         'is_correct',
+        'selected_order',
+        'paired_with_option_id',
     ];
 
     protected $casts = [
@@ -47,6 +49,15 @@ class ApplicationFormResponseQuestionOption extends Model
         return $this->belongsTo(
             QuestionOption::class,
             'question_option_id',
+            'id'
+        );
+    }
+
+    public function pairedWithOption(): BelongsTo
+    {
+        return $this->belongsTo(
+            QuestionOption::class,
+            'paired_with_option_id',
             'id'
         )->withTrashed();
     }

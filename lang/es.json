@@ -4,6 +4,23 @@
   "A decryption key is required.": "Se requiere una clave de descrifrado.",
   "A reset link will be sent if the account exists.": "Se enviará un enlace de restablecimiento si la cuenta existe.",
 
+  "primary": "Primaria",
+  "secondary": "Secundaria",
+
+  "grade": "Grado",
+  "section": "Sección",
+
+  "1st": "1ro",
+  "2nd": "2do",
+  "3rd": "3ro",
+  "4th": "4to",
+  "5th": "5to",
+  "6th": "6to",
+  "7th": "7mo",
+  "8th": "8vo",
+  "9th": "9no",
+  "10th": "10no",
+
   "draft": "Borrador",
   "scheduled": "Programado",
   "active": "Activo",

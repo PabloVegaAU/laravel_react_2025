@@ -6,12 +6,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class QuestionOption extends Model
 {
-    use SoftDeletes;
-
     protected $table = 'question_options';
 
     protected $fillable = [
@@ -22,9 +19,7 @@ class QuestionOption extends Model
         'correct_order',
         'pair_key',
         'pair_side',
-        'score',
-        'feedback',
-    ];
+        'score'];
 
     protected $casts = [
         'is_correct' => 'boolean',
@@ -33,7 +28,6 @@ class QuestionOption extends Model
         'score' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
     ];
 
     protected $attributes = [

@@ -3,9 +3,8 @@ import { Student } from '../user/student'
 
 /**
  * Representa un fondo que los estudiantes pueden desbloquear y usar
- * Basado en:
- * - Migración: database/migrations/2025_06_22_100440_create_backgrounds_table.php
- * - Modelo: app/Models/Background.php
+ * @see database/migrations/2025_06_22_100440_create_backgrounds_table.php
+ * @see app/Models/Background.php
  */
 export interface Background {
   /** Identificador único */

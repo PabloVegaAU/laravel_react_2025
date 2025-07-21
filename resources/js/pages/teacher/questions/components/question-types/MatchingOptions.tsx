@@ -15,8 +15,7 @@ export function MatchingOptions({ options, onChange, disabled = false }: Questio
         correct_order: 0,
         pair_key: `${pairIndex + 1}`,
         pair_side: 'left' as const,
-        score: 1,
-        feedback: null
+        score: 1
       },
       {
         value: `Opción ${pairIndex + 1}`,
@@ -25,8 +24,7 @@ export function MatchingOptions({ options, onChange, disabled = false }: Questio
         correct_order: 1,
         pair_key: `${pairIndex + 1}`,
         pair_side: 'right' as const,
-        score: 1,
-        feedback: null
+        score: 1
       }
     ]
 
@@ -71,7 +69,7 @@ export function MatchingOptions({ options, onChange, disabled = false }: Questio
   }
 
   return (
-    <div className='space-y-6'>
+    <div className='text-foreground space-y-6'>
       <div className='space-y-4'>
         {pairs.map(([left, right], pairIndex) => (
           <div key={pairIndex} className='flex items-center gap-4'>
@@ -83,7 +81,7 @@ export function MatchingOptions({ options, onChange, disabled = false }: Questio
                 disabled={disabled}
                 className='w-full'
               />
-              <Link2 className='text-muted-foreground h-4 w-4 flex-shrink-0' />
+              <Link2 className='text-muted-foreground dark:text-foreground/70 h-4 w-4 flex-shrink-0' />
               <Input
                 value={right?.value || ''}
                 onChange={(e) => handleUpdateOption(pairIndex * 2 + 1, e.target.value)}
@@ -97,7 +95,7 @@ export function MatchingOptions({ options, onChange, disabled = false }: Questio
                 size='icon'
                 onClick={() => handleRemovePair(pairIndex)}
                 disabled={disabled}
-                className='text-destructive hover:bg-destructive/10 hover:text-destructive h-9 w-9 shrink-0'
+                className='text-destructive hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/20 h-9 w-9 shrink-0'
               >
                 <X className='h-4 w-4' />
                 <span className='sr-only'>Eliminar par</span>
@@ -111,6 +109,7 @@ export function MatchingOptions({ options, onChange, disabled = false }: Questio
         <Button
           type='button'
           variant='outline'
+          className='dark:border-input dark:hover:bg-accent dark:hover:text-accent-foreground'
           size='sm'
           onClick={handleAddPair}
           disabled={disabled || pairs.some((pair) => !pair[0]?.value || !pair[1]?.value)}

@@ -18,6 +18,10 @@ const breadcrumbs: BreadcrumbItem[] = [
   {
     title: 'Fichas de Aplicación',
     href: 'student/application-forms'
+  },
+  {
+    title: 'Tienda de Puntos',
+    href: 'student/store'
   }
 ]
 

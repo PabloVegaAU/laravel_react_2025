@@ -39,6 +39,11 @@ class Teacher extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function profile(): BelongsTo
+    {
+        return $this->belongsTo(Profile::class, 'user_id');
+    }
+
     public function classrooms(): BelongsToMany
     {
         return $this->belongsToMany(Classroom::class, 'teacher_classroom_curricular_area_cycles', 'teacher_id', 'classroom_id')
@@ -49,7 +54,6 @@ class Teacher extends Model
     public function curricularAreas(): BelongsToMany
     {
         return $this->belongsToMany(CurricularArea::class, 'teacher_classroom_curricular_area_cycles', 'teacher_id', 'curricular_area_cycle_id')
-            ->using(TeacherClassroomCurricularAreaCycle::class)
             ->withPivot(['classroom_id', 'academic_year'])
             ->withTimestamps();
     }

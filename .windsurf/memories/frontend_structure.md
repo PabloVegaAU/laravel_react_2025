@@ -1,103 +1,75 @@
-# Estructura del Frontend - Laravel 12 + React + Inertia.js
+# 🖥️ Estructura del Frontend
 
-## 📋 Descripción General
-La aplicación frontend está construida con React 18, TypeScript e Inertia.js para la integración con Laravel 12. La arquitectura sigue patrones modernos de desarrollo frontend con un fuerte enfoque en la tipificación y la organización modular.
+## 📋 Visión General
+Arquitectura frontend basada en React 18 con TypeScript e Inertia.js, diseñada para ofrecer una experiencia de usuario fluida y mantenible. La estructura sigue principios de Atomic Design y está optimizada para el desarrollo ágil.
 
-## 🎯 Características Principales
-- **Arquitectura basada en componentes** con Atomic Design
-- **Tipado fuerte** con TypeScript
+## 🎯 Características Clave
+- **Arquitectura** basada en componentes con Atomic Design
+- **Tipado fuerte** con TypeScript para mayor robustez
 - **Gestión de estado** con React Context y hooks personalizados
-- **Formularios** con validación integrada
-- **Rutas protegidas** con autenticación
-- **Temas y estilos** con Tailwind CSS
-- **Componentes UI** reutilizables
-- **Integración con API REST** mediante servicios
+- **Sistema de formularios** con validación integrada
+- **Autenticación** con rutas protegidas
+- **Diseño responsivo** con Tailwind CSS
+- **Componentes UI** reutilizables y documentados
+- **Integración con API** mediante servicios dedicados
 
 ## 🏗️ Estructura de Directorios
 
-```
-resources/
-├── css/                      # Estilos globales y Tailwind
-└── js/
-    ├── components/           # Componentes reutilizables
-    │   ├── organisms/        # Componentes complejos
-    │   ├── ui/               # Componentes de UI atómicos
-    │   └── ...
-    ├── constants/            # Constantes y configuraciones
-    ├── hooks/                # Custom hooks de React
-    ├── layouts/              # Layouts principales
-    │   ├── app/              # Layout principal de la aplicación
-    │   ├── auth/             # Layout para autenticación
-    │   └── settings/         # Layout para configuración
-    ├── lib/                  # Utilidades y configuraciones
-    ├── pages/                # Páginas de la aplicación (rutas)
-    │   ├── admin/            # Panel de administración
-    │   │   └── dashboard/    # Dashboard del administrador
-    │   ├── auth/             # Autenticación
-    │   ├── settings/         # Configuración de la aplicación
-    │   ├── student/          # Área de estudiantes
-    │   │   ├── application-form/  # Formularios de aplicación
-    │   │   └── dashboard/    # Dashboard del estudiante
-    │   └── teacher/          # Área de docentes
-    │       ├── application-form/  # Gestión de formularios
-    │       ├── dashboard/    # Dashboard del docente
-    │       └── questions/    # Gestión de preguntas
-    ├── services/             # Servicios API
-    ├── store/                # Gestión de estado (Zustand/Context)
-    ├── types/                # Tipos TypeScript
-    │   ├── academic/         # Tipos relacionados con lo académico
-    │   ├── application-form/ # Tipos para formularios
-    │   ├── auth/             # Tipos de autenticación
-    │   ├── core/             # Tipos base
-    │   ├── question/         # Tipos para preguntas
-    │   ├── session-learning/ # Tipos para sesiones
-    │   ├── student/          # Tipos de estudiantes
-    │   └── user/             # Tipos de usuario
-    └── utils/                # Utilidades
-```
+### Directorios Principales
+- **components/**: Componentes reutilizables organizados por dominio
+- **hooks/**: Custom hooks para lógica reutilizable
+- **layouts/**: Plantillas principales de la aplicación
+- **pages/**: Páginas organizadas por rol de usuario
+- **services/**: Lógica de negocio y llamadas a API
+- **types/**: Definiciones de tipos TypeScript
+- **utils/**: Utilidades y helpers
 
-## 🚀 Estructura por Roles
+### Estructura de Tipos
+- **application-form/**: Tipos para formularios y respuestas
+- **auth/**: Tipos relacionados con autenticación
+- **question/**: Tipos para preguntas y opciones
+- **session-learning/**: Tipos para sesiones de aprendizaje
+- **user/**: Tipos de usuario y perfiles
+
+## 🚀 Flujos por Rol
 
 ### 👨‍🎓 Estudiante
-- **Dashboard**: Resumen de actividades, próximas tareas y progreso
-- **Formularios de Aplicación**: Lista de formularios asignados
-- **Sesiones de Aprendizaje**: Visualización de sesiones activas
-- **Perfil**: Gestión de información personal y avatares
-- **Tienda**: Canjear puntos por recompensas
+- **Inicio**: Resumen de actividades y próximas tareas
+- **Formularios**: Lista de formularios asignados con estado
+- **Sesiones**: Calendario y detalles de sesiones
+- **Progreso**: Seguimiento de aprendizaje
+- **Perfil**: Gestión de cuenta y preferencias
 
 ### 👨‍🏫 Docente
-- **Dashboard**: Resumen de clases y actividades recientes
-- **Formularios de Aplicación**: Creación y gestión de formularios
-- **Preguntas**: Banco de preguntas reutilizables
-- **Sesiones de Aprendizaje**: Planificación y seguimiento
-- **Reportes**: Análisis de rendimiento de estudiantes
+- **Panel**: Visión general de clases y actividades
+- **Formularios**: Creación y gestión de evaluaciones
+- **Banco de Preguntas**: Biblioteca de preguntas reutilizables
+- **Sesiones**: Planificación y gestión de clases
+- **Reportes**: Análisis de rendimiento por estudiante
 
 ### 👨‍💼 Administrador
-- **Usuarios**: Gestión de estudiantes y docentes
-- **Configuración**: Parámetros del sistema
-- **Auditoría**: Registro de actividades
-- **Backup**: Copias de seguridad
+- **Usuarios**: Gestión de cuentas y permisos
+- **Configuración**: Ajustes del sistema
+- **Monitoreo**: Estadísticas y registros
+- **Mantenimiento**: Herramientas de sistema
 
-## 🧩 Componentes Principales
+## 🧩 Componentes Clave
 
-### Componentes de UI (Atoms/Molecules)
-- **Button**: Botones con variantes y tamaños
-- **Input**: Campos de formulario con validación
-- **Card**: Contenedor de contenido estilizado
-- **Modal**: Ventanas modales reutilizables
-- **Table**: Tablas con ordenamiento y paginación
-- **Alert**: Notificaciones al usuario
-- **Avatar**: Visualización de imágenes de perfil
-- **Badge**: Indicadores de estado
-- **Spinner**: Indicadores de carga
-- **Tooltip**: Información adicional al hacer hover
+### Núcleo de UI
+- **Botones**: Acciones principales, secundarias y de estado
+- **Entradas**: Campos de texto con validación
+- **Tarjetas**: Contenedores de información
+- **Modales**: Ventanas emergentes contextuales
+- **Tablas**: Visualización de datos con filtros
+- **Notificaciones**: Alertas y mensajes al usuario
+- **Indicadores**: Estados de carga y progreso
 
-### Componentes de Formulario
-- **Form**: Contenedor de formulario con manejo de estado
-- **Field**: Campo de formulario con validación
-- **Select**: Selector desplegable
-- **Checkbox/Radio**: Opciones de selección
-- **DatePicker**: Selector de fechas
+### Formularios
+- **Formularios**: Gestión de estado y validación
+- **Campos**: Tipos específicos (texto, número, fecha, etc.)
+- **Selección**: Opciones simples y múltiples
+- **Subida**: Gestión de archivos
+- **Búsqueda**: Filtrado y autocompletado
 - **FileUpload**: Subida de archivos
 - **RichTextEditor**: Editor de texto enriquecido
 
@@ -108,6 +80,19 @@ resources/
 - **Breadcrumb**: Ruta de navegación
 - **Tabs**: Pestañas para organización de contenido
 - **Pagination**: Navegación entre páginas
+
+### Componentes de Respuesta a Preguntas
+Ubicados en `resources/js/pages/student/application-form-response/components/question-types/`, estos componentes son responsables de renderizar y manejar la lógica para cada tipo de pregunta que un estudiante puede encontrar.
+
+- **`BaseQuestionResponse.tsx`**: Un componente de orden superior que encapsula la lógica común compartida entre todos los tipos de preguntas, como la visualización del enunciado, la descripción y el manejo de explicaciones requeridas.
+
+- **`SingleChoiceResponse.tsx`**: Gestiona preguntas de opción única y múltiple. Renderiza una lista de opciones donde el estudiante puede seleccionar una o varias respuestas.
+
+- **`TrueFalseResponse.tsx`**: Componente especializado para preguntas de verdadero o falso, presentando las dos opciones de forma clara.
+
+- **`OrderingResponse.tsx`**: Permite a los estudiantes reordenar una lista de opciones mediante una interfaz de arrastrar y soltar (`drag-and-drop`). La lógica interna gestiona el estado del orden seleccionado por el usuario.
+
+- **`MatchingResponse.tsx`**: Renderiza dos columnas de opciones para que el estudiante las empareje. Gestiona el estado de los pares seleccionados y proporciona una interfaz visual para crear las conexiones.
 
 ## 🏗️ Estructura de Directorios
 
@@ -169,6 +154,7 @@ resources/
 - **Card**: Contenedores de contenido
 - **Modal**: Ventanas modales
 - **Table**: Tablas de datos
+
 ## Gestión de Estado
 
 ### Context API
@@ -246,92 +232,217 @@ interface ApplicationForm {
 - Optimización de assets
 - División de código (code splitting)
 - Variables de entorno
-- **Table**: Tablas de datos
-- **Toast**: Notificaciones
 
-### Componentes de Formularios
-- **ApplicationForm**: Formulario para crear/editar fichas de aplicación
-- **LearningSessionForm**: Formulario para crear/editar sesiones de aprendizaje
+## 🧭 Navegación y Layout
 
-## Gestión de Estado
+### Estructura Principal
+- **Layout Base**: Contenedor principal de la aplicación
+- **Barra Lateral**: Navegación principal por rol
+- **Cabecera**: Acciones rápidas y perfil de usuario
+- **Rutas Anidadas**: Organización jerárquica de vistas
+- **Breadcrumbs**: Navegación contextual
+- **Tabs**: Organización de contenido relacionado
+- **Paginación**: Navegación en conjuntos de datos
+- **Pasos**: Guía para procesos secuenciales
 
-### Store (Zustand)
-- **useUserStore**: Maneja el estado del usuario autenticado
-- **useUIStore**: Controla el estado de la interfaz de usuario
-- **useFormStore**: Gestiona el estado de los formularios
+## 🛠️ Hooks y Utilidades
 
-### React Query
-- Se utiliza para el manejo de datos del servidor
-- Configuración global en `app.tsx`
-- Gestión de caché y actualizaciones
+### Gestión de Estado
+- **Autenticación**: Manejo de sesión de usuario
+- **Formularios**: Validación y manejo de estado
+- **Modales**: Control de ventanas emergentes
+- **Paginación**: Manejo de datos paginados
+- **Filtros**: Gestión de parámetros de búsqueda
+- **Almacenamiento**: Persistencia local de preferencias
 
-## Sistema de Rutas
+### Integración con API
+- **Consulta de Datos**: Obtención de información
+- **Mutaciones**: Actualización de recursos
+- **Peticiones en Tiem Real**: Actualizaciones en vivo
+- **Gestión de Errores**: Manejo centralizado
+- **Cache**: Optimización de rendimiento
 
-### Rutas Principales
-- **/admin**: Panel de administración
-- **/teacher**: Área de docentes
-- **/student**: Área de estudiantes
-- **/auth**: Autenticación (login, registro, etc.)
+## 🎨 Estilos y Temas
 
-### Navegación
-- **Menú Principal**: Acceso a las secciones principales
-- **Breadcrumbs**: Navegación jerárquica
-- **Enlaces rápidos**: Acceso directo a funciones comunes
+### Sistema de Diseño
+- **Tema Base**: Colores, tipografía y espaciado
+- **Modo Oscuro**: Soporte para temas claros/oscuros
+- **Componentes**: Estilos consistentes
+- **Responsive**: Adaptación a diferentes dispositivos
+- **Utilidades**: Clases de ayuda para estilos comunes
 
-## Estilos y Temas
+## 🔄 Integración con Backend
 
-### Tailwind CSS
-- Framework CSS utilitario
-- Personalización mediante `tailwind.config.js`
-- Temas claro/oscuro
+### Servicios Clave
+- **Autenticación**: Inicio de sesión y gestión de tokens
+- **Usuarios**: Perfiles y preferencias
+- **Estudiantes**: Gestión académica
+- **Docentes**: Herramientas educativas
+- **Sesiones**: Planificación de clases
+- **Preguntas**: Banco de evaluaciones
+- **Formularios**: Creación y gestión
+- **Reportes**: Análisis de datos
 
-### Componentes UI
-- Biblioteca de componentes personalizados
-- Diseño responsive
-- Accesibilidad integrada
+### Manejo de Errores
+- **Validación**: Errores de formulario
+- **Red**: Problemas de conexión
+- **Autenticación**: Sesiones expiradas
+- **Tiempo de Espera**: Manejo de demoras
+- **Reintentos**: Recuperación automática
 
-## Integración con Backend
+## 🚀 Optimización
 
-### Inertia.js
-- Integración con Laravel
-- Navegación SPA sin recargar la página
-- Compartición de datos entre frontend y backend
+### Técnicas de Rendimiento
+- **División de Código**: Carga bajo demanda
+- **Carga Diferida**: Componentes pesados
+- **Memorización**: Evitar renderizados innecesarios
+- **Listas Virtuales**: Grandes conjuntos de datos
+- **Caché**: Reducción de peticiones
+- **Imágenes**: Optimización y formato moderno
 
-### Autenticación
-- Manejo de sesiones
-- Protección de rutas
-- Roles y permisos
+## 🔒 Seguridad
 
-## Estructura de Componentes por Módulo
+### Medidas de Protección
+- **Validación**: Entrada de usuario
+- **Escape**: Prevención de inyección
+- **XSS/CSRF**: Protección integrada
+- **CSP**: Políticas de contenido
+- **Cabeceras**: Seguridad HTTP
+- **Tokens**: Manejo seguro de autenticación
 
-### Módulo de Administración
-- Gestión de usuarios
-- Configuración del sistema
-- Reportes y estadísticas
+## 📱 Experiencia Móvil
 
-### Módulo Docente
-- Gestión de clases
-- Calificaciones
-- Asistencia
+### Adaptabilidad
+- **Enfoque Móvil**: Diseño mobile-first
+- **Toques**: Interacciones táctiles
+- **Offline**: Funcionalidad sin conexión
+- **Rendimiento**: Optimización para móviles
 
-### Módulo Estudiante
-- Perfil académico
-- Progreso
-- Tareas y actividades
+## 📚 Documentación
 
-## Convenciones de Código
+### Para Desarrolladores
+- **Guías de Estilo**: Convenciones de código
+- **Componentes**: Uso y propiedades
+- **API**: Documentación de servicios
+- **Flujos**: Diagramas de interacción
 
-### Nombrado
-- Componentes: PascalCase (Ej: `UserProfile.tsx`)
-- Hooks: prefijo `use` (Ej: `useAuth.ts`)
-- Servicios: sufijo `Service` (Ej: `userService.ts`)
+### Para Usuarios
+- **Manuales**: Guías paso a paso
+- **Vídeos**: Tutoriales visuales
+- **FAQ**: Preguntas frecuentes
+- **Soporte**: Canales de ayuda
 
-### Estructura de Archivos
-- Un componente por archivo
-- Estilos en módulos CSS
-- Tipos TypeScript en archivos `.d.ts`
+## 🧪 Calidad
 
-## Tipos TypeScript
+### Estrategia de Pruebas
+- **Unitarias**: Lógica de negocio
+- **Integración**: Componentes y servicios
+- **UI**: Interfaz de usuario
+- **Rendimiento**: Tiempos de respuesta
+- **Accesibilidad**: Estándares WCAG
+
+## 🚀 Despliegue
+
+### Entornos
+- **Desarrollo**: Pruebas locales
+- **Pruebas**: Validación en entorno controlado
+- **Producción**: Versión estable
+
+### Monitoreo
+- **Errores**: Captura de excepciones
+- **Rendimiento**: Métricas de la aplicación
+- **Uso**: Análisis de interacción
+
+## 📅 Próximos Pasos
+
+### Mejoras Planificadas
+1. Notificaciones en tiempo real
+2. Exportación de reportes
+3. Panel de análisis avanzado
+4. Mejoras de accesibilidad
+5. Optimización de rendimiento
+
+## 🌐 Tipos Globales
+
+### Usuario Autenticado
+- **Estructura**: Datos básicos del usuario
+- **Roles**: Estudiante, Docente, Administrador
+- **Verificación**: Estado de la cuenta
+- **Perfil**: Información personal
+
+### Datos de la Aplicación
+- **Usuario**: Información de sesión
+- **Mensajes**: Notificaciones flash
+- **Errores**: Validación de formularios
+- **Autenticación**: Estado de inicio de sesión
+
+### Paginación
+- **Datos**: Conjunto de elementos
+- **Navegación**: Enlaces de paginación
+- **Metadatos**: Total, por página, etc.
+
+### Formularios
+- **Datos**: Valores actuales
+- **Errores**: Mensajes de validación
+- **Estados**: Carga, éxito, error
+- **Métodos**: Envío y manipulación
+
+### Filtros y Ordenación
+- **Búsqueda**: Texto libre
+- **Filtros**: Por estado, tipo, etc.
+- **Ordenación**: Campo y dirección
+
+### Notificaciones
+- **Tipos**: Éxito, error, información, advertencia
+- **Acciones**: Botones personalizados
+- **Duración**: Tiempo de visualización
+
+## 📈 Servicios API
+
+### ApplicationFormService
+```typescript
+// resources/js/services/ApplicationFormService.ts
+
+class ApplicationFormService {
+  static async create(data: CreateApplicationFormData): Promise<ApplicationForm> {
+    const response = await axios.post<{ data: ApplicationForm }>('/api/application-forms', data);
+    return response.data.data;
+  }
+  
+  static async update(id: number, data: Partial<CreateApplicationFormData>): Promise<ApplicationForm> {
+    const response = await axios.put<{ data: ApplicationForm }>(`/api/application-forms/${id}`, data);
+    return response.data.data;
+  }
+  
+  static async getById(id: number): Promise<ApplicationForm> {
+    const response = await axios.get<{ data: ApplicationForm }>(`/api/application-forms/${id}`);
+    return response.data.data;
+  }
+  
+  // Otros métodos...
+}
+```
+
+### LearningSessionService
+```typescript
+// resources/js/services/LearningSessionService.ts
+
+class LearningSessionService {
+  static async create(data: CreateLearningSessionData): Promise<LearningSession> {
+    const response = await axios.post<{ data: LearningSession }>('/api/learning-sessions', data);
+    return response.data.data;
+  }
+  
+  static async getByTeacher(teacherId: number): Promise<LearningSession[]> {
+    const response = await axios.get<{ data: LearningSession[] }>(`/api/teachers/${teacherId}/learning-sessions`);
+    return response.data.data;
+  }
+  
+  // Otros métodos...
+}
+```
+
+## 📊 Tipos de Datos
 
 ### Tipos de Formularios de Aplicación
 ```typescript
@@ -512,7 +623,7 @@ declare namespace App {
   educational_institution?: EducationalInstitution;
   teacher_classroom_curricular_area?: TeacherClassroomCurricularArea;
   competency?: Competency;
-  application_forms?: ApplicationForm[];
+  application_form?: ApplicationForm;
 }
 
 interface CreateLearningSessionData {

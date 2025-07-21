@@ -1,22 +1,32 @@
 import type { Student } from '../../../user/student'
-import type { User } from '../../../user/user'
 import type { ApplicationForm } from '../../application-form'
 import type { ApplicationFormResponseQuestion } from './application-form-response-question'
 
-export type ApplicationFormResponseStatus = 'pending' | 'in progress' | 'submitted' | 'in review' | 'graded' | 'returned' | 'late'
+/**
+ * Estado de una respuesta de formulario
+ * @see database/migrations/2025_06_22_100340_create_application_form_responses_table.php
+ * @see app/Models/ApplicationFormResponse.php
+ */
+export type ApplicationFormResponseStatus =
+  | 'pending' // Por comenzar
+  | 'in progress' // En progreso
+  | 'submitted' // Enviado para revisión
+  | 'in review' // En revisión por el profesor
+  | 'graded' // Calificado
+  | 'returned' // Devuelto con comentarios
+  | 'late' // Entregado tarde
 
 /**
- * Representa la respuesta de un estudiante a un formulario de aplicación
+ * Respuesta de un estudiante a un formulario de aplicación
  * @see database/migrations/2025_06_22_100340_create_application_form_responses_table.php
  * @see app/Models/ApplicationFormResponse.php
  */
 export interface ApplicationFormResponse {
-  // Campos principales
   id: number
   application_form_id: number
   student_id: number
-  score: number
   status: ApplicationFormResponseStatus
+  score: number
   started_at: string | null
   submitted_at: string | null
   graded_at: string | null
@@ -25,66 +35,56 @@ export interface ApplicationFormResponse {
   deleted_at: string | null
 
   // Relaciones
-  applicationForm: ApplicationForm
-  student: Student & { user?: User }
-  responseQuestions: ApplicationFormResponseQuestion[]
-
-  // Métodos de instancia
-  markAsStarted(): Promise<boolean>
-  markAsSubmitted(): Promise<boolean>
-  markAsGraded(score: number): Promise<boolean>
-  isGraded(): boolean
-  isSubmitted(): boolean
-  isLate(): boolean
-  timeSpent(): number | null
+  student: Student
+  application_form: ApplicationForm
+  response_questions: ApplicationFormResponseQuestion[]
 }
 
 /**
- * Datos para crear una nueva respuesta a un formulario
- * @see app/Models/ApplicationFormResponse.php
+ * Datos para crear una respuesta de formulario
+ * @see database/migrations/2025_06_22_100340_create_application_form_responses_table.php
+ * @see app/Http/Controllers/ApplicationFormResponseController.php
  */
 export interface CreateApplicationFormResponseData {
   application_form_id: number
   student_id: number
-  started_at?: string
+  status?: ApplicationFormResponseStatus
+  score?: number
+  started_at?: string | null
+  submitted_at?: string | null
+  graded_at?: string | null
 }
 
 /**
- * Datos para enviar una respuesta a un formulario
- * @see app/Models/ApplicationFormResponse.php
+ * Datos para actualizar una respuesta de formulario
+ * @see database/migrations/2025_06_22_100340_create_application_form_responses_table.php
+ * @see app/Http/Controllers/ApplicationFormResponseController.php
  */
-export interface SubmitApplicationFormResponseData {
+export interface UpdateApplicationFormResponseData {
   id: number
-  answers: Array<{
-    question_id: number
-    answer: string | number | boolean | string[] | number[]
-  }>
-  note?: string
+  status?: ApplicationFormResponseStatus
+  score?: number
+  started_at?: string | null
+  submitted_at?: string | null
+  graded_at?: string | null
 }
 
 /**
- * Datos para calificar una respuesta
- * @see app/Models/ApplicationFormResponse.php
+ * Datos para calificar una respuesta de formulario
+ * @see app/Http/Controllers/ApplicationFormResponseController.php
  */
 export interface GradeApplicationFormResponseData {
-  id: number
-  scores: Array<{
-    question_id: number
-    score: number
-    feedback?: string
-  }>
-  overall_feedback?: string
-  notify_student?: boolean
+  score: number
 }
 
 /**
- * Filtros para buscar respuestas a formularios
+ * Filtros para buscar respuestas de formulario
  * @see app/Models/ApplicationFormResponse.php
  */
 export interface ApplicationFormResponseFilters {
-  application_form_id?: number
   student_id?: number
-  status?: ApplicationFormResponseStatus
+  application_form_id?: number
+  status?: ApplicationFormResponseStatus | ApplicationFormResponseStatus[]
   min_score?: number
   max_score?: number
   submitted_after?: string
@@ -93,27 +93,7 @@ export interface ApplicationFormResponseFilters {
   graded_before?: string
   with_trashed?: boolean
   only_trashed?: boolean
-  search?: string
-  sort_by?: 'score' | 'submitted_at' | 'graded_at' | 'created_at'
+  sort_by?: 'score' | 'started_at' | 'submitted_at' | 'graded_at' | 'created_at' | 'updated_at'
   sort_order?: 'asc' | 'desc'
-}
-
-/**
- * Estadísticas de respuestas a un formulario
- * @see app/Models/ApplicationFormResponse.php
- */
-export interface ApplicationFormResponseStats {
-  total: number
-  pending: number
-  in_progress: number
-  submitted: number
-  in_review: number
-  graded: number
-  returned: number
-  late: number
-  average_score: number
-  highest_score: number
-  lowest_score: number
-  completion_rate: number
-  average_time_spent: number | null
+  include?: Array<'student' | 'application_form' | 'response_questions'>
 }

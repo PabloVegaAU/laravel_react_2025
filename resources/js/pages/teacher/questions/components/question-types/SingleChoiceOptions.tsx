@@ -13,7 +13,6 @@ export function SingleChoiceOptions({ options, onChange, disabled = false }: Que
       is_correct: options.length === 0, // Primera opción es correcta por defecto
       order: options.length + 1,
       score: options.length === 0 ? 1 : 0,
-      feedback: null,
       correct_order: 0,
       pair_key: null,
       pair_side: null

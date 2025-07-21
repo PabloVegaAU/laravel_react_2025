@@ -1,14 +1,13 @@
 import type { ApplicationForm } from '../application-form'
-import type { Question } from '../question/question'
+import { Question } from '../question'
 import type { ApplicationFormResponseQuestion } from './response/application-form-response-question'
 
 /**
- * Representa la relación entre un formulario de aplicación y sus preguntas
+ * Pregunta en un formulario de aplicación
  * @see database/migrations/2025_06_22_100350_create_application_form_questions_table.php
  * @see app/Models/ApplicationFormQuestion.php
  */
 export interface ApplicationFormQuestion {
-  // Campos principales
   id: number
   application_form_id: number
   question_id: number
@@ -17,19 +16,16 @@ export interface ApplicationFormQuestion {
   points_store: number
   created_at: string
   updated_at: string
-
   // Relaciones
-  applicationForm?: ApplicationForm
-  question?: Question
-  responseQuestions?: ApplicationFormResponseQuestion[]
-
-  // Métodos de instancia
-  isCorrectAnswer(selectedOptions: number[]): boolean
+  application_form: ApplicationForm
+  question: Question
+  response_questions: ApplicationFormResponseQuestion[]
 }
 
 /**
- * Datos para crear una relación entre formulario y pregunta
+ * Datos para crear una pregunta de formulario
  * @see database/migrations/2025_06_22_100350_create_application_form_questions_table.php
+ * @see app/Http/Controllers/ApplicationFormController.php
  */
 export interface CreateApplicationFormQuestionData {
   application_form_id: number
@@ -40,31 +36,25 @@ export interface CreateApplicationFormQuestionData {
 }
 
 /**
- * Datos para actualizar una relación entre formulario y pregunta
+ * Datos para actualizar una pregunta de formulario
  * @see database/migrations/2025_06_22_100350_create_application_form_questions_table.php
+ * @see app/Http/Controllers/ApplicationFormController.php
  */
-export type UpdateApplicationFormQuestionData = Partial<Omit<CreateApplicationFormQuestionData, 'application_form_id' | 'question_id'>>
-
-/**
- * Datos para reordenar preguntas en un formulario
- * @see app/Models/ApplicationFormQuestion.php
- */
-export interface ReorderApplicationFormQuestionsData {
-  question_ids: number[]
-  scores?: Record<number, number>
-  points_store?: Record<number, number>
+export interface UpdateApplicationFormQuestionData {
+  id: number
+  order?: number
+  score?: number
+  points_store?: number
 }
 
 /**
- * Datos para actualización masiva de preguntas de un formulario
- * @see app/Models/ApplicationFormQuestion.php
+ * Datos para actualizar el orden de las preguntas
+ * @see app/Http/Controllers/ApplicationFormController.php
  */
-export interface BulkUpdateApplicationFormQuestionsData {
-  updates: Array<{
+export interface ReorderApplicationFormQuestionsData {
+  order: Array<{
     id: number
-    order?: number
-    score?: number
-    points_store?: number
+    order: number
   }>
 }
 
@@ -79,4 +69,17 @@ export interface ApplicationFormQuestionFilters {
   max_score?: number
   with_trashed?: boolean
   only_trashed?: boolean
+  include?: Array<'question' | 'application_form' | 'response_questions'>
+  sort_by?: 'order' | 'score' | 'created_at' | 'updated_at'
+  sort_order?: 'asc' | 'desc'
+}
+
+/**
+ * Datos para agregar preguntas a un formulario
+ * @see app/Http/Controllers/ApplicationFormController.php
+ */
+export interface AddQuestionsToFormData {
+  question_ids: number[]
+  scores?: Record<number, number>
+  points_store?: Record<number, number>
 }

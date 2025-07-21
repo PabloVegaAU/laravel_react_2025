@@ -1,51 +1,112 @@
-# 🎓 Modelo Student
+# 🎓 Student
+
+> **IMPORTANTE**: 
+> 1. **Verificar siempre** los archivos relacionados:
+>    - `database/migrations/2025_06_22_100030_create_students_table.php` (estructura de la tabla)
+>    - `app/Models/Student.php` (implementación del modelo)
+>    - `resources/js/types/user/student/types.d.ts` (tipos TypeScript)
 
 ## 📌 Ubicación
-- **Modelo**: `app/Models/Student.php`
-- **Migración**: `database/migrations/2025_06_22_100030_create_students_table.php`
-- **Controladores**:
-  - `app/Http/Controllers/Student/ProfileController.php`
-  - `app/Http/Controllers/Student/DashboardController.php`
-- **Recursos API**: `app/Http/Resources/Student/`
-- **Vistas React**: `resources/js/pages/student/`
-- **TypeScript**: `resources/js/types/user/student.d.ts`
+- **Tipo**: Modelo (extiende User)
+- **Archivo Principal**: `app/Models/Student.php`
+- **Tabla**: `students`
 
-## 📝 Descripción
-El modelo `Student` extiende el modelo `User` para representar a los estudiantes en el sistema educativo. Gestiona información académica, progreso, recompensas y personalización del perfil. Utiliza `SoftDeletes` para borrado lógico y mantiene un registro completo del progreso del estudiante, incluyendo experiencia, puntos y logros.
+## 📦 Archivos Relacionados
 
-## 🏗️ Estructura de la Base de Datos
+### Migraciones
+- `database/migrations/2025_06_22_100030_create_students_table.php`
+  - Estructura de la tabla de estudiantes
+  - Claves foráneas a users, levels y ranges
+  - Índices para optimización
 
-### 📊 Tabla: `students`
+### Modelos Relacionados
+- `app/Models/User.php` (extiende)
+- `app/Models/Level.php` (BelongsTo)
+- `app/Models/Range.php` (BelongsTo)
+- `app/Models/Enrollment.php` (HasMany)
+- `app/Models/ApplicationFormResponse.php` (HasMany)
 
-#### 🔑 Claves
-- **Primaria**: `user_id` (clave foránea a `users.id`)
-- **Foráneas**:
-  - `level_id` → `levels(id)`
-  - `range_id` → `ranges(id)`
-- **Índices**:
-  - Índices en claves foráneas
-  - Índices para búsquedas frecuentes
+### Tipos TypeScript
+- `resources/js/types/user/student/types.d.ts`
+  - Interfaz `Student` extendiendo `User`
+  - Tipos para estados y relaciones
+- `resources/js/types/application-form/form/response/application-form-response.d.ts`
+  - Tipos para respuestas a formularios
 
-#### 📋 Columnas
-| Columna | Tipo | Nulo | Default | Descripción |
-|---------|------|------|---------|-------------|
-| user_id | bigint | No | - | Clave foránea a users (también es clave primaria) |
-| level_id | bigint | Sí | null | Referencia al nivel actual del estudiante |
-| range_id | bigint | Sí | null | Referencia al rango actual del estudiante |
-| entry_date | date | No | - | Fecha de ingreso a la institución |
-| status | enum | No | 'active' | Estado del estudiante (active, inactive, graduated, withdrawn, suspended) |
-| experience_achieved | decimal(10,2) | No | 0.00 | Experiencia total acumulada |
-| points_store_achieved | decimal(10,2) | No | 0.00 | Puntos de tienda acumulados |
-| points_store | decimal(10,2) | No | 0.00 | Puntos de tienda disponibles |
-| graduation_date | date | Sí | null | Fecha de graduación (si aplica) |
-| created_at | timestamp | No | CURRENT_TIMESTAMP | Fecha de creación |
-| updated_at | timestamp | No | CURRENT_TIMESTAMP | Fecha de última actualización |
-| deleted_at | timestamp | Sí | NULL | Fecha de eliminación lógica (soft delete) |
+## 🏗️ Estructura
 
-#### Comentarios
-- La tabla utiliza eliminación lógica (soft deletes)
-- La relación con users usa eliminación en cascada
-- Los campos de puntos y experiencia son siempre positivos (unsigned)
+### Base de Datos (Migraciones)
+- **Tabla**: `students`
+- **Campos Clave**:
+  - `user_id`: bigint - Clave primaria y foránea a users
+  - `level_id`: bigint - Nivel actual
+  - `range_id`: bigint - Rango actual
+  - `entry_date`: date - Fecha de ingreso
+  - `status`: enum - Estado actual (active, inactive, etc.)
+  - `experience_achieved`: decimal(10,2) - Experiencia acumulada
+  - `points_store_achieved`: decimal(10,2) - Puntos totales ganados
+  - `points_store`: decimal(10,2) - Puntos disponibles
+  - `graduation_date`: date - Fecha de graduación
+  - `timestamps`: created_at, updated_at, deleted_at
+
+### Relaciones
+- **user** (BelongsTo):
+  - Modelo: `User`
+  - Clave: `user_id`
+  - Comportamiento: cascadeOnDelete
+
+- **level** (BelongsTo):
+  - Modelo: `Level`
+  - Clave: `level_id`
+  - Comportamiento: set null on delete
+
+- **range** (BelongsTo):
+  - Modelo: `Range`
+  - Clave: `range_id`
+  - Comportamiento: set null on delete
+
+- **enrollments** (HasMany):
+  - Modelo: `Enrollment`
+  - Clave: `student_id`
+  - Comportamiento: cascadeOnDelete
+
+- **applicationFormResponses** (HasMany):
+  - Modelo: `ApplicationFormResponse`
+  - Clave: `student_id`
+  - Comportamiento: cascadeOnDelete
+
+## 🎯 Estados del Modelo
+
+### Diagrama de Estados
+```mermaid
+stateDiagram
+    [*] --> active
+    active --> inactive: Desactivar
+    inactive --> active: Reactivar
+    active --> suspended: Suspender
+    suspended --> active: Reincorporar
+    active --> graduated: Graduar
+    active --> withdrawn: Dar de baja
+    graduated --> [*]: Eliminar
+    withdrawn --> [*]: Eliminar
+```
+
+### Transiciones y Endpoints
+> **NOTA**: Los endpoints mostrados son sugerencias basadas en las mejores prácticas de REST.
+
+| Estado Actual | Evento | Nuevo Estado | Endpoint | Método |
+|---------------|--------|--------------|----------|--------|
+| active | deactivate | inactive | `/api/students/{id}/deactivate` (sugerido) | PUT |
+| inactive | activate | active | `/api/students/{id}/activate` (sugerido) | PUT |
+| active | suspend | suspended | `/api/students/{id}/suspend` (sugerido) | PUT |
+| suspended | unsuspend | active | `/api/students/{id}/unsuspend` (sugerido) | PUT |
+| active | graduate | graduated | `/api/students/{id}/graduate` (sugerido) | PUT |
+| active | withdraw | withdrawn | `/api/students/{id}/withdraw` (sugerido) | PUT |
+| any | delete | - | `/api/students/{id}` (sugerido) | DELETE |
+
+**Leyenda**:
+- Sin prefijo: Endpoint existente en el código
+- `(sugerido)`: Endpoint recomendado pero no implementado
 
 ## 🤝 Relaciones
 
@@ -55,6 +116,96 @@ El modelo `Student` extiende el modelo `User` para representar a los estudiantes
 - **Clave foránea**: `user_id`
 - **Tipo**: `BelongsTo`
 - **Descripción**: Relación con el modelo User al que pertenece este estudiante
+
+## 🧩 TypeScript Types
+
+### Interfaz Principal
+```typescript
+/**
+ * Representa un estudiante en el sistema
+ * @see database/migrations/2025_06_22_100030_create_students_table.php
+ * @see app/Models/Student.php
+ */
+interface Student extends User {
+  // Clave primaria (user_id)
+  user_id: number;
+
+  // Claves foráneas
+  level_id: number | null;
+  range_id: number | null;
+
+  // Atributos
+  entry_date: string;
+  status: StudentStatus;
+  experience_achieved: number;
+  points_store_achieved: number;
+  points_store: number;
+  graduation_date: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+
+  // Relaciones
+  level?: Level | null;
+  range?: Range | null;
+  enrollments?: Enrollment[];
+  classrooms?: Classroom[];
+  achievements?: StudentAchievement[];
+  availableAchievements?: Achievement[];
+  avatars?: StudentAvatar[];
+  backgrounds?: StudentBackground[];
+  levelHistory?: StudentLevelHistory[];
+  applicationForms?: ApplicationForm[];
+  applicationFormResponses?: ApplicationFormResponse[];
+  storeRewards?: StudentStoreReward[];
+}
+```
+
+### Tipos Relacionados
+
+#### StudentStatus
+```typescript
+/**
+ * Estados posibles para un estudiante
+ */
+type StudentStatus = 'active' | 'inactive' | 'suspended' | 'graduated' | 'withdrawn';
+```
+
+#### CreateStudent
+```typescript
+/**
+ * Tipo para crear un nuevo estudiante
+ */
+type CreateStudent = {
+  user_id: number;
+  level_id: number;
+  range_id: number;
+  entry_date: string;
+  status?: StudentStatus;
+  experience_achieved?: number;
+  points_store_achieved?: number;
+  points_store?: number;
+  graduation_date?: string | null;
+};
+```
+
+#### UpdateStudent
+```typescript
+/**
+ * Tipo para actualizar un estudiante existente
+ */
+type UpdateStudent = Partial<Omit<CreateStudent, 'user_id'>>;
+```
+
+## 🛠️ Métodos
+
+### activeAvatar()
+- **Retorna**: `Avatar|null`
+- **Descripción**: Obtiene el avatar activo del estudiante
+
+### activeBackground()
+- **Retorna**: `Background|null`
+- **Descripción**: Obtiene el fondo activo del estudiante
 
 ### level (BelongsTo)
 - **Método**: `level()`
@@ -76,63 +227,64 @@ El modelo `Student` extiende el modelo `User` para representar a los estudiantes
 - **Clave foránea**: `student_id`
 - **Tipo**: `HasMany`
 - **Descripción**: Matrículas del estudiante en diferentes períodos académicos
-- **Modelo**: `Level`
-- **Clave foránea**: `level_id`
-- **Descripción**: Nivel actual del estudiante
-
-### range (BelongsTo)
-- **Modelo**: `Range`
-- **Clave foránea**: `range_id`
-- **Descripción**: Rango actual del estudiante
-
-### enrollments (HasMany)
-- **Modelo**: `Enrollment`
-- **Clave foránea**: `student_id`
-- **Descripción**: Matrículas del estudiante
 
 ### classrooms (BelongsToMany)
+- **Método**: `classrooms()`
 - **Modelo**: `Classroom`
 - **Tabla intermedia**: `enrollments`
 - **Claves**: 
   - `student_id` (local)
   - `classroom_id` (foránea)
+- **Tipo**: `BelongsToMany`
 - **Descripción**: Aulas a las que está asignado el estudiante
 
 ### applicationForms (HasMany)
+- **Método**: `applicationForms()`
 - **Modelo**: `ApplicationForm`
 - **Clave foránea**: `student_id`
+- **Tipo**: `HasMany`
 - **Descripción**: Formularios de aplicación del estudiante
 
 ### applicationFormResponses (HasMany)
+- **Método**: `applicationFormResponses()`
 - **Modelo**: `ApplicationFormResponse`
 - **Clave foránea**: `student_id`
-- **Descripción**: Respuestas a formularios
+- **Tipo**: `HasMany`
+- **Descripción**: Respuestas a formularios de aplicación
 
 ### storeRewards (BelongsToMany)
+- **Método**: `storeRewards()`
 - **Modelo**: `StoreReward`
 - **Tabla intermedia**: `student_store_rewards`
 - **Campos adicionales**: 
   - `status`
   - `redeemed_at`
+- **Tipo**: `BelongsToMany`
 - **Descripción**: Recompensas canjeadas por el estudiante
 
 ### avatars (BelongsToMany)
+- **Método**: `avatars()`
 - **Modelo**: `Avatar`
 - **Tabla intermedia**: `student_avatars`
 - **Campos adicionales**: 
   - `is_active`
+- **Tipo**: `BelongsToMany`
 - **Descripción**: Avatares desbloqueados por el estudiante
 
 ### backgrounds (BelongsToMany)
+- **Método**: `backgrounds()`
 - **Modelo**: `Background`
 - **Tabla intermedia**: `student_backgrounds`
 - **Campos adicionales**: 
   - `is_active`
+- **Tipo**: `BelongsToMany`
 - **Descripción**: Fondos de perfil desbloqueados
 
 ### achievements (BelongsToMany)
+- **Método**: `achievements()`
 - **Modelo**: `Achievement`
 - **Tabla intermedia**: `student_achievements`
+- **Tipo**: `BelongsToMany`
 - **Descripción**: Logros desbloqueados
 
 ## 🛠️ Métodos
@@ -145,108 +297,177 @@ El modelo `Student` extiende el modelo `User` para representar a los estudiantes
 - **Retorna**: `Background|null`
 - **Descripción**: Obtiene el fondo activo del estudiante
 
-### setActiveAvatar(Avatar $avatar)
-- **Retorna**: `void`
-- **Descripción**: Establece un avatar como activo
+### levelHistory()
+- **Retorna**: `HasMany<StudentLevelHistory>`
+- **Descripción**: Obtiene el historial de niveles del estudiante
 
-### setActiveBackground(Background $background)
-- **Retorna**: `void`
-- **Descripción**: Establece un fondo como activo
+### scopeStatus(Builder $query, string $status)
+- **Parámetros**: 
+  - `$status`: Estado a filtrar
+- **Retorna**: `Builder`
+- **Descripción**: Filtra estudiantes por estado
 
-### addExperience(float $amount)
-- **Retorna**: `void`
-- **Descripción**: Añade experiencia al estudiante
-
-### addPoints(float $amount)
-- **Retorna**: `void`
-- **Descripción**: Añade puntos de tienda
-
-### spendPoints(float $amount)
-- **Retorna**: `bool`
-- **Descripción**: Gasta puntos de tienda
-
-### scopeActive($query)
+### scopeActive(Builder $query)
 - **Retorna**: `Builder`
 - **Descripción**: Filtra estudiantes activos
 
-### scopeInactive($query)
+### scopeInactive(Builder $query)
 - **Retorna**: `Builder`
 - **Descripción**: Filtra estudiantes inactivos
 
-### scopeGraduated($query)
+### scopeGraduated(Builder $query)
 - **Retorna**: `Builder`
 - **Descripción**: Filtra estudiantes graduados
 
-## 📦 Tipos TypeScript
+## 🛠️ TypeScript Types
 
-### Student Type
+### Interfaz `Student`
 ```typescript
 /**
  * Representa un estudiante en el sistema
- * Extiende los tipos User y Profile con información específica de estudiante
+ * @see database/migrations/2025_06_22_100030_create_students_table.php
+ * @see app/Models/Student.php
  */
-export type Student = User &
-  Profile & {
-    // Relaciones con Level y Range
-    level?: Level;
-    range?: Range;
-    experience_points?: number;
-  }
-```
+interface Student extends User {
+  // Clave primaria (user_id)
+  user_id: number;
 
-### Level Type
-```typescript
-/**
- * Representa un nivel de estudiante en el sistema
- */
-export type Level = {
-  /** Identificador único del nivel */
-  id: number;
+  // Claves foráneas
+  level_id: number | null;
+  range_id: number | null;
 
-  /** Número del nivel */
-  level: number;
-
-  /** Experiencia requerida para alcanzar este nivel */
-  experience_required: number;
-
-  /** Descripción opcional del nivel */
-  description?: string | null;
-
-  // Marcas de tiempo
+  // Atributos
+  entry_date: string;
+  status: StudentStatus;  // 'active' | 'inactive' | 'suspended' | 'graduated' | 'withdrawn'
+  experience_achieved: number;
+  points_store_achieved: number;
+  points_store: number;
+  graduation_date: string | null;
   created_at: string;
   updated_at: string;
-  deleted_at?: string | null;
+  deleted_at: string | null;
+
+  // Relaciones
+  level?: Level | null;
+  range?: Range | null;
+  enrollments?: Enrollment[];
+  classrooms?: Classroom[];
+  achievements?: StudentAchievement[];
+  availableAchievements?: Achievement[];
+  avatars?: StudentAvatar[];
+  backgrounds?: StudentBackground[];
+  levelHistory?: StudentLevelHistory[];
+  applicationForms?: ApplicationForm[];
+  applicationFormResponses?: ApplicationFormResponse[];
+  storeRewards?: StudentStoreReward[];
 }
-```
 
-### Range Type
-```typescript
 /**
- * Representa un rango de estudiante en el sistema
+ * Tipo para crear un nuevo estudiante
+ * @see database/migrations/2025_06_22_100030_create_students_table.php
  */
-export type Range = {
-  /** Identificador único del rango */
+type CreateStudent = {
+  user_id: number;
+  level_id: number;
+  range_id: number;
+  entry_date: string;
+  status?: StudentStatus;
+  experience_achieved?: number;
+  points_store_achieved?: number;
+  points_store?: number;
+  graduation_date?: string | null;
+};
+
+/**
+ * Tipo para actualizar un estudiante existente
+ */
+type UpdateStudent = Partial<Omit<CreateStudent, 'user_id'>>;
+
+/**
+ * Estado posible de un estudiante
+ */
+type StudentStatus = 'active' | 'inactive' | 'suspended' | 'graduated' | 'withdrawn';
+
+/**
+ * Respuesta de un estudiante a un formulario
+ */
+interface ApplicationFormResponse {
   id: number;
-
-  /** Nombre del rango */
-  name: string;
-
-  /** Nivel requerido para alcanzar este rango */
-  level_required: number;
-
-  /** Código de color del rango */
-  color: string;
-
-  /** URL de la imagen del rango */
-  image_url: string;
-
-  /** Descripción del rango */
-  description?: string | null;
-
-  // Marcas de tiempo
+  application_form_id: number;
+  student_id: number;
+  status: 'pending' | 'in_progress' | 'submitted' | 'graded';
+  score: number | null;
+  response_questions: ApplicationFormResponseQuestion[];
   created_at: string;
   updated_at: string;
-  deleted_at?: string | null;
+}
+
+/**
+ * Pregunta respondida en un formulario
+ */
+interface ApplicationFormResponseQuestion {
+  id: number;
+  response_id: number;
+  question_id: number;
+  explanation: string | null;
+  score: number | null;
+  selected_options: ApplicationFormResponseQuestionOption[];
+  question: Question;
+}
+
+/**
+ * Opción seleccionada en una pregunta
+ */
+interface ApplicationFormResponseQuestionOption {
+  id: number;
+  response_question_id: number;
+  question_option_id: number;
+  value: string;
+  is_correct: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Pregunta de un formulario
+ */
+interface Question {
+  id: number;
+  name: string;
+  description: string;
+  question_type_id: number;
+  question_type: QuestionType;
+  options: QuestionOption[];
+  difficulty: 'easy' | 'medium' | 'hard';
+  explanation_required: boolean;
+}
+
+/**
+ * Opción de una pregunta
+ */
+interface QuestionOption {
+  id: number;
+  question_id: number;
+  value: string;
+  is_correct: boolean;
+  order: number;
+  pair_key?: string;
+  pair_side?: 'left' | 'right';
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Tipo de pregunta
+ */
+interface QuestionType {
+  id: number;
+  name: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+}
+
 }
 ```
 

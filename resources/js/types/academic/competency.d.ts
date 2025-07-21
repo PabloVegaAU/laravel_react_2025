@@ -1,12 +1,12 @@
-import { Capability } from './capability'
-import { CurricularAreaCycle } from './curricular-area-cycle'
-import { Question } from './question'
+import type { LearningSession } from '../learning-session'
+import type { Capability } from './capability'
+import type { CurricularAreaCycle } from './curricular-area-cycle'
+import type { Question } from './question'
 
 /**
  * Representa una competencia en el sistema educativo
- * Basado en:
- * - Migración: database/migrations/2025_06_22_100070_create_competencies_table.php
- * - Modelo: app/Models/Competency.php
+ * @see database/migrations/2025_06_22_100070_create_competencies_table.php
+ * @see app/Models/Competency.php
  */
 export interface Competency {
   /** Identificador único */
@@ -15,17 +15,8 @@ export interface Competency {
   /** Nombre de la competencia */
   name: string
 
-  /** Descripción detallada de la competencia */
-  description: string
-
   /** ID del área curricular a la que pertenece esta competencia */
   curricular_area_cycle_id: number
-
-  /** Orden de visualización */
-  order: number
-
-  /** Nivel de la competencia */
-  level: number
 
   /** Color para representación en la interfaz de usuario */
   color: string
@@ -33,7 +24,6 @@ export interface Competency {
   /** Marcas de tiempo */
   created_at: string
   updated_at: string
-  deleted_at: string | null
 
   // Relaciones
   /** Área curricular a la que pertenece esta competencia */
@@ -44,6 +34,9 @@ export interface Competency {
 
   /** Preguntas asociadas a esta competencia (a través de capacidades) */
   questions?: Question[]
+
+  /** Sesiones de aprendizaje asociadas a esta competencia */
+  learningSessions?: LearningSession[]
 }
 
 /**
@@ -51,7 +44,7 @@ export interface Competency {
  */
 export type CreateCompetency = Omit<
   Competency,
-  'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'curricular_area_cycle' | 'capabilities' | 'questions'
+  'id' | 'created_at' | 'updated_at' | 'curricular_area_cycle' | 'capabilities' | 'questions' | 'learningSessions'
 >
 
 /**
@@ -79,7 +72,7 @@ export interface CompetencyFilters {
   per_page?: number
 
   /** Campo para ordenar */
-  sort_by?: 'name' | 'order' | 'level' | 'created_at' | 'updated_at'
+  sort_by?: 'name' | 'created_at' | 'updated_at'
 
   /** Dirección del orden */
   sort_order?: 'asc' | 'desc'

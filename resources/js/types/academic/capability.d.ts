@@ -20,11 +20,6 @@ export interface Capability {
   competency?: Competency
   questions?: Question[]
   learningSessions?: LearningSession[]
-
-  // Métodos de relación
-  competency(): Promise<Competency>
-  questions(): Promise<Question[]>
-  learningSessions(): Promise<LearningSession[]>
 }
 
 /**
@@ -66,6 +61,5 @@ export interface AssignCapabilityToSessionData {
   capability_id: number
   learning_session_id: number
   status?: 'pending' | 'in_progress' | 'completed'
-  feedback?: string
   score?: number
 }

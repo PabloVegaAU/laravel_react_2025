@@ -1,53 +1,98 @@
-# 🎓 Modelo Teacher
+# 🎓 Teacher
+
+> **IMPORTANTE**: 
+> 1. **Verificar siempre** los archivos relacionados:
+>    - `database/migrations/2025_06_22_100040_create_teachers_table.php` (estructura de la tabla)
+>    - `app/Models/Teacher.php` (implementación del modelo)
+>    - `resources/js/types/user/teacher.d.ts` (tipos TypeScript)
 
 ## 📌 Ubicación
-- **Modelo**: `app/Models/Teacher.php`
-- **Migración**: `database/migrations/2025_06_22_100040_create_teachers_table.php`
-- **Controladores**:
-  - `app/Http/Controllers/Teacher/DashboardController.php`
-  - `app/Http/Controllers/Teacher/ApplicationFormController.php`
-  - `app/Http/Controllers/Teacher/QuestionController.php`
-- **Recursos API**: `app/Http/Resources/Teacher/`
-- **Vistas React**: `resources/js/pages/teacher/`
-- **TypeScript**: `resources/js/types/user/teacher.d.ts`
-
-## 📝 Descripción
-El modelo `Teacher` extiende el modelo `User` para representar a los profesores en el sistema educativo. Gestiona la relación entre profesores, aulas, áreas curriculares y ciclos, así como los formularios de aplicación y sesiones de aprendizaje creados por cada profesor. Utiliza soft deletes para mantener un historial de profesores eliminados.
-
-## 🔒 Seguridad
-
-### Reglas de Acceso
-- Solo usuarios con rol 'admin' pueden crear o modificar profesores
-- Los profesores solo pueden ver y gestionar sus propias aulas y contenidos
-- Se validan los permisos para cada acción mediante políticas
-
-### Validaciones
-- El `user_id` debe ser único en la tabla teachers
-- El estado debe ser uno de los valores permitidos (active, inactive, on leave, retired)
-- Se requiere un usuario válido para crear un profesor
-
-### Eliminación Segura
-- Se utiliza soft delete para mantener la integridad referencial
-- Los registros eliminados se pueden restaurar si es necesario
-- Se mantiene la relación con el usuario incluso después de la eliminación
-
-## 🏗️ Estructura del Modelo
-
-### 📦 Propiedades
+- **Tipo**: Modelo (extiende User)
+- **Archivo Principal**: `app/Models/Teacher.php`
 - **Tabla**: `teachers`
-- **Clave primaria**: `user_id` (clave foránea a `users.id`)
-- **Incrementing**: `false` (usa user_id como clave primaria)
-- **Timestamps**: `true`
-- **Soft Deletes**: `true`
 
-### 📋 Atributos
-| Atributo | Tipo | Valor por defecto | Descripción |
-|----------|------|-------------------|-------------|
-| user_id | int | - | ID del usuario (clave foránea a users) |
-| status | string | 'active' | Estado del profesor (active, inactive, on leave, retired) |
-| created_at | datetime | - | Fecha de creación |
-| updated_at | datetime | - | Fecha de última actualización |
-| deleted_at | datetime | null | Fecha de eliminación lógica |
+## 📦 Archivos Relacionados
+
+### Migraciones
+- `database/migrations/2025_06_22_100040_create_teachers_table.php`
+  - Estructura de la tabla de profesores
+  - Relación con la tabla users
+  - Índices para optimización
+
+### Modelos Relacionados
+- `app/Models/User.php` (extiende)
+- `app/Models/Classroom.php` (BelongsToMany)
+- `app/Models/LearningSession.php` (HasMany)
+- `app/Models/ApplicationForm.php` (HasMany)
+
+### Tipos TypeScript
+- `resources/js/types/user/teacher.d.ts`
+  - Interfaz `Teacher` extendiendo `User`
+  - Tipos para estados y relaciones
+- `resources/js/types/application-form/application-form.d.ts`
+  - Tipos para formularios creados por el profesor
+
+## 🏗️ Estructura
+
+### Base de Datos (Migraciones)
+- **Tabla**: `teachers`
+- **Campos Clave**:
+  - `user_id`: int - Clave primaria y foránea a users
+  - `status`: enum - Estado actual (active, inactive, on_leave, retired)
+  - `timestamps`: created_at, updated_at, deleted_at
+
+### Relaciones
+- **user** (BelongsTo):
+  - Modelo: `User`
+  - Clave: `user_id`
+  - Comportamiento: cascadeOnDelete
+
+- **classrooms** (BelongsToMany):
+  - Modelo: `Classroom`
+  - Tabla intermedia: `classroom_teacher`
+  - Claves: `teacher_id`, `classroom_id`
+
+- **learningSessions** (HasMany):
+  - Modelo: `LearningSession`
+  - Clave: `teacher_id`
+  - Comportamiento: cascadeOnDelete
+
+- **applicationForms** (HasMany):
+  - Modelo: `ApplicationForm`
+  - Clave: `teacher_id`
+  - Comportamiento: cascadeOnDelete
+
+## 🎯 Estados del Modelo
+
+### Diagrama de Estados
+```mermaid
+stateDiagram
+    [*] --> active
+    active --> inactive: Desactivar
+    inactive --> active: Reactivar
+    active --> on_leave: Tomar licencia
+    on_leave --> active: Volver de licencia
+    active --> retired: Jubilar
+    inactive --> [*]: Eliminar
+    on_leave --> [*]: Eliminar
+    retired --> [*]: Eliminar
+```
+
+### Transiciones y Endpoints
+> **NOTA**: Los endpoints mostrados son sugerencias basadas en las mejores prácticas de REST.
+
+| Estado Actual | Evento | Nuevo Estado | Endpoint | Método |
+|---------------|--------|--------------|----------|--------|
+| active | deactivate | inactive | `/api/teachers/{id}/deactivate` (sugerido) | PUT |
+| inactive | activate | active | `/api/teachers/{id}/activate` (sugerido) | PUT |
+| active | leave | on_leave | `/api/teachers/{id}/leave` (sugerido) | PUT |
+| on_leave | return | active | `/api/teachers/{id}/return` (sugerido) | PUT |
+| active | retire | retired | `/api/teachers/{id}/retire` (sugerido) | PUT |
+| any | delete | - | `/api/teachers/{id}` (sugerido) | DELETE |
+
+**Leyenda**:
+- Sin prefijo: Endpoint existente en el código
+- `(sugerido)`: Endpoint recomendado pero no implementado
 
 ### 🎯 Scopes
 - **active()**: Filtra profesores activos
@@ -198,50 +243,46 @@ export interface Teacher {
   learningSessions?: LearningSession[];
 }
 
-/**
- * Interfaz para la tabla intermedia de asignación de profesor
- */
-export interface TeacherClassroomCurricularAreaCycle {
-  id: number;
-  teacher_id: number;
-  classroom_id: number;
-  curricular_area_cycle_id: number;
-  academic_year: number;
-  created_at: string;
-  updated_at: string;
-  
-  // Relaciones
-  teacher?: Teacher;
-  classroom?: Classroom;
-  curricularAreaCycle?: CurricularAreaCycle;
-}
+## 🛠️ TypeScript Types
 
-// Relación con Classroom a través de TeacherClassroomCurricularAreaCycle
-interface TeacherClassroomCurricularAreaCycle {
-  id: number;
-  teacher_id: number;
-  classroom_id: number;
-  curricular_area_cycle_id: number;
-  academic_year: number;
-  created_at: string;
-  updated_at: string;
-  
-  // Relaciones
-  teacher?: Teacher;
-  classroom?: Classroom;
-  curricularAreaCycle?: {
-    id: number;
-    curricular_area_id: number;
-    cycle_id: number;
-    created_at: string;
-    updated_at: string;
-    curricularArea?: CurricularArea;
-    cycle?: Cycle;
-  };
-  applicationForms?: ApplicationForm[];
-}
-```
+### Tipos Básicos
 
-## Notas adicionales
-- Utiliza SoftDeletes para eliminación lógica
-- Relación polimórfica con el modelo User a través del campo user_id
+**TeacherStatus**: Enumeración que representa los posibles estados de un profesor: 'active', 'inactive', 'on leave', 'retired'.
+
+### Estructura de Datos del Profesor
+
+**Teacher**: Interfaz principal que representa a un profesor en el frontend.
+- **Propiedades principales**:
+  - `user_id`: Identificador único del usuario asociado (number)
+  - `status`: Estado actual del profesor (TeacherStatus)
+  - `created_at`, `updated_at`, `deleted_at`: Marcas de tiempo
+
+**Relaciones**:
+- `user`: Datos del usuario asociado
+- `classrooms`: Aulas asignadas al profesor
+- `curricularAreas`: Áreas curriculares que puede enseñar
+- `curricularAreaCycles`: Ciclos de áreas curriculares asignados
+- `teacherAssignments`: Asignaciones completas (aula + área + ciclo)
+- `applicationForms`: Formularios creados por el profesor
+- `learningSessions`: Sesiones de aprendizaje creadas
+- `questions`: Preguntas creadas
+- `evaluations`: Evaluaciones realizadas
+- `evaluationResults`: Resultados de evaluaciones
+
+### Tipos para Operaciones CRUD
+
+**CreateTeacher**: Estructura para crear un nuevo profesor. Incluye campos obligatorios como user_id y status.
+
+**UpdateTeacher**: Tipo parcial para actualizar un profesor existente, permitiendo modificar cualquier campo excepto el user_id.
+
+### Tipos Relacionados
+
+**TeacherClassroomCurricularAreaCycle**: Tabla intermedia que relaciona profesores con aulas, áreas curriculares y ciclos. Incluye metadatos como el año académico y relaciones con las entidades asociadas.
+
+**TeacherAssignment**: Representa una asignación completa de profesor, incluyendo aula, área curricular, ciclo y año académico.
+
+## Notas Adicionales
+- Utiliza eliminación lógica (SoftDeletes) para mantener el historial
+- Relación uno a uno con el modelo User a través del campo user_id
+- Gestiona permisos y accesos específicos para profesores
+- Mantiene la integridad referencial con las aulas y áreas curriculares

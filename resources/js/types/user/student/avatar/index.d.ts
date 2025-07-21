@@ -3,9 +3,8 @@ import { Student } from '../user/student'
 
 /**
  * Represents the relationship between a student and an avatar they have acquired
- * Based on:
- * - Migration: database/migrations/2025_06_22_100430_create_student_avatars_table.php
- * - Model: app/Models/StudentAvatar.php
+ * @see database/migrations/2025_06_22_100430_create_student_avatars_table.php
+ * @see app/Models/StudentAvatar.php
  */
 export interface StudentAvatar {
   /** Unique identifier */

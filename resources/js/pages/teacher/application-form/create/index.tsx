@@ -10,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea'
 import AppLayout from '@/layouts/app-layout'
 import { toUTCDateString } from '@/lib/date'
+import { useTranslations } from '@/lib/translator'
 import { cn, getNestedError } from '@/lib/utils'
-import { TeacherClassroomCurricularAreaCycle } from '@/types/academic/teacher-classroom-area-cycle'
+import { TeacherClassroomCurricularAreaCycle } from '@/types/academic/teacher-classroom-curricular-area-cycle'
 import { Question, QuestionWithScore } from '@/types/application-form'
 import { ApplicationFormStatus } from '@/types/application-form/application-form'
 import { BreadcrumbItem } from '@/types/core'
@@ -40,7 +41,8 @@ interface CreateApplicationFormProps {
 }
 
 export default function ApplicationsForm({ learning_session, teacher_classroom_curricular_area_cycle, questions }: CreateApplicationFormProps) {
-  // Estados para manejar las fechas
+  const { t } = useTranslations()
+
   const today = new Date()
   const startDate = today
   const endDate = (() => {
@@ -83,6 +85,7 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
     status: string
     score_max: number
     questions: QuestionWithScore[]
+    [key: string]: any
   }>({
     learning_session_id: learning_session.id,
     teacher_classroom_curricular_area_cycle_id: teacher_classroom_curricular_area_cycle.id,
@@ -234,9 +237,9 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
     const scoreValue = parseFloat(value) || 0
     const multiplier =
       {
-        easy: 0.5,
-        medium: 1,
-        hard: 1.5
+        easy: 2,
+        medium: 3,
+        hard: 5
       }[question.difficulty] || 0
 
     const pointsStoreValue = scoreValue * multiplier
@@ -270,9 +273,9 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
               <Label htmlFor='teacher_classroom_curricular_area_id'>Área Curricular</Label>
               <Input
                 defaultValue={
-                  teacher_classroom_curricular_area_cycle.classroom?.level +
+                  t(teacher_classroom_curricular_area_cycle.classroom?.level) +
                   ' ' +
-                  teacher_classroom_curricular_area_cycle.classroom?.grade +
+                  t(teacher_classroom_curricular_area_cycle.classroom?.grade) +
                   ' ' +
                   teacher_classroom_curricular_area_cycle.classroom?.section +
                   ' - ' +
@@ -370,8 +373,6 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
               <p className='text-muted-foreground text-sm'>Puntaje total basado en las preguntas seleccionadas</p>
             </div>
 
-            {/* Campo: */}
-
             {/* Campo: Estado */}
             <div className='space-y-2'>
               <Label htmlFor='status'>Estado</Label>
@@ -381,10 +382,7 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value='draft'>Borrador</SelectItem>
-                  <SelectItem value='scheduled'>Programado</SelectItem>
                   <SelectItem value='active'>Activo</SelectItem>
-                  <SelectItem value='inactive'>Inactivo</SelectItem>
-                  <SelectItem value='archived'>Archivado</SelectItem>
                 </SelectContent>
               </Select>
               <InputError message={errors.status} className='mt-1' />
@@ -404,6 +402,20 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
             <InputError message={errors.description} className='mt-1' />
           </div>
 
+          {/* Campo: Capacidades */}
+          <div className='space-y-4'>
+            <div>
+              <Label className='text-xl font-bold'>Capacidades</Label>
+            </div>
+            <div className='space-y-4'>
+              {learning_session?.capabilities?.map((capability) => (
+                <div key={capability.id} className={cn('rounded-lg p-2', 'bg-' + capability.color + '-500')}>
+                  <span>{capability.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Campo: Preguntas */}
           <div className='space-y-4'>
             <h2 className='text-xl font-bold'>Preguntas</h2>
@@ -413,7 +425,13 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
                 const isChecked = !!questionInForm
 
                 return (
-                  <div key={question.id} className='flex items-start gap-4 rounded-lg border p-4'>
+                  <div
+                    key={question.id}
+                    style={{
+                      borderLeft: `4px solid ${question.capability.color}`
+                    }}
+                    className={`dark:bg-opacity-20 hover:dark:bg-opacity-30 flex items-start gap-4 rounded-lg border border-gray-200 p-4 transition-all duration-200 ease-in-out hover:shadow-md dark:border-gray-700`}
+                  >
                     <div className='flex-shrink-0 pt-1'>
                       <Checkbox
                         id={`question-${question.id}`}
@@ -450,7 +468,7 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
                               id={`score-${question.id}`}
                               type='number'
                               min='0'
-                              step='0.5'
+                              step='0.25'
                               value={questionInForm?.score || 1}
                               onChange={(e) => handleScoreChange(question, e.target.value)}
                               className='w-24'
@@ -463,7 +481,7 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
                               id={`points-${question.id}`}
                               type='number'
                               min='0'
-                              step='0.5'
+                              step='0.25'
                               value={questionInForm?.points_store || 0}
                               className='w-24'
                             />

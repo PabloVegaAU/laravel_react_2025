@@ -60,7 +60,6 @@ export function useTranslations(namespace?: string) {
   const t = useMemo(() => {
     return (key: string | undefined, fallback = '', replacements?: Replacements): string => {
       if (!translations || !key) {
-        console.warn('No translations found in page props')
         return fallback
       }
 
@@ -74,7 +73,6 @@ export function useTranslations(namespace?: string) {
 
         return fallback || key
       } catch (error) {
-        console.error('Translation error:', error)
         return fallback || key
       }
     }

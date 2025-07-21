@@ -1,8 +1,10 @@
-import type { Competency } from '../academic/competency'
-import type { EducationalInstitution } from '../academic/educational-institution'
-import type { TeacherClassroomCurricularAreaCycle } from '../academic/teacher-classroom-curricular-area-cycle'
-import type { ApplicationForm } from '../application-form/application-form'
+import type { Capability, Competency, EducationalInstitution, TeacherClassroomCurricularAreaCycle } from '../academic'
+import type { ApplicationForm } from '../application-form'
 
+/**
+ * @see database/migrations/2025_06_22_100200_create_learning_sessions_table.php
+ * @see app/Models/LearningSession.php
+ */
 export interface LearningSession {
   id: number
   name: string
@@ -19,10 +21,10 @@ export interface LearningSession {
   updated_at: string
   deleted_at: string | null
 
-  // Relationships
+  // Relaciones
   educational_institution?: EducationalInstitution
   competency?: Competency
   capabilities?: Capability[]
   teacher_classroom_curricular_area_cycle?: TeacherClassroomCurricularAreaCycle
-  application_forms?: ApplicationForm[]
+  application_form?: ApplicationForm
 }

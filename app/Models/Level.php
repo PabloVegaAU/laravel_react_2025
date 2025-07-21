@@ -15,6 +15,7 @@ class Level extends Model
     protected $table = 'levels';
 
     protected $fillable = [
+        'name',
         'level',
         'experience_max',
         'experience_required',

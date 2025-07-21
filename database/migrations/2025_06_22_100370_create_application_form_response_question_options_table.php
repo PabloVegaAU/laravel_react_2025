@@ -24,9 +24,13 @@ return new class extends Migration
                 ->default(false)
                 ->comment('Indica si la opción seleccionada es correcta');
 
+            $table->unsignedInteger('selected_order')
+                ->nullable()
+                ->comment('Orden seleccionado');
+
             // Relaciones
             $table->foreignId('application_form_response_question_id')
-                ->constrained('application_form_response_question')
+                ->constrained('application_form_response_questions')
                 ->cascadeOnDelete()
                 ->comment('Referencia a la respuesta de la pregunta');
 
@@ -34,6 +38,12 @@ return new class extends Migration
                 ->constrained('question_options')
                 ->cascadeOnDelete()
                 ->comment('Referencia a la opción seleccionada');
+
+            $table->foreignId('paired_with_option_id')
+                ->nullable()
+                ->constrained('question_options')
+                ->nullOnDelete()
+                ->comment('Para preguntas de emparejamiento - referencia la opción emparejada');
 
             // Metadatos
             $table->timestamps();

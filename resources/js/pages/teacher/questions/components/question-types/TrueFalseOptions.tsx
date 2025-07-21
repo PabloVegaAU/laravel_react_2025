@@ -11,8 +11,7 @@ export function TrueFalseOptions({ options, onChange, disabled = false }: Questi
       correct_order: 0,
       pair_key: null,
       pair_side: null,
-      score: isTrueCorrect ? 1 : 0,
-      feedback: null
+      score: isTrueCorrect ? 1 : 0
     }
 
     const falseOption = {
@@ -22,8 +21,7 @@ export function TrueFalseOptions({ options, onChange, disabled = false }: Questi
       correct_order: 1,
       pair_key: null,
       pair_side: null,
-      score: !isTrueCorrect ? 1 : 0,
-      feedback: null
+      score: !isTrueCorrect ? 1 : 0
     }
 
     onChange([trueOption, falseOption])
@@ -48,14 +46,22 @@ export function TrueFalseOptions({ options, onChange, disabled = false }: Questi
 
       <RadioGroup value={currentCorrect} onValueChange={(value) => handleSetCorrect(value === 'true')} className='space-y-3' disabled={disabled}>
         <div className='flex items-center space-x-2'>
-          <RadioGroupItem value='true' id='true-option' />
-          <Label htmlFor='true-option' className='text-base font-normal'>
+          <RadioGroupItem
+            value='true'
+            id='true-option'
+            className='data-[state=checked]:border-green-600 data-[state=checked]:bg-green-600 data-[state=checked]:text-white'
+          />
+          <Label htmlFor='true-option' className='text-foreground text-base font-normal'>
             Verdadero
           </Label>
         </div>
         <div className='flex items-center space-x-2'>
-          <RadioGroupItem value='false' id='false-option' />
-          <Label htmlFor='false-option' className='text-base font-normal'>
+          <RadioGroupItem
+            value='false'
+            id='false-option'
+            className='data-[state=checked]:border-green-600 data-[state=checked]:bg-green-600 data-[state=checked]:text-white'
+          />
+          <Label htmlFor='false-option' className='text-foreground text-base font-normal'>
             Falso
           </Label>
         </div>

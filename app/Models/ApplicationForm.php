@@ -51,7 +51,7 @@ class ApplicationForm extends Model
 
     public function questions(): HasMany
     {
-        return $this->hasMany(ApplicationFormQuestion::class, 'application_form_id', 'id')
+        return $this->hasMany(ApplicationFormQuestion::class, 'application_form_id')
             ->orderBy('order');
     }
 

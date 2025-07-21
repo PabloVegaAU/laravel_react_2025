@@ -2,9 +2,8 @@ import { User } from '../user/user'
 
 /**
  * Representa la información extendida del perfil de un usuario
- * Basado en:
- * - Migración: database/migrations/2025_06_22_100020_create_profiles_table.php
- * - Modelo: app/Models/Profile.php
+ * @see database/migrations/2025_06_22_100020_create_profiles_table.php
+ * @see app/Models/Profile.php
  */
 export interface Profile {
   /** Referencia al usuario al que pertenece este perfil (clave primaria) */

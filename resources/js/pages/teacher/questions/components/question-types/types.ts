@@ -1,4 +1,5 @@
-import { CreateQuestionOption, QuestionType } from '@/types/application-form'
+import { ApplicationFormStatus, CreateQuestionOption, QuestionType } from '@/types/application-form'
+import { QUESTION_TYPES } from '@/types/application-form/question/question-type-c'
 
 // Propiedades para tipos de pregunta
 export interface QuestionTypeProps {
@@ -7,12 +8,14 @@ export interface QuestionTypeProps {
   disabled?: boolean
 }
 
-export const QUESTION_TYPES: Record<string, string> = {
-  'Opción Múltiple': '1',
-  'Verdadero/Falso': '2',
-  Emparejamiento: '3',
-  Ordenamiento: '4'
-} as const
+// Mapear estados a colores
+export const statusColors: Record<ApplicationFormStatus, string> = {
+  draft: 'bg-gray-100 text-gray-800',
+  scheduled: 'bg-blue-100 text-blue-800',
+  active: 'bg-green-100 text-green-800',
+  inactive: 'bg-yellow-100 text-yellow-800',
+  archived: 'bg-purple-100 text-purple-800'
+}
 
 export type QuestionTypeKey = keyof typeof QUESTION_TYPES
 export type QuestionTypeValue = (typeof QUESTION_TYPES)[QuestionTypeKey]
@@ -28,8 +31,7 @@ export function getDefaultOptions(typeId: string): CreateQuestionOption[] {
   const baseOption = {
     correct_order: 0,
     pair_key: null,
-    pair_side: null,
-    feedback: null
+    pair_side: null
   }
 
   switch (typeId) {

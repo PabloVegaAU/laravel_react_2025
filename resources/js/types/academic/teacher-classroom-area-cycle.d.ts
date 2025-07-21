@@ -1,66 +1,41 @@
-import { ApplicationForm } from '../../application-form/form'
-import { Teacher } from '../user/teacher'
-import { Classroom } from './classroom'
-import { CurricularAreaCycle } from './curricular-area-cycle'
-import { LearningSession } from './learning-session'
+import type { LearningSession } from '../learning-session'
+import type { Teacher } from '../user'
+import type { Classroom } from './classroom'
+import type { CurricularAreaCycle } from './curricular-area-cycle'
 
 /**
- * Relación entre profesor, aula y área curricular
- * Basado en:
- * - Migración: database/migrations/2025_06_22_100150_create_teacher_classroom_curricular_area_cycles_table.php
- * - Modelo: app/Models/TeacherClassroomCurricularAreaCycle.php
+ * Representa la asignación de un profesor a un aula para un área curricular y ciclo específicos.
+ * @see database/migrations/2025_06_22_100150_create_teacher_classroom_curricular_area_cycles_table.php
+ * @see app/Models/TeacherClassroomCurricularAreaCycle.php
  */
 export interface TeacherClassroomCurricularAreaCycle {
-  /** ID único */
   id: number
-
-  /** ID del profesor */
   teacher_id: number
-
-  /** ID del aula */
   classroom_id: number
-
-  /** ID del área curricular ciclo */
   curricular_area_cycle_id: number
-
-  /** Año académico */
   academic_year: number
-
-  /** Fecha de creación */
   created_at: string
-
-  /** Fecha de actualización */
   updated_at: string
 
-  // Relaciones
-
-  /** Profesor asignado */
+  // Relaciones (cargadas dinámicamente)
   teacher?: Teacher
-
-  /** Aula asignada */
   classroom?: Classroom
-
-  /** Área curricular del ciclo */
   curricular_area_cycle?: CurricularAreaCycle
+  learningSessions?: LearningSession[]
 
-  /** Área curricular (acceso directo) */
+  // Acceso directo a través de relaciones anidadas (si se carga)
   curricular_area?: CurricularAreaCycle['curricular_area']
-
-  /** Formularios de aplicación asociados */
-  application_forms?: ApplicationForm[]
-
-  /** Sesiones de aprendizaje asociadas */
-  learning_sessions?: LearningSession[]
 }
 
 /**
- * Tipo para crear una asignación profesor-aula-área
- * Basado en el modelo TeacherClassroomCurricularArea
+ * Tipo para crear una nueva asignación.
  */
-export interface CreateTeacherClassroomCurricularArea extends Omit<TeacherClassroomCurricularArea, 'id' | 'created_at' | 'updated_at'> {}
+export type CreateTeacherClassroomCurricularAreaCycle = Omit<
+  TeacherClassroomCurricularAreaCycle,
+  'id' | 'created_at' | 'updated_at' | 'teacher' | 'classroom' | 'curricular_area_cycle' | 'learningSessions' | 'curricular_area'
+>
 
 /**
- * Tipo para actualizar una asignación profesor-aula-área
- * Basado en el modelo TeacherClassroomCurricularArea
+ * Tipo para actualizar una asignación existente.
  */
-export type UpdateTeacherClassroomCurricularArea = Partial<CreateTeacherClassroomCurricularArea>
+export type UpdateTeacherClassroomCurricularAreaCycle = Partial<CreateTeacherClassroomCurricularAreaCycle>

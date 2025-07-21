@@ -1,12 +1,12 @@
-import { StudentLevelHistory } from '../student/student-level-history'
-import { Student } from '../user/student'
-import { Classroom } from './classroom'
+import type { StudentLevelHistory } from '../student/student-level-history'
+import type { Student } from '../user/student'
+import type { Classroom } from './classroom'
+import type { Enrollment } from './enrollment'
 
 /**
  * Represents a level in the educational system
- * Based on:
- * - Migration: database/migrations/2025_06_22_100000_create_levels_table.php
- * - Model: app/Models/Level.php
+ * @see database/migrations/2025_06_22_100000_create_levels_table.php
+ * @see app/Models/Level.php
  */
 export interface Level {
   /** Unique identifier */
@@ -30,24 +30,28 @@ export interface Level {
   /** Timestamp when the record was soft deleted (if applicable) */
   deleted_at: string | null
 
-  /** Relationships */
-  student_level_histories?: StudentLevelHistory[]
-  students?: Student[]
-  classrooms?: Classroom[]
+  // Relaciones
 
-  // Relations
-
-  /** History of students reaching this level */
+  /** Historial de estudiantes que alcanzaron este nivel */
   studentLevelHistories?: StudentLevelHistory[]
 
-  /** Students who have reached this level */
+  /** Estudiantes que han alcanzado este nivel */
   students?: Student[]
+
+  /** Aulas asociadas a este nivel */
+  classrooms?: Classroom[]
+
+  /** Matrículas asociadas a través de las aulas */
+  enrollments?: Enrollment[]
 }
 
 /**
  * Type for creating a new level
  */
-export type CreateLevel = Omit<Level, 'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'studentLevelHistories' | 'students'>
+export type CreateLevel = Omit<
+  Level,
+  'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'studentLevelHistories' | 'students' | 'classrooms' | 'enrollments'
+>
 
 /**
  * Type for updating an existing level

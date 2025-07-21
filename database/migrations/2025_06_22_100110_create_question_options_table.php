@@ -50,13 +50,7 @@ return new class extends Migration
                 ->default(0)
                 ->comment('Puntuación otorgada al seleccionar esta opción');
 
-            // Retroalimentación específica para esta opción
-            $table->text('feedback')
-                ->nullable()
-                ->comment('Retroalimentación específica para esta opción');
-
             $table->timestamps();
-            $table->softDeletes();
 
             // Índices para optimizar consultas
             $table->index('question_id', 'idx_question_option_question');

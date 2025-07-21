@@ -39,14 +39,6 @@ return new class extends Migration
                 ->default(false)
                 ->comment('Indica si se requiere una explicación para la pregunta');
 
-            // Retroalimentación
-            $table->text('correct_feedback')
-                ->nullable()
-                ->comment('Retroalimentación mostrada cuando se responde correctamente');
-            $table->text('incorrect_feedback')
-                ->nullable()
-                ->comment('Retroalimentación mostrada cuando la respuesta es incorrecta');
-
             // Niveles educativos
             $table->enum('level', [
                 'primary',     // Educación primaria

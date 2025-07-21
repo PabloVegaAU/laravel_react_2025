@@ -28,9 +28,7 @@ return new class extends Migration
             $table->softDeletes();
 
             // Relaciones
-            $table->foreignId('level_required')
-                ->constrained('levels')
-                ->restrictOnDelete()
+            $table->integer('level_required')
                 ->comment('Nivel mínimo requerido para desbloquear la recompensa');
 
             // Índices

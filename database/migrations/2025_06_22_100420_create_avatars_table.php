@@ -15,10 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('image');
-            $table->foreignId('level_required')
-                ->constrained('levels')
-                ->restrictOnDelete()
-                ->comment('Nivel mínimo requerido para adquirir el avatar');
+            $table->integer('level_required')->comment('Nivel mínimo requerido para adquirir el avatar');
             $table->decimal('points_store', 10, 2)->comment('Puntos requeridos para adquirir el avatar');
             $table->timestamps();
         });

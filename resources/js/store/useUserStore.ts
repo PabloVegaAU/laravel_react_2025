@@ -1,10 +1,20 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
+interface User {
+  id: number
+  name: string
+  email: string
+  student_id?: string
+  // Add other user properties as needed
+}
+
 interface UserState {
   roles: string[]
   currentDashboardRole: string
   permissions: string[]
+  user: User | null
+  setUser: (user: User | null) => void
   setRoles: (roles: string[]) => void
   setCurrentDashboardRole: (role: string) => void
   setPermissions: (permissions: string[]) => void
@@ -20,6 +30,8 @@ export const useUserStore = create<UserState>()(
       roles: [],
       currentDashboardRole: '',
       permissions: [],
+      user: null,
+      setUser: (user) => set({ user }),
       setRoles: (roles) => set({ roles }),
       setCurrentDashboardRole: (role) => set({ currentDashboardRole: role }),
       setPermissions: (permissions) => set({ permissions }),
@@ -32,10 +44,10 @@ export const useUserStore = create<UserState>()(
             permissions: data.permissions
           })
         } catch (error) {
-          console.error('Error fetching user permissions:', error)
+          console.error('Error consultando permisos:', error)
         }
       },
-      reset: () => set({ roles: [], permissions: [], currentDashboardRole: '' })
+      reset: () => set({ roles: [], permissions: [], currentDashboardRole: '', user: null })
     }),
     {
       name: STORAGE_KEY,

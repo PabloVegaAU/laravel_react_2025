@@ -16,7 +16,7 @@ import { Capability, Classroom, Competency, TeacherClassroomCurricularAreaCycle 
 import { CurricularAreaCycle } from '@/types/academic/curricular-area-cycle'
 import { BreadcrumbItem, SharedData } from '@/types/core'
 import { LearningSession } from '@/types/learning-session'
-import { Head, useForm, usePage } from '@inertiajs/react'
+import { Head, Link, useForm, usePage } from '@inertiajs/react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { CalendarIcon, LoaderCircle } from 'lucide-react'
@@ -47,7 +47,7 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
   const dateLocale = es
 
   const { data, setData, put, processing, errors } = useForm({
-    redirect: (learning_session?.application_forms?.length ?? 0) === 0,
+    redirect: (learning_session?.application_form ?? 0) === 0,
     educational_institution_id: educational_institution?.id,
     status: learning_session.status,
     name: learning_session.name,
@@ -60,7 +60,7 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
     performances: learning_session.performances,
     purpose_learning: learning_session.purpose_learning,
     start_sequence: learning_session.start_sequence || '',
-    application_form_ids: learning_session?.application_forms?.map((form) => form.id.toString()) || [],
+    application_form_ids: learning_session?.application_form?.id.toString() || [],
     end_sequence: learning_session.end_sequence || ''
   })
 
@@ -142,7 +142,7 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
         teacher_classroom_curricular_area_cycle_id: learning_session.teacher_classroom_curricular_area_cycle_id?.toString() || '',
         competency_id: learning_session.competency_id?.toString() || '',
         capability_ids: learning_session.capabilities?.map((c) => c.id.toString()) || [],
-        application_form_ids: learning_session.application_forms?.map((f) => f.id.toString()) || []
+        application_form_ids: learning_session.application_form?.id?.toString() || []
       })
 
       // Setear el ID de la aula si está disponible
@@ -359,44 +359,46 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
                 <Label htmlFor='application_form_ids'>Formularios de aplicación</Label>
 
                 <div>
-                  {learning_session?.application_forms
-                    ?.filter((form) => data.application_form_ids.includes(form.id.toString()))
-                    ?.map((form) => (
-                      <div key={form.id} className='grid grid-cols-2 items-center gap-2 space-y-2'>
-                        <div className='flex w-full flex-col gap-2'>
-                          <div className='flex items-center space-x-2'>
-                            <Label>NOMBRE:</Label>
-                            <p>{form.name}</p>
-                          </div>
-                          <div className='flex items-center space-x-2'>
-                            <Label>FECHA INICIO:</Label>
-                            <p>{format(form.start_date, 'dd/MM/yyyy')}</p>
-                          </div>
-                          <div className='flex items-center space-x-2'>
-                            <Label>FECHA FIN:</Label>
-                            <p>{format(form.end_date, 'dd/MM/yyyy')}</p>
-                          </div>
+                  {learning_session?.application_form && (
+                    <div className='grid grid-cols-2 items-center gap-2 space-y-2'>
+                      <div className='flex w-full flex-col gap-2'>
+                        <div className='flex items-center space-x-2'>
+                          <Label>NOMBRE:</Label>
+                          <p>{learning_session.application_form.name}</p>
                         </div>
-                        <div className='flex w-full flex-col gap-2'>
-                          <div className='flex items-center space-x-2'>
-                            <Label>ESTADO:</Label>
-                            <div>{t(form.status)}</div>
-                          </div>
+                        <div className='flex items-center space-x-2'>
+                          <Label>FECHA INICIO:</Label>
+                          <p>{format(learning_session.application_form.start_date, 'dd/MM/yyyy')}</p>
+                        </div>
+                        <div className='flex items-center space-x-2'>
+                          <Label>FECHA FIN:</Label>
+                          <p>{format(learning_session.application_form.end_date, 'dd/MM/yyyy')}</p>
+                        </div>
+                      </div>
+                      <div className='flex w-full flex-col gap-2'>
+                        <div className='flex items-center space-x-2'>
+                          <Label>ESTADO:</Label>
+                          <div>{t(learning_session.application_form.status)}</div>
+                        </div>
 
-                          <div className='flex items-center space-x-2'>
-                            <Label>ACCIONES:</Label>
-                            <div className='flex gap-2'>
+                        <div className='flex items-center space-x-2'>
+                          <Label>ACCIONES:</Label>
+                          <div className='flex gap-2'>
+                            <Link href={`/teacher/application-forms/${learning_session.application_form.id}`}>
                               <Button variant='info' size='sm'>
                                 Ver
                               </Button>
+                            </Link>
+                            <Link href={`/teacher/application-forms/${learning_session.application_form.id}/edit`}>
                               <Button variant='warning' size='sm'>
                                 Editar
                               </Button>
-                            </div>
+                            </Link>
                           </div>
                         </div>
                       </div>
-                    ))}
+                    </div>
+                  )}
 
                   <div className={cn('flex items-center space-x-2', data.application_form_ids.length > 0 ? 'hidden' : '')}>
                     <Switch id='redirect-to-form' checked={data.redirect} onCheckedChange={(checked) => setData('redirect', checked)} />

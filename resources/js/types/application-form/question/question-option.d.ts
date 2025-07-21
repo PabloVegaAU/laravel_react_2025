@@ -23,7 +23,6 @@ export interface QuestionOption {
   pair_key: string | null
   pair_side: PairSide | null
   score: number
-  feedback: string | null
   created_at: string
   updated_at: string
   deleted_at: string | null
@@ -31,10 +30,6 @@ export interface QuestionOption {
   // Relaciones
   question: Question
   responseQuestionOptions: ApplicationFormResponseQuestionOption[]
-
-  // Métodos de instancia
-  isLeftSide(): boolean
-  isRightSide(): boolean
 }
 
 /**
@@ -50,7 +45,6 @@ export interface CreateQuestionOptionData {
   pair_key?: string | null
   pair_side?: PairSide | null
   score?: number
-  feedback?: string | null
 }
 
 /**
@@ -66,7 +60,6 @@ export interface UpdateQuestionOptionData {
   pair_key?: string | null
   pair_side?: PairSide | null
   score?: number
-  feedback?: string | null
 }
 
 /**
@@ -119,7 +112,6 @@ export interface ImportQuestionOptionsData {
     pair_key?: string
     pair_side?: PairSide
     score?: number
-    feedback?: string
   }>
 }
 
@@ -134,8 +126,6 @@ export type CreateQuestion = {
   options: CreateQuestionOption[]
   help_message: string
   explanation_required: boolean
-  correct_feedback: string
-  incorrect_feedback: string
   image: File | null
 }
 
@@ -147,5 +137,4 @@ export type CreateQuestionOption = {
   pair_key: string | null
   pair_side: PairSide | null
   score: number
-  feedback: string | null
 }

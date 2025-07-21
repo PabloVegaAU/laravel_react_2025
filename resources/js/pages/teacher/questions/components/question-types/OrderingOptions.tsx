@@ -16,8 +16,7 @@ export function OrderingOptions({ options, onChange, disabled = false }: Questio
       correct_order: options.length,
       pair_key: null,
       pair_side: null,
-      score: 1,
-      feedback: null
+      score: 1
     }
     onChange([...options, newOption])
   }
@@ -96,9 +95,9 @@ export function OrderingOptions({ options, onChange, disabled = false }: Questio
             onDragStart={(e) => handleDragStart(e, index)}
             onDragOver={(e) => handleDragOver(e, index)}
             onDrop={(e) => handleDrop(e, index)}
-            className={`flex items-center gap-2 rounded-md border p-2 ${draggedItem === index ? 'opacity-50' : ''}`}
+            className={`flex items-center gap-2 rounded-md border p-2 transition-colors ${draggedItem === index ? 'opacity-50' : ''} dark:border-gray-700 dark:bg-gray-800/50 dark:hover:bg-gray-800/70`}
           >
-            <GripVertical className='text-muted-foreground h-4 w-4 cursor-move' />
+            <GripVertical className='text-muted-foreground dark:text-foreground/70 h-4 w-4 cursor-move' />
             <span className='text-muted-foreground text-sm font-medium'>{index + 1}.</span>
             <Input
               value={option.value}
@@ -113,7 +112,7 @@ export function OrderingOptions({ options, onChange, disabled = false }: Questio
               size='icon'
               onClick={() => handleRemoveOption(index)}
               disabled={disabled || options.length <= 2}
-              className='text-destructive hover:bg-destructive/10 hover:text-destructive h-9 w-9'
+              className='text-destructive hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/20 h-9 w-9'
             >
               <X className='h-4 w-4' />
               <span className='sr-only'>Eliminar opción</span>
@@ -123,7 +122,14 @@ export function OrderingOptions({ options, onChange, disabled = false }: Questio
       </div>
 
       <div>
-        <Button type='button' variant='outline' size='sm' onClick={handleAddOption} disabled={disabled}>
+        <Button
+          type='button'
+          variant='outline'
+          size='sm'
+          onClick={handleAddOption}
+          disabled={disabled}
+          className='dark:border-input dark:hover:bg-accent dark:hover:text-accent-foreground'
+        >
           Agregar opción
         </Button>
       </div>

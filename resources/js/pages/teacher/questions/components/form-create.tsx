@@ -1,14 +1,16 @@
 import InputError from '@/components/input-error'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useTranslations } from '@/lib/translator'
 import { Capability, Competency } from '@/types/academic'
 import { CurricularArea } from '@/types/academic/curricular-area'
 import { CreateQuestion, CreateQuestionOption, QuestionDifficulty, QuestionType } from '@/types/application-form/question'
 import { useForm } from '@inertiajs/react'
-import { LoaderCircle } from 'lucide-react'
+import { LoaderCircle, X } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
 import { MatchingOptions, OrderingOptions, SingleChoiceOptions, TrueFalseOptions } from './question-types'
 
@@ -33,6 +35,7 @@ export function CreateQuestionDialog({
   onOpenChange,
   onSuccess
 }: CreateQuestionDialogProps) {
+  const { t } = useTranslations()
   // 1. Define los valores iniciales con el tipo Required<CreateQuestion>
   const initialValues: CreateQuestion = {
     name: '',
@@ -45,8 +48,6 @@ export function CreateQuestionDialog({
     options: [],
     help_message: '',
     explanation_required: false,
-    correct_feedback: '',
-    incorrect_feedback: '',
     image: null
   }
 
@@ -118,7 +119,7 @@ export function CreateQuestionDialog({
       <DialogTrigger asChild>
         <Button variant='outline-info'>Agregar Pregunta</Button>
       </DialogTrigger>
-      <DialogContent className='sm:max-w-[600px]'>
+      <DialogContent className='sm:max-w-[700px]'>
         <div className='flex flex-col gap-1'>
           <DialogTitle>Agregar Pregunta</DialogTitle>
           <DialogDescription>Complete el formulario para agregar una nueva pregunta.</DialogDescription>
@@ -180,7 +181,7 @@ export function CreateQuestionDialog({
           </div>
 
           {/* Selección de tipo de pregunta y dificultad */}
-          <div className='flex flex-col gap-6 sm:flex-row sm:gap-4'>
+          <div className='flex flex-col items-center gap-6 sm:flex-row sm:gap-4'>
             {/* Selección de tipo de pregunta */}
             <div className='flex flex-1 flex-col gap-2'>
               <Label htmlFor='question_type_id'>Tipo de Pregunta *</Label>
@@ -208,12 +209,79 @@ export function CreateQuestionDialog({
                 <SelectContent>
                   {difficulties.map((difficulty) => (
                     <SelectItem key={difficulty} value={difficulty}>
-                      {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+                      {t(difficulty)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               <InputError message={errors.difficulty} />
+            </div>
+            {/* Explicación requerida */}
+            <div className='flex items-center space-x-2'>
+              <Checkbox
+                id='explanation_required'
+                name='explanation_required'
+                checked={data.explanation_required}
+                onCheckedChange={(value) => setData('explanation_required', value as boolean)}
+              />
+              <Label htmlFor='explanation_required'>
+                Explicación
+                <br />
+                requerida
+              </Label>
+            </div>
+          </div>
+
+          {/* Imagen */}
+          <div className='flex flex-col items-center gap-2'>
+            <Label htmlFor='image' className='self-start'>
+              Imagen
+            </Label>
+            <div className='flex w-full flex-col items-center gap-4'>
+              {data.image ? (
+                <div className='relative flex w-full max-w-xs justify-center'>
+                  <div className='border-input relative h-48 w-full max-w-xs overflow-hidden rounded-md border'>
+                    <img
+                      src={typeof data.image === 'string' ? data.image : URL.createObjectURL(data.image)}
+                      alt='Preview'
+                      className='h-full w-full object-contain p-2'
+                    />
+                  </div>
+                  <Button
+                    type='button'
+                    variant='destructive'
+                    size='icon'
+                    className='absolute -top-2 -right-2 h-6 w-6 rounded-full'
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setData('image', null)
+                      const input = document.getElementById('image') as HTMLInputElement
+                      if (input) input.value = ''
+                    }}
+                  >
+                    <X className='h-3 w-3' />
+                  </Button>
+                </div>
+              ) : (
+                <div className='flex h-32 w-full max-w-xs items-center justify-center rounded-md border-2 border-dashed'>
+                  <span className='text-muted-foreground px-2 text-center'>Vista previa de la imagen aparecerá aquí</span>
+                </div>
+              )}
+              <div className='w-full max-w-xs'>
+                <Input
+                  id='image'
+                  name='image'
+                  type='file'
+                  accept='image/*'
+                  className='w-full'
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      setData('image', file)
+                    }
+                  }}
+                />
+              </div>
             </div>
           </div>
 

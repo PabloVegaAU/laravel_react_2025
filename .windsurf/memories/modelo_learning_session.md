@@ -1,138 +1,201 @@
-# 🎓 Modelo LearningSession
+# 🎓 LearningSession
+
+> **IMPORTANTE**: 
+> 1. **Verificar siempre** los archivos relacionados:
+>    - `database/migrations/2025_06_22_100300_create_learning_sessions_table.php` (estructura principal)
+>    - `database/migrations/2025_06_22_100310_create_learning_session_capabilities_table.php` (relación con capacidades)
+>    - `app/Models/LearningSession.php` (implementación del modelo)
+>    - `resources/js/types/learning-session/learning-session.d.ts` (tipos TypeScript)
 
 ## 📌 Ubicación
-- **Modelo**: `app/Models/LearningSession.php`
-- **Migración**: `database/migrations/2025_06_22_100300_create_learning_sessions_table.php`
-- **Tabla Pivote**: `database/migrations/2025_06_22_100310_create_learning_session_capabilities_table.php`
-- **Controladores**: `app/Http/Controllers/Teacher/LearningSessionController.php`
-- **Vistas React**: `resources/js/pages/teacher/session-learning/`
-- **TypeScript**: `resources/js/types/learning-session.d.ts`
+- **Tipo**: Modelo
+- **Archivo Principal**: `app/Models/LearningSession.php`
+- **Tabla**: `learning_sessions`
 
-## 📝 Descripción
-El modelo `LearningSession` representa una sesión de aprendizaje dentro del sistema educativo. Permite a los profesores planificar y gestionar sus clases, vinculando competencias, capacidades y desempeños esperados. El modelo utiliza `SoftDeletes` para eliminación lógica y sigue las mejores prácticas de Laravel con tipado estricto y relaciones bien definidas.
+## 📦 Archivos Relacionados
 
-## 🏗️ Estructura del Modelo
+### Migraciones
+- `database/migrations/2025_06_22_100300_create_learning_sessions_table.php`
+  - Estructura de la tabla principal
+  - Relaciones con claves foráneas
+  - Índices para búsquedas frecuentes
+- `database/migrations/2025_06_22_100310_create_learning_session_capabilities_table.php`
+  - Tabla pivote para relación many-to-many con capacidades
+  - Índices compuestos para optimización
 
-### 📋 Atributos
+### Modelos Relacionados
+- `app/Models/EducationalInstitution.php` (BelongsTo)
+- `app/Models/TeacherClassroomCurricularAreaCycle.php` (BelongsTo)
+- `app/Models/Competency.php` (BelongsTo)
+- `app/Models/Capability.php` (BelongsToMany)
+- `app/Models/ApplicationForm.php` (HasMany)
 
-#### 🔹 Fillable
-- `name`: Nombre de la sesión
-- `purpose_learning`: Propósito de aprendizaje
-- `application_date`: Fecha de aplicación
-- `status`: Estado (draft/active/inactive)
-- `performances`: Desempeños esperados (array)
-- `start_sequence`: Secuencia de inicio
-- `end_sequence`: Secuencia de cierre
-- `educational_institution_id`: ID de la institución
-- `teacher_classroom_curricular_area_cycle_id`: Asignación profesor-aula-área-ciclo
-- `competency_id`: ID de la competencia
+### Tipos TypeScript
+- `resources/js/types/learning-session/learning-session.d.ts`
+  - Interfaz `LearningSession` con todos los campos
+  - Tipo `LearningSessionStatus` para los estados
+  - Interfaces para relaciones anidadas
 
-#### 🔹 Casts
-- `application_date` → `date`
-- `performances` → `array`
-- `created_at` → `datetime`
-- `updated_at` → `datetime`
-- `deleted_at` → `datetime`
+## 🏗️ Estructura
+
+### Base de Datos (Migraciones)
+- **Tabla Principal**: `learning_sessions`
+- **Campos Clave**:
+  - `id`: bigint - Identificador único
+  - `name`: string - Nombre de la sesión
+  - `purpose_learning`: text - Propósito de aprendizaje
+  - `application_date`: date - Fecha de aplicación
+  - `status`: enum('draft','active','inactive') - Estado actual
+  - `performances`: text - Desempeños esperados (JSON)
+  - `start_sequence`: text - Secuencia de inicio
+  - `end_sequence`: text - Secuencia de cierre
+  - `timestamps`: created_at, updated_at, deleted_at
+
+### Relaciones
+- **educationalInstitution** (BelongsTo):
+  - Modelo: `EducationalInstitution`
+  - Clave: `educational_institution_id`
+  - Comportamiento: restrictOnDelete
+
+- **teacherClassroomCurricularAreaCycle** (BelongsTo):
+  - Modelo: `TeacherClassroomCurricularAreaCycle`
+  - Clave: `teacher_classroom_curricular_area_cycle_id`
+  - Comportamiento: restrictOnDelete
+
+- **competency** (BelongsTo):
+  - Modelo: `Competency`
+  - Clave: `competency_id`
+  - Comportamiento: restrictOnDelete
+
+- **capabilities** (BelongsToMany):
+  - Modelo: `Capability`
+  - Tabla: `learning_session_capabilities`
+  - Comportamiento: cascadeOnDelete
+
+- **applicationForms** (HasMany):
+  - Modelo: `ApplicationForm`
+  - Clave: `learning_session_id`
+  - Comportamiento: cascadeOnDelete
+
+#### 📋 Columnas
+| Columna | Tipo | Nulo | Default | Descripción |
+|---------|------|------|---------|-------------|
+| id | bigint | No | Auto | Identificador único |
+| name | string | No | - | Nombre de la sesión de aprendizaje |
+| purpose_learning | text | No | - | Propósito de aprendizaje de la sesión |
+| application_date | date | No | - | Fecha de aplicación de la sesión |
+| status | enum | No | 'draft' | Estado: draft, active, inactive |
+| performances | text | No | - | Desempeños esperados (JSON) |
+| start_sequence | text | No | - | Secuencia de inicio de la sesión |
+| end_sequence | text | No | - | Secuencia de cierre de la sesión |
+| educational_institution_id | bigint | No | - | ID de la institución educativa |
+| teacher_classroom_curricular_area_cycle_id | bigint | No | - | ID de la asignación profesor-aula-área-ciclo |
+| competency_id | bigint | No | - | ID de la competencia asociada |
+| created_at | timestamp | No | CURRENT_TIMESTAMP | Fecha de creación |
+| updated_at | timestamp | No | CURRENT_TIMESTAMP | Fecha de actualización |
+| deleted_at | timestamp | Sí | NULL | Fecha de eliminación (soft delete) |
 
 ## 🔄 Relaciones
 
-### belongsTo
-- `educationalInstitution()`: Institución educativa
-- `competency()`: Competencia relacionada
-- `teacherClassroomCurricularAreaCycle()`: Asignación de profesor
+### educationalInstitution (BelongsTo)
+- **Modelo**: `EducationalInstitution`
+- **Clave foránea**: `educational_institution_id`
+- **Eliminación**: `restrictOnDelete`
+- **Descripción**: Institución educativa a la que pertenece la sesión
 
-### hasMany
-- `applicationForms()`: Formularios de aplicación asociados
+### teacherClassroomCurricularAreaCycle (BelongsTo)
+- **Modelo**: `TeacherClassroomCurricularAreaCycle`
+- **Clave foránea**: `teacher_classroom_curricular_area_cycle_id`
+- **Eliminación**: `restrictOnDelete`
+- **Descripción**: Asignación de profesor-aula-área-ciclo
 
-### belongsToMany
-- `capabilities()`: Capacidades vinculadas (a través de `learning_session_capabilities`)
+### competency (BelongsTo)
+- **Modelo**: `Competency`
+- **Clave foránea**: `competency_id`
+- **Eliminación**: `restrictOnDelete`
+- **Descripción**: Competencia asociada a la sesión
 
-## 🗃️ Estructura de la Base de Datos
+### capabilities (BelongsToMany)
+- **Modelo**: `Capability`
+- **Tabla intermedia**: `learning_session_capabilities`
+- **Clave foránea**: `learning_session_id`
+- **Clave relacionada**: `capability_id`
+- **Eliminación**: `cascadeOnDelete`
+- **Descripción**: Capacidades asociadas a la sesión
 
-### 📊 Tabla: `learning_sessions`
+### applicationForms (HasMany)
+- **Modelo**: `ApplicationForm`
+- **Clave foránea**: `learning_session_id`
+- **Eliminación**: `cascadeOnDelete`
+- **Descripción**: Formularios de aplicación asociados
 
-#### 🔑 Claves
-- **Primaria**: `id` (bigint UNSIGNED)
-- **Foráneas**:
-  - `educational_institution_id` → `educational_institutions.id`
-  - `teacher_classroom_curricular_area_cycle_id` → `teacher_classroom_curricular_area_cycles.id`
-  - `competency_id` → `competencies.id`
+## 🛠️ TypeScript Types
 
-#### 📋 Columnas
-- `id`: bigint UNSIGNED, NOT NULL, AUTO_INCREMENT
-- `name`: varchar(255), NOT NULL
-- `purpose_learning`: text, NOT NULL
-- `application_date`: date, NOT NULL
-- `status`: enum('draft','active','inactive'), NOT NULL DEFAULT 'draft'
-- `performances`: text, NOT NULL
-- `start_sequence`: text, NOT NULL
-- `end_sequence`: text, NOT NULL
-- `educational_institution_id`: bigint UNSIGNED, NOT NULL
-- `teacher_classroom_curricular_area_cycle_id`: bigint UNSIGNED, NOT NULL
-- `competency_id`: bigint UNSIGNED, NOT NULL
-- `created_at`: timestamp, NULL
-- `updated_at`: timestamp, NULL
-- `deleted_at`: timestamp, NULL
+### Tipos Básicos
 
-#### 🔍 Índices
-- `learning_sessions_educational_institution_id_foreign` (`educational_institution_id`)
-- `learning_sessions_teacher_classroom_curricular_area_cycle_id_foreign` (`teacher_classroom_curricular_area_cycle_id`)
-- `learning_sessions_competency_id_foreign` (`competency_id`)
-- `idx_learning_sessions_status` (`status`)
-- `idx_learning_sessions_application_date` (`application_date`)
+**LearningSessionStatus**: Enumeración que representa los posibles estados de una sesión: 'draft', 'active', 'inactive'.
 
-## 🛠️ Uso y Ejemplos
+### Estructura de Datos de la Sesión de Aprendizaje
 
-### Crear una nueva sesión
-```php
-$session = LearningSession::create([
-    'name' => 'Álgebra Básica',
-    'purpose_learning' => 'Aprender conceptos fundamentales de álgebra',
-    'application_date' => '2025-08-15',
-    'status' => 'draft',
-    'performances' => json_encode(['Resolver ecuaciones', 'Graficar funciones']),
-    'start_sequence' => 'Introducción al álgebra...',
-    'end_sequence' => 'Cierre de la sesión...',
-    'educational_institution_id' => 1,
-    'teacher_classroom_curricular_area_cycle_id' => 1,
-    'competency_id' => 1
-]);
-```
+**LearningSession**: Interfaz principal que representa una sesión de aprendizaje en el frontend.
 
-### Obtener sesiones activas
-```php
-$activeSessions = LearningSession::where('status', 'active')
-    ->where('application_date', '>=', now())
-    ->with(['capabilities', 'competency'])
-    ->get();
-```
+**Propiedades principales**:
+- `id`: Identificador único (number)
+- `educational_institution_id`: ID de la institución educativa (number)
+- `teacher_classroom_curricular_area_cycle_id`: ID de la asignación profesor-aula-área-ciclo (number)
+- `competency_id`: ID de la competencia asociada (number)
+- `name`: Nombre de la sesión (string)
+- `purpose_learning`: Propósito de aprendizaje (string)
+- `application_date`: Fecha de aplicación (string en formato YYYY-MM-DD)
+- `status`: Estado actual (LearningSessionStatus)
+- `performances`: Desempeños esperados (string JSON)
+- `start_sequence`: Secuencia de inicio (string)
+- `end_sequence`: Secuencia de cierre (string)
+- `created_at`, `updated_at`, `deleted_at`: Marcas de tiempo
 
-### Añadir capacidades a una sesión
-```php
-$session->capabilities()->attach([1, 2, 3]);
-```
+**Relaciones**:
+- `educational_institution`: Institución educativa asociada
+- `teacher_classroom_curricular_area_cycle`: Asignación completa (profesor/aula/área/ciclo)
+- `competency`: Competencia relacionada
+- `capabilities`: Capacidades asociadas
+- `application_forms`: Formularios de aplicación vinculados
 
-## 🔍 Scopes Útiles
+**Métodos de ayuda**:
+- `isActive()`: Verifica si la sesión está activa
+- `getPerformanceList()`: Devuelve la lista de desempeños
+- `getTeacherInfo()`: Obtiene información del profesor
 
-```php
-// En el modelo LearningSession
-public function scopeActive($query)
-{
-    return $query->where('status', 'active');
-}
+## 📋 Uso y Ejemplos
 
-public function scopeUpcoming($query)
-{
-    return $query->where('application_date', '>=', now());
-}
+### Creación de Sesiones
+**Propósito**: Crear una nueva sesión de aprendizaje con datos básicos, incluyendo nombre, propósito, fecha de aplicación y secuencias de inicio/cierre.
 
-public function scopeForTeacher($query, $teacherId)
-{
-    return $query->whereHas('teacherClassroomCurricularAreaCycle', function($q) use ($teacherId) {
-        $q->where('teacher_id', $teacherId);
-    });
-}
-```
+**Relaciones clave**:
+- Debe asociarse a una institución educativa
+- Requiere una asignación de profesor-aula-área-ciclo
+- Debe vincularse a una competencia específica
+
+### Consultas Comunes
+1. **Sesiones Activas**: Filtrar por estado 'active' y fecha futura, incluyendo capacidades y competencia.
+2. **Sesiones por Profesor**: Filtrar sesiones asignadas a un profesor específico.
+3. **Sesiones por Fecha**: Obtener sesiones para un rango de fechas específico.
+
+### Gestión de Capacidades
+**Operaciones soportadas**:
+- Añadir capacidades existentes a una sesión
+- Actualizar las capacidades asociadas
+- Eliminar capacidades de una sesión
+
+## 🔍 Scopes Disponibles
+
+### active()
+Filtra las sesiones que están actualmente activas.
+
+### upcoming()
+Filtra las sesiones con fecha de aplicación igual o posterior a la fecha actual.
+
+### forTeacher(teacherId)
+Filtra las sesiones asignadas a un profesor específico, verificando la relación a través de la asignación profesor-aula-área-ciclo.
 
 ## 🔄 Eventos
 

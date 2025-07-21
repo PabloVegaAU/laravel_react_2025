@@ -12,7 +12,7 @@ use App\Models\QuestionType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class QuestionController extends Controller
@@ -103,31 +103,48 @@ class QuestionController extends Controller
 
     public function create() {}
 
-    private function validateOrderingQuestion(array $options): void
+    /**
+     * Procesa las opciones de una pregunta según su tipo
+     */
+    private function processQuestionOptions(Question $question, array $options, int $questionTypeId): void
     {
-        $orders = collect($options)->pluck('order')->sort()->values();
+        foreach ($options as $index => $optionData) {
+            $option = new QuestionOption([
+                'value' => $optionData['value'],
+                'is_correct' => $this->determineIfOptionIsCorrect($optionData, $questionTypeId),
+                'order' => $optionData['order'] ?? $index,
+                'correct_order' => $optionData['correct_order'] ?? $optionData['order'] ?? $index,
+                'pair_key' => $optionData['pair_key'] ?? null,
+                'pair_side' => $optionData['pair_side'] ?? null,
+                'score' => $optionData['score'] ?? ($optionData['is_correct'] ?? false ? 1.0 : 0.0),
+            ]);
 
-        foreach ($orders as $index => $order) {
-            if ($order !== $index) {
-                throw new \Exception('Los órdenes deben ser secuenciales empezando desde 0');
-            }
+            $question->options()->save($option);
         }
     }
 
-    private function validateMatchingQuestion(array $options): void
+    /**
+     * Determina si una opción es correcta según el tipo de pregunta
+     */
+    private function determineIfOptionIsCorrect(array $optionData, int $questionTypeId): bool
     {
-        $pairs = collect($options)->groupBy('pair_key');
-
-        foreach ($pairs as $pairKey => $pairItems) {
-            if ($pairItems->count() !== 2) {
-                throw new \Exception("Cada par debe tener exactamente dos elementos (error en par: $pairKey)");
-            }
-
-            $sides = $pairItems->pluck('pair_side');
-            if (! $sides->contains('left') || ! $sides->contains('right')) {
-                throw new \Exception("Cada par debe contener un lado 'left' y uno 'right' (error en par: $pairKey)");
-            }
+        // Para preguntas de selección múltiple, usa el valor proporcionado o false por defecto
+        if (in_array($questionTypeId, [1, 4])) {
+            return $optionData['is_correct'] ?? false;
         }
+
+        // Para preguntas de ordenamiento, todas las opciones son correctas
+        if ($questionTypeId === 2) {
+            return true;
+        }
+
+        // Para preguntas de emparejamiento, todas las opciones son correctas
+        if ($questionTypeId === 3) {
+            return true;
+        }
+
+        // Por defecto, asumir que no es correcta
+        return false;
     }
 
     public function store(Request $request)
@@ -142,25 +159,18 @@ class QuestionController extends Controller
             'options.*.value' => 'required|string',
             'options.*.is_correct' => 'sometimes|boolean',
             'options.*.order' => 'sometimes|integer|min:0',
+            'options.*.correct_order' => 'sometimes|integer|min:0',
             'options.*.pair_key' => 'sometimes|string|nullable',
             'options.*.pair_side' => 'sometimes|in:left,right|nullable',
+            'options.*.score' => 'sometimes|numeric|min:0',
             'explanation_required' => 'sometimes|boolean',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         DB::beginTransaction();
 
         try {
-            // Obtener el tipo de pregunta
-            $questionType = QuestionType::findOrFail($validated['question_type_id']);
-
-            // Validaciones específicas por tipo de pregunta
-            if ($questionType->name === 'Ordenar') {
-                $this->validateOrderingQuestion($validated['options']);
-            } elseif ($questionType->name === 'Emparejar') {
-                $this->validateMatchingQuestion($validated['options']);
-            }
-
-            // Crear la pregunta
+            // Crear la pregunta primero para obtener el ID
             $question = Question::create([
                 'teacher_id' => auth()->id(),
                 'question_type_id' => $validated['question_type_id'],
@@ -169,22 +179,26 @@ class QuestionController extends Controller
                 'description' => $validated['description'] ?? null,
                 'difficulty' => $validated['difficulty'],
                 'explanation_required' => $validated['explanation_required'] ?? false,
+                'image' => null, // Se actualizará después si hay imagen
             ]);
 
-            // Crear las opciones de la pregunta
-            foreach ($validated['options'] as $index => $optionData) {
-                $option = new QuestionOption([
-                    'value' => $optionData['value'],
-                    'is_correct' => $optionData['is_correct'] ?? false,
-                    'order' => $optionData['order'] ?? $index,
-                    'correct_order' => $optionData['order'] ?? $index,
-                    'pair_key' => $optionData['pair_key'] ?? null,
-                    'pair_side' => $optionData['pair_side'] ?? null,
-                    'score' => $optionData['is_correct'] ?? false ? 1.0 : 0.0,
-                ]);
+            // Procesar la imagen después de crear la pregunta para tener el ID
+            if (isset($validated['image']) && $validated['image']) {
+                $date = now()->format('Y-m-d');
+                $extension = $validated['image']->getClientOriginalExtension();
+                $filename = "{$date}_{$question->id}.{$extension}";
+                $path = $validated['image']->storeAs(
+                    'questions',
+                    $filename,
+                    'public'
+                );
 
-                $question->options()->save($option);
+                // Actualizar la pregunta con la ruta completa de la imagen
+                $question->update(['image' => '/storage/'.$path]);
             }
+
+            // Procesar opciones según el tipo de pregunta
+            $this->processQuestionOptions($question, $validated['options'], (int) $validated['question_type_id']);
 
             DB::commit();
 
@@ -193,94 +207,36 @@ class QuestionController extends Controller
                 ->with('success', 'Pregunta creada correctamente');
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Error al crear pregunta: '.$e->getMessage());
 
-            return back()->with('error', 'Error al crear la pregunta: '.$e->getMessage());
+            return back()
+                ->withInput()
+                ->with('error', 'Error al crear la pregunta: '.$e->getMessage());
         }
     }
 
-    public function show(Question $question)
+    public function show(int $id)
     {
-        // Verificar que el usuario es el propietario de la pregunta
-        if ($question->teacher_id !== Auth::id()) {
-            abort(403, 'No estás autorizado para ver esta pregunta.');
-        }
-
-        // Cargar relaciones necesarias con carga eficiente
-        $question->load([
-            'questionType:id,name',
-            'capability.competency.curricularAreaCycle.curricularArea',
-            'options' => function ($query) {
-                $query->orderBy('order');
-            },
-        ]);
-
-        return Inertia::render('teacher/questions/show', [
-            'question' => $question,
-        ]);
+        //
     }
 
-    public function edit(Question $question)
+    public function edit(int $id)
     {
-        // Verificar que el usuario es el propietario de la pregunta
-        if ($question->teacher_id !== Auth::id()) {
-            abort(403, 'No estás autorizado para editar esta pregunta.');
-        }
-
-        // Obtener el año académico actual
-        $currentYear = now()->year;
-
-        // Cargar la pregunta con relaciones necesarias
+        // Cargar las relaciones necesarias
+        $question = Question::findOrFail($id);
         $question->load([
             'questionType',
-            'capability.competency.curricularAreaCycle.curricularArea',
+            'capability.competency.curricularAreaCycle',
             'options' => function ($query) {
                 $query->orderBy('order');
             },
         ]);
 
-        // Obtener áreas curriculares del profesor
-        $curricularAreas = CurricularArea::select('id', 'name')
-            ->whereHas('teachers', function ($query) use ($currentYear) {
-                $query->where('users.id', Auth::id())
-                    ->where('academic_year', $currentYear);
-            })
-            ->get();
-
-        // Obtener competencias relacionadas
-        $competencies = $curricularAreas->isNotEmpty()
-            ? Competency::whereIn('curricular_area_cycle_id', $curricularAreas->pluck('id'))
-                ->select('id', 'name', 'curricular_area_cycle_id')
-                ->get()
-            : collect();
-
-        // Obtener capacidades relacionadas
-        $capabilities = $competencies->isNotEmpty()
-            ? Capability::whereIn('competency_id', $competencies->pluck('id'))
-                ->select('id', 'name', 'competency_id')
-                ->get()
-            : collect();
-
-        // Obtener tipos de pregunta
-        $questionTypes = QuestionType::select('id', 'name')->get();
-
-        return Inertia::render('teacher/questions/edit', [
-            'question' => $question,
-            'question_types' => $questionTypes,
-            'curricular_areas' => $curricularAreas,
-            'competencies' => $competencies,
-            'capabilities' => $capabilities,
-            'difficulties' => ['easy', 'medium', 'hard'],
-        ]);
+        // Transformar la respuesta al formato esperado por el frontend
+        return response()->json($question);
     }
 
-    public function update(Request $request, Question $question)
+    public function update(Request $request, int $id)
     {
-        // Verificar que el usuario es el propietario de la pregunta
-        if ($question->teacher_id !== Auth::id()) {
-            abort(403, 'No estás autorizado para actualizar esta pregunta.');
-        }
-
         $validated = $request->validate([
             'question_type_id' => 'required|exists:question_types,id',
             'capability_id' => 'required|exists:capabilities,id',
@@ -291,51 +247,66 @@ class QuestionController extends Controller
             'options.*.value' => 'required|string',
             'options.*.is_correct' => 'sometimes|boolean',
             'options.*.order' => 'sometimes|integer|min:0',
+            'options.*.correct_order' => 'sometimes|integer|min:0',
             'options.*.pair_key' => 'sometimes|string|nullable',
             'options.*.pair_side' => 'sometimes|in:left,right|nullable',
+            'options.*.score' => 'sometimes|numeric|min:0',
             'explanation_required' => 'sometimes|boolean',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         DB::beginTransaction();
 
         try {
-            // Obtener el tipo de pregunta
-            $questionType = QuestionType::findOrFail($validated['question_type_id']);
+            $question = Question::findOrFail($id);
 
-            // Validaciones específicas por tipo de pregunta
-            if ($questionType->name === 'Ordenar') {
-                $this->validateOrderingQuestion($validated['options']);
-            } elseif ($questionType->name === 'Emparejar') {
-                $this->validateMatchingQuestion($validated['options']);
+            // Verificar que el usuario es el propietario de la pregunta
+            if ($question->teacher_id !== Auth::id()) {
+                throw new \Exception('No estás autorizado para actualizar esta pregunta.');
             }
 
-            // Actualizar la pregunta
-            $question->update([
+            // Procesar la imagen si se proporciona
+            $updateData = [
                 'question_type_id' => $validated['question_type_id'],
                 'capability_id' => $validated['capability_id'],
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
                 'difficulty' => $validated['difficulty'],
                 'explanation_required' => $validated['explanation_required'] ?? false,
-            ]);
+            ];
+
+            if ($request->hasFile('image')) {
+                // Eliminar la imagen anterior si existe
+                if ($question->image) {
+                    $relativePath = str_replace('/storage/', '', $question->image);
+                    Storage::disk('public')->delete($relativePath);
+                }
+
+                // Guardar la nueva imagen con el formato: YYYY-MM-DD_questionID.extension
+                $date = now()->format('Y-m-d');
+                $extension = $request->file('image')->getClientOriginalExtension();
+                $filename = "{$date}_{$question->id}.{$extension}";
+                $path = $request->file('image')->storeAs(
+                    'questions',
+                    $filename,
+                    'public'
+                );
+                $updateData['image'] = '/storage/'.$path;
+            } elseif (is_null($request->input('image')) && $question->image) {
+                // Si se envía null o vacío para la imagen, eliminarla
+                $relativePath = str_replace('/storage/', '', $question->image);
+                Storage::disk('public')->delete($relativePath);
+                $updateData['image'] = null;
+            }
+
+            // Actualizar la pregunta
+            $question->update($updateData);
 
             // Eliminar opciones existentes
             $question->options()->delete();
 
-            // Crear las nuevas opciones
-            foreach ($validated['options'] as $index => $optionData) {
-                $option = new QuestionOption([
-                    'value' => $optionData['value'],
-                    'is_correct' => $optionData['is_correct'] ?? false,
-                    'order' => $optionData['order'] ?? $index,
-                    'correct_order' => $optionData['order'] ?? $index,
-                    'pair_key' => $optionData['pair_key'] ?? null,
-                    'pair_side' => $optionData['pair_side'] ?? null,
-                    'score' => $optionData['is_correct'] ?? false ? 1.0 : 0.0,
-                ]);
-
-                $question->options()->save($option);
-            }
+            // Procesar opciones según el tipo de pregunta
+            $this->processQuestionOptions($question, $validated['options'], (int) $validated['question_type_id']);
 
             DB::commit();
 
@@ -345,7 +316,6 @@ class QuestionController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error al actualizar pregunta: '.$e->getMessage());
 
             return back()
                 ->withInput()
@@ -353,48 +323,8 @@ class QuestionController extends Controller
         }
     }
 
-    public function destroy(Question $question)
+    public function destroy(int $id)
     {
-        // Verificar que el usuario es el propietario de la pregunta
-        if ($question->teacher_id !== Auth::id()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No estás autorizado para eliminar esta pregunta.',
-            ], 403);
-        }
-
-        DB::beginTransaction();
-
-        try {
-            // Verificar si la pregunta está siendo usada en alguna ficha de aplicación
-            if ($question->applicationForms()->exists()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No se puede eliminar la pregunta porque está siendo utilizada en una o más fichas de aplicación.',
-                ], 422);
-            }
-
-            // Eliminar opciones de la pregunta
-            $question->options()->delete();
-
-            // Eliminar la pregunta
-            $question->delete();
-
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Pregunta eliminada correctamente',
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error al eliminar pregunta: '.$e->getMessage());
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al eliminar la pregunta: '.$e->getMessage(),
-            ], 500);
-        }
+        //
     }
 }

@@ -1,11 +1,11 @@
-import { Classroom } from './classroom'
-import { CurricularArea } from './curricular-area'
+import type { CurricularArea } from './curricular-area'
+import type { CurricularAreaCycle } from './curricular-area-cycle'
+import type { TeacherClassroomCurricularAreaCycle } from './teacher-classroom-curricular-area-cycle'
 
 /**
  * Representa un ciclo educativo en el sistema
- * Basado en:
- * - Migración: database/migrations/2025_06_22_100050_create_cycles_table.php
- * - Modelo: app/Models/Cycle.php
+ * @see database/migrations/2025_06_22_100050_create_cycles_table.php
+ * @see app/Models/Cycle.php
  */
 export interface Cycle {
   /** ID único */
@@ -28,18 +28,24 @@ export interface Cycle {
 
   // Relaciones
 
-  /** Aulas en este ciclo */
-  classrooms?: Classroom[]
-
   /** Áreas curriculares en este ciclo */
   curricular_areas?: CurricularArea[]
+
+  /** Ciclos de áreas curriculares asociados */
+  curricular_area_cycles?: CurricularAreaCycle[]
+
+  /** Docentes en este ciclo */
+  teacher_classroom_curricular_area_cycles?: TeacherClassroomCurricularAreaCycle[]
 }
 
 /**
  * Tipo para crear un nuevo ciclo
  * Basado en el modelo Cycle
  */
-export interface CreateCycle extends Omit<Cycle, 'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'classrooms' | 'curricular_areas'> {}
+export type CreateCycle = Omit<
+  Cycle,
+  'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'curricular_areas' | 'curricular_area_cycles' | 'teacher_classroom_curricular_area_cycles'
+>
 
 /**
  * Tipo para actualizar un ciclo existente

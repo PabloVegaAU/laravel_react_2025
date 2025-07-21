@@ -10,6 +10,7 @@ import { Head } from '@inertiajs/react'
 import { ColumnDef } from '@tanstack/react-table'
 import { useState } from 'react'
 import { CreateQuestionDialog } from './components/form-create'
+import { EditQuestionDialog } from './components/form-edit'
 
 type PageProps = Omit<ResourcePageProps<Question>, 'data'> & {
   curricular_areas: CurricularArea[]
@@ -52,8 +53,25 @@ export default function Questions({ questions, question_types, capabilities, dif
     },
     {
       header: 'Acciones',
-      accessorKey: 'actions',
-      cell: () => <></>
+      accessorKey: 'id',
+      cell: (row) => {
+        const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+        return (
+          <div className='flex space-x-2' id={row.getValue() as string}>
+            <EditQuestionDialog
+              isOpen={isEditModalOpen}
+              id={row.getValue() as number}
+              curricularAreas={curricular_areas}
+              competencies={competencies}
+              capabilities={capabilities}
+              difficulties={difficulties}
+              questionTypes={question_types}
+              onOpenChange={setIsEditModalOpen}
+              onSuccess={() => setIsEditModalOpen(false)}
+            />
+          </div>
+        )
+      }
     }
   ]
 

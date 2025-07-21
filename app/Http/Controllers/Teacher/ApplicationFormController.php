@@ -5,11 +5,8 @@ namespace App\Http\Controllers\Teacher;
 use App\Http\Controllers\Controller;
 use App\Models\ApplicationForm;
 use App\Models\ApplicationFormQuestion;
-use App\Models\ApplicationFormResponse;
-use App\Models\ApplicationFormResponseQuestion;
 use App\Models\LearningSession;
 use App\Models\Question;
-use App\Models\TeacherClassroomCurricularAreaCycle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -61,44 +58,62 @@ class ApplicationFormController extends Controller
      */
     public function create(Request $request)
     {
-        // Validar datos de Learning sessión
-        $validated = $request->validate([
-            'learning_session_id' => 'required|exists:learning_sessions,id',
-            'teacher_classroom_curricular_area_cycle_id' => 'required|exists:teacher_classroom_curricular_area_cycles,id',
-            'competency_id' => 'required|exists:competencies,id',
-        ]);
+        try {
+            // Validar datos de Learning sessión
+            $validated = $request->validate([
+                'learning_session_id' => 'required|exists:learning_sessions,id',
+                'teacher_classroom_curricular_area_cycle_id' => 'required|exists:teacher_classroom_curricular_area_cycles,id',
+                'competency_id' => 'required|exists:competencies,id',
+            ]);
 
-        $currentYear = now()->year;
+            $currentYear = now()->year;
 
-        $learningSession = LearningSession::with([
-            'teacherClassroomCurricularAreaCycle',
-            'teacherClassroomCurricularAreaCycle.curricularAreaCycle',
-            'teacherClassroomCurricularAreaCycle.curricularAreaCycle.curricularArea',
-            'teacherClassroomCurricularAreaCycle.classroom',
-            'competency',
-        ])->findOrFail($validated['learning_session_id']);
+            $learningSession = LearningSession::with([
+                'teacherClassroomCurricularAreaCycle',
+                'teacherClassroomCurricularAreaCycle.curricularAreaCycle',
+                'teacherClassroomCurricularAreaCycle.curricularAreaCycle.curricularArea',
+                'teacherClassroomCurricularAreaCycle.classroom',
+                'competency',
+                'capabilities',
+            ])->findOrFail($validated['learning_session_id']);
 
-        // Obtener datos de asignación de aula-área-curricular-ciclo
-        $teacherClassroomCurricularAreaCycle = $learningSession->teacherClassroomCurricularAreaCycle;
+            // Obtener datos de asignación de aula-área-curricular-ciclo
+            $teacherClassroomCurricularAreaCycle = $learningSession->teacherClassroomCurricularAreaCycle;
 
-        // Obtener preguntas con relaciones mínimas necesarias
-        $questions = Question::select(['questions.id', 'questions.name', 'questions.capability_id', 'questions.difficulty'])
-            ->join('capabilities', 'capabilities.id', '=', 'questions.capability_id')
-            ->with([
-                'capability:id,name,competency_id',
-                'capability.competency:id,name',
-            ])
-            ->where('capabilities.competency_id', $validated['competency_id'])
-            ->where('questions.teacher_id', auth()->id())
-            ->orderBy('questions.created_at', 'desc')
-            ->get();
+            // Obtener preguntas con relaciones mínimas necesarias
+            $capabilityIds = $learningSession->capabilities->pluck('id');
 
-        return Inertia::render('teacher/application-form/create/index', [
-            'learning_session' => $learningSession,
-            'teacher_classroom_curricular_area_cycle' => $teacherClassroomCurricularAreaCycle,
-            'questions' => $questions,
-            'current_year' => $currentYear,
-        ]);
+            $questions = Question::select(['questions.id', 'questions.name', 'questions.capability_id', 'questions.difficulty'])
+                ->join('capabilities', 'capabilities.id', '=', 'questions.capability_id')
+                ->with([
+                    'capability:id,competency_id,color',
+                    'capability.competency:id,name',
+                ])
+                ->whereIn('capability_id', $capabilityIds)
+                ->where('questions.teacher_id', auth()->id())
+                ->orderBy('questions.created_at', 'desc')
+                ->get();
+
+            return Inertia::render('teacher/application-form/create/index', [
+                'learning_session' => $learningSession,
+                'teacher_classroom_curricular_area_cycle' => $teacherClassroomCurricularAreaCycle,
+                'questions' => $questions,
+                'current_year' => $currentYear,
+            ]);
+        } catch (ValidationException $e) {
+            DB::rollBack();
+
+            return back()
+                ->withInput()
+                ->withErrors($e->validator)
+                ->with('error', 'Ocurrió un error inesperado al guardar la sesión. Intenta nuevamente.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return back()
+                ->withInput()
+                ->with('error', 'Ocurrió un error inesperado al guardar la sesión. Intenta nuevamente.');
+        }
     }
 
     /**
@@ -170,56 +185,6 @@ class ApplicationFormController extends Controller
                 ApplicationFormQuestion::insert($applicationFormQuestions);
             }
 
-            // Después de insertar las preguntas del formulario, obtenemos los IDs generados
-            $insertedQuestions = ApplicationFormQuestion::where('application_form_id', $applicationForm->id)->get();
-
-            // Creamos un mapa de question_id a application_form_question_id
-            $questionIdMap = $insertedQuestions->pluck('id', 'question_id');
-
-            // Obtener estudiantes del aula para crear respuestas
-            $teacherClassroomCurricularAreaCycle = TeacherClassroomCurricularAreaCycle::with(['classroom.students' => function ($query) {
-                $query->select('students.*')
-                    ->whereHas('enrollments', function ($q) {
-                        $q->where('status', 'active');
-                    });
-            }])->findOrFail($validated['teacher_classroom_curricular_area_cycle_id']);
-
-            if ($teacherClassroomCurricularAreaCycle->classroom && $teacherClassroomCurricularAreaCycle->classroom->students->isNotEmpty()) {
-                $now = now();
-
-                foreach ($teacherClassroomCurricularAreaCycle->classroom->students as $student) {
-                    $applicationFormResponses = [
-                        'score' => 0,
-                        'status' => 'pending',
-                        'started_at' => null,
-                        'submitted_at' => null,
-                        'graded_at' => null,
-                        'application_form_id' => $applicationForm->id,
-                        'student_id' => $student->user_id,
-                    ];
-
-                    $applicationFormResponse = ApplicationFormResponse::create($applicationFormResponses);
-
-                    // Preparar preguntas de respuesta para inserción masiva
-                    $applicationFormResponseQuestions = [];
-                    foreach ($validated['questions'] as $question) {
-                        // Usamos el mapa para obtener el ID correcto
-                        $appFormQuestionId = $questionIdMap[$question['id']] ?? null;
-
-                        $applicationFormResponseQuestions[] = [
-                            'application_form_response_id' => $applicationFormResponse->id,
-                            'application_form_question_id' => $appFormQuestionId,
-                            'question_option_id' => null,
-                            'explanation' => '',
-                            'score' => $question['score'],
-                            'points_store' => $question['points_store'],
-                        ];
-                    }
-
-                    ApplicationFormResponseQuestion::insert(values: $applicationFormResponseQuestions);
-                }
-            }
-
             DB::commit();
 
             return redirect()
@@ -244,20 +209,36 @@ class ApplicationFormController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(ApplicationForm $applicationForm)
+    public function show(int $id)
     {
-        // Cargar relaciones necesarias
-        $applicationForm->load([
-            'learningSession.teacherClassroomCurricularAreaCycle.classroom',
-            'learningSession.teacherClassroomCurricularAreaCycle.curricularAreaCycle.curricularArea',
-            'learningSession.competency',
-            'questions.question.capability.competency',
-            'responses.student',
-            'responses.questions.question',
-        ]);
+        // Cargar el formulario con sus relaciones
+        $applicationForm = ApplicationForm::with([
+            'learningSession.teacherClassroomCurricularAreaCycle' => function ($query) {
+                $query->select(['id', 'classroom_id', 'curricular_area_cycle_id', 'teacher_id', 'academic_year'])
+                    ->with([
+                        'classroom:id,grade,section,level',
+                        'curricularAreaCycle.curricularArea:id,name',
+                    ]);
+            },
+            'learningSession.competency:id,name',
+            'questions' => function ($query) {
+                $query->orderBy('order')
+                    ->with([
+                        'question' => function ($q) {
+                            $q->with([
+                                'capability.competency:id,name',
+                                'questionType:id,name',
+                                'options' => function ($q) {
+                                    $q->orderBy('order');
+                                },
+                            ]);
+                        },
+                    ]);
+            },
+        ])->findOrFail($id);
 
-        return Inertia::render('teacher/application-form/show', [
-            'applicationForm' => $applicationForm,
+        return Inertia::render('teacher/application-form/show/index', [
+            'application_form' => $applicationForm,
         ]);
     }
 
@@ -266,116 +247,189 @@ class ApplicationFormController extends Controller
      */
     public function edit(int $id)
     {
+        // Cargar el formulario con sus relaciones
         $applicationForm = ApplicationForm::with([
-            'learningSession.teacherClassroomCurricularAreaCycle',
-            'learningSession.competency',
-            'questions.question.capability.competency',
+            'learningSession.teacherClassroomCurricularAreaCycle' => function ($query) {
+                $query->select(['id', 'classroom_id', 'curricular_area_cycle_id', 'teacher_id', 'academic_year'])
+                    ->with([
+                        'classroom:id,grade,section,level',
+                        'curricularAreaCycle.curricularArea:id,name',
+                    ]);
+            },
+            'learningSession.competency:id,name',
+            'questions' => function ($query) {
+                $query->orderBy('order')
+                    ->with([
+                        'question' => function ($q) {
+                            $q->with([
+                                'capability.competency:id,name',
+                                'questionType:id,name',
+                                'options' => function ($q) {
+                                    $q->orderBy('order');
+                                },
+                            ]);
+                        },
+                    ]);
+            },
         ])->findOrFail($id);
 
-        // Obtener asignaciones del profesor para el año actual
-        $teacherClassroomAreaCycles = TeacherClassroomCurricularAreaCycle::select([
-            'id', 'classroom_id', 'curricular_area_cycle_id', 'academic_year',
-        ])
-            ->with([
-                'classroom:id,name',
-                'curricularAreaCycle.curricularArea:id,name',
-                'curricularAreaCycle.competencies:id,name,curricular_area_cycle_id',
-            ])
-            ->where('teacher_id', auth()->id())
-            ->where('academic_year', now()->year)
-            ->get();
+        // Obtener IDs de preguntas ya seleccionadas en el formulario
+        $selectedQuestionIds = $applicationForm->questions()->pluck('question_id');
 
-        // Obtener preguntas del profesor
-        $questions = Question::select(['id', 'name', 'capability_id'])
-            ->with([
-                'capability:id,name,competency_id',
-                'capability.competency:id,name',
-            ])
-            ->where('teacher_id', auth()->id())
-            ->orderBy('created_at', 'desc')
+        // Obtener preguntas, ordenando primero las seleccionadas
+        $questions = Question::with([
+            'capability.competency:id,name',
+            'questionType:id,name',
+        ])
+            ->whereIn('capability_id', $applicationForm->learningSession->capabilities->pluck('id'))
+            ->when($selectedQuestionIds->isNotEmpty(), function ($query) use ($selectedQuestionIds) {
+                // Usar CASE para ordenar primero las preguntas seleccionadas
+                $query->orderByRaw(
+                    'CASE WHEN id IN ('.$selectedQuestionIds->join(',').') THEN 0 ELSE 1 END'
+                );
+            })
+            ->orderBy('id')
             ->get();
 
         return Inertia::render('teacher/application-form/edit/index', [
-            'applicationForm' => $applicationForm,
-            'teacherClassroomAreaCycles' => $teacherClassroomAreaCycles,
+            'application_form' => $applicationForm,
             'questions' => $questions,
-            'currentYear' => now()->year,
         ]);
+    }
+
+    /**
+     * Update the questions order for an application form.
+     */
+    protected function updateQuestionsOrder(ApplicationForm $applicationForm, array $questionIds): void
+    {
+        $order = 1;
+        $updates = [];
+
+        foreach ($questionIds as $questionId) {
+            $updates[$questionId] = ['order' => $order++];
+        }
+
+        $applicationForm->questions()->sync($updates);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, ApplicationForm $applicationForm)
+    public function update(Request $request, int $id)
     {
-        // Validar los datos del formulario
-        $validated = $request->validate([
+        $applicationForm = ApplicationForm::with(['questions'])->findOrFail($id);
+
+        // Normalize input data
+        $input = $request->all();
+
+        // Normalize questions data
+        if (isset($input['questions']) && is_array($input['questions'])) {
+            $input['questions'] = array_map(function ($question) {
+                // Handle both nested and flat question structures
+                $questionId = $question['id'] ?? null;
+                $score = $question['score'] ?? 1.0;
+                $pointsStore = $question['points_store'] ?? 1.0;
+                $order = $question['order'] ?? 0;
+
+                // If the question has a nested question object (from frontend)
+                if (isset($question['question']) && is_array($question['question'])) {
+                    $questionId = $question['question']['id'] ?? $questionId;
+                    $score = $question['question']['score'] ?? $score;
+                    $pointsStore = $question['question']['points_store'] ?? $pointsStore;
+                    $order = $question['question']['order'] ?? $order;
+                }
+
+                return [
+                    'id' => (int) $questionId,
+                    'score' => (float) $score,
+                    'points_store' => (float) $pointsStore,
+                    'order' => (int) $order,
+                ];
+            }, $input['questions']);
+        }
+
+        // Validate input
+        $validated = validator($input, [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
+            'end_date' => 'required|date|after:start_date',
             'status' => 'required|in:draft,scheduled,active,inactive,archived',
-            'score_max' => 'required|numeric|min:1',
+            'score_max' => 'required|numeric|min:0.1',
             'questions' => 'required|array|min:1',
             'questions.*.id' => 'required|exists:questions,id',
-            'questions.*.order' => 'required|integer|min:1',
-            'questions.*.score' => 'required|numeric|min:0.1|max:100',
-            'questions.*.points_store' => 'required|numeric|min:0.1|max:100',
-        ]);
+            'questions.*.score' => 'required|numeric|min:0.1',
+            'questions.*.points_store' => 'required|numeric|min:0.1',
+            'questions.*.order' => 'sometimes|integer|min:1',
+            'questions_order' => 'sometimes|array',
+            'questions_order.*' => 'exists:questions,id',
+        ])->validate();
 
-        DB::beginTransaction();
-
-        try {
-            // Actualizar la ficha de aplicación
+        DB::transaction(function () use ($validated, $applicationForm) {
+            // Update basic form data
             $applicationForm->update([
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
                 'start_date' => $validated['start_date'],
                 'end_date' => $validated['end_date'],
                 'status' => $validated['status'],
-                'score_max' => $validated['score_max'],
+                'score_max' => floatval($validated['score_max']),
             ]);
 
-            // Sincronizar preguntas
-            $questionsToSync = [];
-            $now = now();
+            // Get existing questions keyed by question_id
+            $existingQuestions = $applicationForm->questions->keyBy('question_id');
+            $newQuestionIds = collect($validated['questions'])->pluck('id')->toArray();
 
-            foreach ($validated['questions'] as $questionData) {
-                $questionsToSync[$questionData['id']] = [
-                    'order' => $questionData['order'],
-                    'score' => $questionData['score'],
-                    'points_store' => $questionData['points_store'],
-                    'updated_at' => $now,
-                ];
+            // Delete questions that are not in the new list
+            $questionsToDelete = $existingQuestions->keys()->diff($newQuestionIds);
+            if ($questionsToDelete->isNotEmpty()) {
+                $applicationForm->questions()
+                    ->whereIn('question_id', $questionsToDelete)
+                    ->delete();
             }
 
-            // Sincronizar preguntas existentes
-            $applicationForm->questions()->sync($questionsToSync);
+            // Update or create questions
+            foreach ($validated['questions'] as $questionData) {
+                $questionId = $questionData['id'];
+                $questionOrder = $questionData['order'];
 
-            DB::commit();
+                if ($existingQuestions->has($questionId)) {
+                    // Update existing question
+                    $existingQuestions[$questionId]->update([
+                        'order' => $questionOrder,
+                        'score' => $questionData['score'],
+                        'points_store' => $questionData['points_store'],
+                    ]);
+                } else {
+                    // Create new question
+                    $applicationForm->questions()->create([
+                        'question_id' => $questionId,
+                        'order' => $questionOrder,
+                        'score' => $questionData['score'],
+                        'points_store' => $questionData['points_store'],
+                    ]);
+                }
+            }
 
-            return redirect()
-                ->route('teacher.application-forms.index')
-                ->with('success', 'Ficha de aplicación actualizada exitosamente');
+            // If questions_order is provided, update the order
+            if (isset($validated['questions_order']) && ! empty($validated['questions_order'])) {
+                $this->updateQuestionsOrder($applicationForm, $validated['questions_order']);
+            }
+        });
 
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Error al actualizar ficha de aplicación: '.$e->getMessage());
-
-            return back()
-                ->withInput()
-                ->with('error', 'Error al actualizar la ficha de aplicación: '.$e->getMessage());
-        }
+        return redirect()->route('teacher.application-forms.index')
+            ->with('success', 'Formulario actualizado correctamente');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(ApplicationForm $applicationForm)
+    public function destroy(int $id)
     {
         DB::beginTransaction();
 
         try {
+            $applicationForm = ApplicationForm::findOrFail($id);
             // Verificar si hay respuestas antes de eliminar
             if ($applicationForm->responses()->exists()) {
                 return response()->json([
@@ -394,12 +448,11 @@ class ApplicationFormController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Ficha de aplicación eliminada exitosamente',
+                'message' => 'Ficha de aplicación eliminada correctamente.',
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Error al eliminar ficha de aplicación: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,

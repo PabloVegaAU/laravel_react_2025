@@ -31,8 +31,6 @@ export interface Question {
   help_message: string | null
   difficulty: QuestionDifficulty
   explanation_required: boolean
-  correct_feedback: string | null
-  incorrect_feedback: string | null
   level: QuestionLevel
   grades: string[]
   created_at: string
@@ -46,8 +44,6 @@ export interface Question {
   teacher: Teacher
   options: QuestionOption[]
   applicationFormQuestions: ApplicationFormQuestion[]
-  isCorrectOption(optionId: number): boolean
-  hasCorrectOptions(): boolean
 }
 
 /**
@@ -62,8 +58,6 @@ export interface CreateQuestionData {
   help_message?: string | null
   difficulty: QuestionDifficulty
   explanation_required?: boolean
-  correct_feedback?: string | null
-  incorrect_feedback?: string | null
   level?: QuestionLevel
   grades?: string[]
   teacher_id: number
@@ -73,7 +67,6 @@ export interface CreateQuestionData {
     value: string
     is_correct: boolean
     order?: number
-    feedback?: string | null
   }>
 }
 
@@ -90,8 +83,6 @@ export interface UpdateQuestionData {
   help_message?: string | null
   difficulty?: QuestionDifficulty
   explanation_required?: boolean
-  correct_feedback?: string | null
-  incorrect_feedback?: string | null
   level?: QuestionLevel
   grades?: string[]
   question_type_id?: number
@@ -105,7 +96,6 @@ export interface UpdateQuestionData {
       pair_key?: string | null
       pair_side?: 'left' | 'right' | null
       score?: number
-      feedback?: string | null
     }>
     update?: Array<{
       id: number
@@ -116,7 +106,6 @@ export interface UpdateQuestionData {
       pair_key?: string | null
       pair_side?: 'left' | 'right' | null
       score?: number
-      feedback?: string | null
     }>
     delete?: number[]
   }
@@ -189,7 +178,6 @@ export interface ImportQuestionsData {
       value: string
       is_correct: boolean
       order?: number
-      feedback?: string | null
     }>
   }>
   teacher_id: number

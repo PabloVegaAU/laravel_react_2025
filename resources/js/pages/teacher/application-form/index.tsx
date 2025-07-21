@@ -56,8 +56,12 @@ export default function ApplicationsForm({ applicationForms }: PageProps) {
       accessorFn: (row) => row.id,
       cell: (row) => (
         <div className='flex space-x-2'>
-          <Button variant='info'>Editar</Button>
           <Link href={`/teacher/application-forms/${row.getValue()}/edit`}>
+            <Button variant='outline' size='sm'>
+              Editar
+            </Button>
+          </Link>
+          <Link href={`/teacher/application-forms/${row.getValue()}`}>
             <Button variant='outline' size='sm'>
               Ver
             </Button>

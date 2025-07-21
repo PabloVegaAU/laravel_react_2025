@@ -1,10 +1,10 @@
-import type { CurricularAreaCycle } from '../academic/curricular-area-cycle'
-import type { TeacherClassroomCurricularAreaCycle } from '../academic/teacher-classroom-curricular-area-cycle'
 import type { ApplicationForm } from '../application-form/application-form'
-import type { Enrollment } from '../enrollment'
-import type { LearningSession } from '../learning-session/learning-session'
+import type { LearningSession } from '../learning-session'
 import type { Student } from '../user/student'
 import type { Teacher } from '../user/teacher'
+import type { CurricularAreaCycle } from './curricular-area-cycle'
+import type { Enrollment } from './enrollment'
+import type { TeacherClassroomCurricularAreaCycle } from './teacher-classroom-curricular-area-cycle'
 
 /**
  * Representa un aula en la institución educativa
@@ -12,7 +12,7 @@ import type { Teacher } from '../user/teacher'
  * @see app/Models/Classroom.php
  */
 export interface Classroom {
-  // Campos principales
+  // Fields
   id: number
   grade: string
   section: string
@@ -22,23 +22,14 @@ export interface Classroom {
   updated_at: string
   deleted_at: string | null
 
-  // Relaciones
-  teachers?: Teacher[]
+  // Relationships
+  teachers?: Array<Teacher & { pivot: { curricular_area_cycle_id: number; academic_year: number } }>
   enrollments?: Enrollment[]
   students?: Student[]
   teacherClassroomCurricularAreaCycles?: TeacherClassroomCurricularAreaCycle[]
   curricularAreaCycles?: Array<CurricularAreaCycle & { pivot: { teacher_id: number; academic_year: number } }>
   learningSessions?: LearningSession[]
   applicationForms?: ApplicationForm[]
-
-  // Métodos de relación
-  teachers(): Promise<Teacher[]>
-  enrollments(): Promise<Enrollment[]>
-  students(): Promise<Student[]>
-  teacherClassroomCurricularAreaCycles(): Promise<TeacherClassroomCurricularAreaCycle[]>
-  curricularAreaCycles(): Promise<Array<CurricularAreaCycle & { pivot: { teacher_id: number; academic_year: number } }>>
-  learningSessions(): Promise<LearningSession[]>
-  applicationForms(): Promise<ApplicationForm[]>
 }
 
 /**

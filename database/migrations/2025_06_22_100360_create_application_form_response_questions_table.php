@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('application_form_response_question', function (Blueprint $table) {
+        Schema::create('application_form_response_questions', function (Blueprint $table) {
             // General
             $table->id()->comment('ID único de la relación entre respuesta y pregunta');
             // Datos de la respuesta
@@ -28,6 +28,10 @@ return new class extends Migration
                 ->default(0)
                 ->comment('Puntos de la tienda obtenidos por esta respuesta');
 
+            $table->boolean('is_correct')
+                ->default(false)
+                ->comment('Indica si la respuesta es correcta en la revisión');
+
             // Relaciones
             $table->foreignId('application_form_response_id')
                 ->constrained('application_form_responses')
@@ -39,12 +43,6 @@ return new class extends Migration
                 ->cascadeOnDelete()
                 ->comment('Referencia a la pregunta del formulario');
 
-            $table->foreignId('question_option_id')
-                ->nullable()
-                ->constrained('question_options')
-                ->nullOnDelete()
-                ->comment('Referencia a la opción seleccionada (opcional para preguntas abiertas)');
-
             // Metadatos
             $table->timestamps();
             $table->softDeletes()->comment('Fecha de eliminación suave');
@@ -52,12 +50,11 @@ return new class extends Migration
             // Índices
             $table->index('application_form_response_id', 'idx_afrq_response');
             $table->index('application_form_question_id', 'idx_afrq_question');
-            $table->index('question_option_id', 'idx_afrq_option');
 
             // Restricción única para evitar respuestas duplicadas
             $table->unique(
                 ['application_form_response_id', 'application_form_question_id'],
-                'uq_application_form_response_question'
+                'uq_application_form_response_questions'
             );
         });
     }
@@ -67,6 +64,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('application_form_response_question');
+        Schema::dropIfExists('application_form_response_questions');
     }
 };

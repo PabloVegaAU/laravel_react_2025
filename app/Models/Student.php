@@ -60,6 +60,11 @@ class Student extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function profile(): BelongsTo
+    {
+        return $this->belongsTo(Profile::class, 'user_id');
+    }
+
     public function level(): BelongsTo
     {
         return $this->belongsTo(Level::class);

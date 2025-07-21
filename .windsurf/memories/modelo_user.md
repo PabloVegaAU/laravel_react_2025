@@ -1,50 +1,103 @@
-# 👤 Modelo User
+# 👤 User
+
+> **IMPORTANTE**: 
+> 1. **Verificar siempre** los archivos relacionados:
+>    - `database/migrations/0001_01_01_000000_create_users_table.php` (estructura de la tabla)
+>    - `app/Models/User.php` (implementación del modelo)
+>    - `resources/js/types/user/user.d.ts` (tipos TypeScript)
 
 ## 📌 Ubicación
-- **Modelo**: `app/Models/User.php`
-- **Migración**: `database/migrations/0001_01_01_000000_create_users_table.php`
-- **Migraciones Relacionadas**:
-  - `2025_06_22_100020_create_profiles_table.php`
-  - `2025_06_22_100030_create_students_table.php`
-  - `2025_06_22_100040_create_teachers_table.php`
-  - `2025_06_19_044210_create_permission_tables.php`
-- **Controladores**:
-  - `app/Http/Controllers/Auth/`
-  - `app/Http/Controllers/Admin/UserController.php`
-- **Recursos API**: `app/Http/Resources/User/`
-- **Vistas React**: `resources/js/pages/auth/`
-- **TypeScript**: `resources/js/types/user/user.d.ts`
+- **Tipo**: Modelo de Autenticación
+- **Archivo Principal**: `app/Models/User.php`
+- **Tabla**: `users`
 
-## 📝 Descripción
-El modelo `User` es el núcleo del sistema de autenticación y autorización. Utiliza `Spatie Permission` para la gestión de roles y permisos, y se integra con los modelos `Profile`, `Student` y `Teacher` para proporcionar funcionalidad extendida según el rol del usuario.
+## 📦 Archivos Relacionados
 
-## 🏗️ Estructura de la Base de Datos
+### Migraciones
+- `database/migrations/0001_01_01_000000_create_users_table.php`
+  - Estructura base de usuarios
+  - Índices para email y autenticación
+  - Soporte para soft delete
 
-### 📊 Tabla: `users`
+### Modelos Relacionados
+- `app/Models/Profile.php` (HasOne)
+- `app/Models/Student.php` (HasOne, opcional)
+- `app/Models/Teacher.php` (HasOne, opcional)
+- `Spatie\Permission\Traits\HasRoles` (Trait para roles)
 
-#### 🔑 Claves
-- **Primaria**: `id` (bigint autoincremental)
-- **Índices**:
-  - `users_email_unique` (email)
-  - `sessions_user_id_index` (user_id en tabla sessions)
-  - `sessions_last_activity_index` (last_activity en tabla sessions)
-- **Foráneas**:
-  - `profiles.user_id` (one-to-one)
-  - `students.user_id` (one-to-one, opcional)
-  - `teachers.user_id` (one-to-one, opcional)
+### Tipos TypeScript
+- `resources/js/types/user/user.d.ts`
+  - Interfaz `User` con propiedades básicas
+  - Tipos para autenticación y roles
+- `resources/js/types/auth/profile.d.ts`
+  - Tipos para perfiles de usuario
+- `resources/js/types/user/student/types.d.ts`
+  - Tipos específicos para estudiantes
 
-#### 📋 Columnas
-| Columna | Tipo | Nulo | Default | Descripción |
-|---------|------|------|---------|-------------|
-| id | bigint | No | Auto | Identificador único |
-| name | string | No | - | Nombre de usuario (usado para autenticación) |
-| email | string | Sí | NULL | Correo electrónico (único) |
-| email_verified_at | timestamp | Sí | NULL | Fecha de verificación de correo |
-| password | string | No | - | Contraseña hasheada |
-| remember_token | string | Sí | NULL | Token para "recordar sesión" |
-| created_at | timestamp | No | CURRENT_TIMESTAMP | Fecha de creación |
-| updated_at | timestamp | No | CURRENT_TIMESTAMP | Fecha de actualización |
-| deleted_at | timestamp | Sí | NULL | Fecha de eliminación (soft delete) |
+## 🏗️ Estructura
+
+### Base de Datos (Migraciones)
+- **Tabla**: `users`
+- **Campos Clave**:
+  - `id`: bigint - Identificador único
+  - `email`: string - Correo electrónico (único)
+  - `email_verified_at`: timestamp - Fecha de verificación
+  - `password`: string - Hash de contraseña
+  - `remember_token`: string - Token de sesión persistente
+  - `timestamps`: created_at, updated_at, deleted_at
+
+### Relaciones
+- **profile** (HasOne):
+  - Modelo: `Profile`
+  - Clave: `user_id`
+  - Comportamiento: cascadeOnDelete
+
+- **student** (HasOne):
+  - Modelo: `Student`
+  - Clave: `user_id`
+  - Comportamiento: cascadeOnDelete
+
+- **teacher** (HasOne):
+  - Modelo: `Teacher`
+  - Clave: `user_id`
+  - Comportamiento: cascadeOnDelete
+
+- **roles** (BelongsToMany):
+  - Modelo: `Spatie\Permission\Models\Role`
+  - Tabla intermedia: `model_has_roles`
+  - Claves: `model_id`, `role_id`
+
+## 🎯 Estados del Modelo
+
+### Diagrama de Estados
+```mermaid
+stateDiagram
+    [*] --> unverified
+    unverified --> active: Verificar email
+    active --> suspended: Suspender
+    suspended --> active: Reactivar
+    active --> inactive: Desactivar
+    inactive --> active: Reactivar
+    active --> [*]: Eliminar
+    suspended --> [*]: Eliminar
+    inactive --> [*]: Eliminar
+```
+
+### Transiciones y Endpoints
+> **NOTA**: Los endpoints mostrados son sugerencias basadas en las mejores prácticas de REST.
+
+| Estado Actual | Evento | Nuevo Estado | Endpoint | Método |
+|---------------|--------|--------------|----------|--------|
+| unverified | verify | active | `/api/email/verify/{id}` | GET |
+| active | suspend | suspended | `/api/users/{id}/suspend` (sugerido) | PUT |
+| suspended | unsuspend | active | `/api/users/{id}/unsuspend` (sugerido) | PUT |
+| active | deactivate | inactive | `/api/users/{id}/deactivate` (sugerido) | PUT |
+| inactive | activate | active | `/api/users/{id}/activate` (sugerido) | PUT |
+| any | delete | - | `/api/users/{id}` | DELETE |
+
+**Leyenda**:
+- Sin prefijo: Endpoint existente en el código
+- `(sugerido)`: Endpoint recomendado pero no implementado
 
 ### 📊 Tabla: `profiles`
 
@@ -92,75 +145,87 @@ El modelo `User` es el núcleo del sistema de autenticación y autorización. Ut
 - **Clave foránea**: `user_id`
 - **Descripción**: Datos específicos si el usuario es profesor
 
-## 🎨 Interfaz TypeScript
+## TypeScript Types
+
+## TypeScript Types
+
+### Tipos Básicos
 
 ```typescript
-interface User {
-  id: number;
-  name: string;
-  email: string | null;
-  email_verified_at: string | null;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
-  
-  // Relaciones cargadas opcionalmente
-  profile?: Profile;
-  student?: Student;
-  teacher?: Teacher;
-  
-  // Métodos de ayuda
-  isAdmin: () => boolean;
-  isStudent: () => boolean;
-  isTeacher: () => boolean;
-  
-  // Datos de autenticación
-  roles?: Array<{
-    id: number;
-    name: string;
-    guard_name: string;
-    created_at: string;
-    updated_at: string;
-    pivot: {
-      model_type: string;
-      model_id: number;
-      role_id: number;
-    };
-  }>;
-  
-  permissions?: Array<{
-    id: number;
-    name: string;
-    guard_name: string;
-    created_at: string;
-    updated_at: string;
-    pivot: {
-      model_type: string;
-      model_id: number;
-      permission_id: number;
-    };
-  }>;
-}
+type UserRole = 'admin' | 'teacher' | 'student' | 'guest';
 
-// Perfil extendido del usuario
-interface Profile {
-  id: number;
+type Profile = {
   user_id: number;
   first_name: string;
   last_name: string;
-  phone: string | null;
-  address: string | null;
-  date_of_birth: string | null;
-  gender: 'male' | 'female' | 'other' | null;
-  avatar: string | null;
-  bio: string | null;
+  second_last_name?: string | null;
+  birth_date?: string | null;
+  phone?: string | null;
   created_at: string;
   updated_at: string;
-  
-  // Relaciones
-  user?: User;
-}
-```
+  deleted_at?: string | null;
+};
+/**
+ * Representa un usuario en el sistema
+ * @see app/Models/User.php
+ * @see database/migrations/0001_01_01_000000_create_users_table.php
+ */
+## 📋 Tipos de Usuario
+
+### Roles de Usuario
+- **admin**: Administrador del sistema con acceso completo
+- **teacher**: Profesor con acceso a funciones docentes
+- **student**: Estudiante con acceso a funcionalidades de aprendizaje
+- **guest**: Usuario invitado con acceso limitado
+
+## 🔍 Estructura del Usuario
+
+### Propiedades Principales
+- **id**: Identificador numérico único del usuario
+- **name**: Nombre completo (entre 3 y 255 caracteres)
+- **email**: Dirección de correo electrónico (única, formato validado)
+- **email_verified_at**: Fecha de verificación del correo (puede ser nulo)
+- **password**: Hash de la contraseña (solo lectura)
+- **remember_token**: Token para mantener la sesión activa
+
+### Fechas Importantes
+- **created_at**: Fecha de creación del registro
+- **updated_at**: Fecha de última actualización
+- **deleted_at**: Fecha de eliminación lógica (soft delete)
+
+### Relaciones
+- **profile**: Información extendida del perfil del usuario
+- **student**: Datos específicos si el usuario es estudiante
+- **teacher**: Datos específicos si el usuario es profesor
+- **roles**: Lista de roles asignados al usuario
+
+### Métodos de Utilidad
+- **isAdmin()**: Verifica si el usuario tiene rol de administrador
+- **isStudent()**: Verifica si el usuario tiene rol de estudiante
+- **isTeacher()**: Verifica si el usuario tiene rol de profesor
+
+## 📥 Tipos de Operaciones
+
+### Creación de Usuario
+- **Campos requeridos**: name, email, password
+- **Campos opcionales**: password_confirmation, status
+- **Excluye**: id, fechas, relaciones y campos generados
+
+### Actualización de Usuario
+- **Campos actualizables**: Todos los campos excepto contraseña
+- **Campos específicos**:
+  - current_password: Necesario para cambios sensibles
+  - password: Nueva contraseña (opcional)
+  - password_confirmation: Confirmación de la nueva contraseña
+
+### Inicio de Sesión
+- **username**: Nombre de usuario o correo electrónico
+- **password**: Contraseña en texto plano
+- **remember**: Opción para recordar sesión
+
+### Registro de Usuario
+- **Campos requeridos**: name, email, password, password_confirmation
+- **Hereda** campos de creación de usuario con ajustes específicos
 
 ## 🚀 Uso en React
 

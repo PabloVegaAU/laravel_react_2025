@@ -8,6 +8,7 @@ export * from './form/response/application-form-response-question'
 export * from './form/response/application-form-response-question-option'
 
 // Tipos para preguntas
+export * from './form/response/response-answer'
 export * from './question/question'
 export * from './question/question-option'
 export * from './question/question-type'
@@ -20,7 +21,5 @@ export type {
   ApplicationFormStatus,
   CreateApplicationFormData,
   DuplicateApplicationFormData,
-  SubmitApplicationFormData,
-  UpdateApplicationFormData,
-  UpdateApplicationFormStatusData
+  UpdateApplicationFormData
 } from './application-form'

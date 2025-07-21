@@ -34,8 +34,6 @@ class Question extends Model
         'help_message',
         'difficulty',
         'explanation_required',
-        'correct_feedback',
-        'incorrect_feedback',
         'level',
         'grades',
     ];

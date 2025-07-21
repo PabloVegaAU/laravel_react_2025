@@ -3,9 +3,8 @@ import { Student } from '../user/student'
 
 /**
  * Representa un avatar que los estudiantes pueden desbloquear y usar
- * Basado en:
- * - Migración: database/migrations/2025_06_22_100420_create_avatars_table.php
- * - Modelo: app/Models/Avatar.php
+ * @see database/migrations/2025_06_22_100420_create_avatars_table.php
+ * @see app/Models/Avatar.php
  */
 export interface Avatar {
   /** Identificador único */

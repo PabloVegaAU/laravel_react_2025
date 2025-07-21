@@ -1,55 +1,78 @@
-# 📚 Modelo LearningSessionCapability
+# 📚 LearningSessionCapability
+
+> **IMPORTANTE**: 
+> 1. **Verificar siempre** los archivos relacionados:
+>    - `database/migrations/2025_06_22_100310_create_learning_session_capabilities_table.php` (estructura de la tabla pivote)
+>    - `app/Models/LearningSessionCapability.php` (implementación del modelo)
+>    - `resources/js/types/learning-session/learning-session.d.ts` (tipos TypeScript)
 
 ## 📌 Ubicación
-- **Migración**: `database/migrations/2025_06_22_100310_create_learning_session_capabilities_table.php`
+- **Tipo**: Modelo Pivote
+- **Archivo Principal**: `app/Models/LearningSessionCapability.php`
 - **Tabla**: `learning_session_capabilities`
-- **Tipo**: Tabla pivote
 
-## 📝 Descripción
-La tabla `learning_session_capabilities` es una tabla pivote que establece una relación muchos a muchos entre las sesiones de aprendizaje y las capacidades que se trabajan en cada una. Permite asociar múltiples capacidades a una sesión y viceversa, facilitando la planificación curricular y el seguimiento del progreso de los estudiantes.
+## 📦 Archivos Relacionados
 
-## 🏗️ Estructura del Modelo
+### Migraciones
+- `database/migrations/2025_06_22_100310_create_learning_session_capabilities_table.php`
+  - Estructura de la tabla pivote
+  - Claves foráneas con restricciones
+  - Índices para optimización de consultas
 
-### 📋 Atributos
+### Modelos Relacionados
+- `app/Models/LearningSession.php` (BelongsTo)
+- `app/Models/Capability.php` (BelongsTo)
 
-#### 🔹 Fillable
-- `learning_session_id`: ID de la sesión de aprendizaje
-- `capability_id`: ID de la capacidad asociada
-- `score`: Puntuación opcional para la capacidad en esta sesión
-- `feedback`: Retroalimentación específica para esta capacidad
+### Tipos TypeScript
+- `resources/js/types/learning-session/learning-session.d.ts`
+  - Interfaz `LearningSessionCapability` con campos extendidos
+  - Tipos para relaciones y atributos pivote
 
-#### 🔹 Casts
-- `score` → `decimal:2`
-- `created_at` → `datetime`
-- `updated_at` → `datetime`
+## 🏗️ Estructura
 
-## 🗃️ Estructura de la Base de Datos
+### Base de Datos (Migraciones)
+- **Tabla**: `learning_session_capabilities`
+- **Campos Clave**:
+  - `id`: bigint - Identificador único
+  - `learning_session_id`: bigint - Referencia a la sesión de aprendizaje
+  - `capability_id`: bigint - Referencia a la capacidad
+  - `score`: decimal(8,2) - Puntuación opcional (2 decimales)
+  - `timestamps`: created_at, updated_at
 
-### 📊 Tabla: `learning_session_capabilities`
+### Relaciones
+- **learningSession** (BelongsTo):
+  - Modelo: `LearningSession`
+  - Clave: `learning_session_id`
+  - Comportamiento: cascadeOnDelete
 
-#### 🔑 Claves
-- **Primaria**: `id` (bigint UNSIGNED, autoincremental)
-- **Foráneas**:
-  - `learning_session_id` → `learning_sessions.id` (con cascade on delete)
-  - `capability_id` → `capabilities.id` (con cascade on delete)
-- **Índices**:
-  - `learning_session_capabilities_learning_session_id_foreign`
-  - `learning_session_capabilities_capability_id_foreign`
-  - `idx_sessions_capabilities_session` (learning_session_id)
-  - `idx_sessions_capabilities_capability` (capability_id)
-- **Restricciones**:
-  - `uq_session_capability` (learning_session_id, capability_id) - Evita duplicados
+- **capability** (BelongsTo):
+  - Modelo: `Capability`
+  - Clave: `capability_id`
+  - Comportamiento: cascadeOnDelete
 
-#### 📋 Columnas
-| Columna | Tipo | Nulo | Default | Descripción |
-|---------|------|------|---------|-------------|
-| id | bigint UNSIGNED | No | Auto | Identificador único |
-| learning_session_id | bigint UNSIGNED | No | - | Referencia a la sesión de aprendizaje |
-| capability_id | bigint UNSIGNED | No | - | Referencia a la capacidad |
-| score | decimal(8,2) | Sí | NULL | Puntuación opcional |
-| feedback | text | Sí | NULL | Retroalimentación detallada |
-| created_at | timestamp | Sí | NULL | Fecha de creación |
-| updated_at | timestamp | Sí | NULL | Fecha de actualización |
+## 🎯 Estados del Modelo
+
+### Diagrama de Estados
+```mermaid
+stateDiagram
+    [*] --> associated
+    associated --> evaluated: Evaluar
+    evaluated --> updated: Actualizar
+    updated --> [*]: Eliminar (cascade)
+```
+
+### Transiciones y Endpoints
+> **NOTA**: Los endpoints mostrados son sugerencias basadas en las mejores prácticas de REST.
+
+| Estado Actual | Evento | Nuevo Estado | Endpoint | Método |
+|---------------|--------|--------------|----------|--------|
+| associated | evaluate | evaluated | `/api/learning-sessions/{id}/capabilities/{capabilityId}/evaluate` (sugerido) | PUT |
+| evaluated | update | updated | `/api/learning-sessions/{id}/capabilities/{capabilityId}` (sugerido) | PUT |
+| any | delete | - | `/api/learning-sessions/{id}/capabilities/{capabilityId}` (sugerido) | DELETE |
+
+**Leyenda**:
+- Sin prefijo: Endpoint existente en el código
+- `(sugerido)`: Endpoint recomendado pero no implementado
 
 ## 🔄 Relaciones
 
@@ -72,12 +95,6 @@ La tabla `learning_session_capabilities` es una tabla pivote que establece una r
 // Obtener la sesión
 $session = LearningSession::find(1);
 
-// Asociar capacidades con puntuación y feedback
-$session->capabilities()->attach([
-    1 => ['score' => 85.5, 'feedback' => 'Excelente dominio'],
-    2 => ['score' => 75.0, 'feedback' => 'Necesita mejorar'],
-]);
-
 // Obtener capacidades con puntuación específica
 $highScoringCapabilities = $session->capabilities()
     ->wherePivot('score', '>', 80)
@@ -94,7 +111,7 @@ $sessions = Capability::find(5)
 
 // Obtener capacidades de una sesión con puntuación
 $capabilities = $session->capabilities()
-    ->withPivot(['score', 'feedback'])
+    ->withPivot(['score'])
     ->orderByPivot('score', 'desc')
     ->get();
 ```
@@ -111,7 +128,6 @@ interface LearningSessionCapability {
   learning_session_id: number;
   capability_id: number;
   score?: number;
-  feedback?: string;
   created_at: string;
   updated_at: string;
   
@@ -125,7 +141,6 @@ interface LearningSessionCapability {
  */
 type LearningSessionCapabilityPivot = {
   score?: number;
-  feedback?: string;
 };
 ```
 
@@ -147,107 +162,98 @@ type LearningSessionCapabilityPivot = {
    - Documentar cambios en las capacidades de las sesiones
    - Mantener consistencia con el plan curricular
  * Representa una capacidad trabajada en una sesión de aprendizaje
- */
-interface LearningSessionCapability {
-  id: number;
-  learning_session_id: number;
-  capability_id: number;
-  created_at: string;
-  updated_at: string;
-  
-  // Relaciones cargadas opcionalmente
-  learning_session?: LearningSession;
-  capability?: Capability;
-}
+## 🛠️ TypeScript Types
 
-/**
- * Interfaz extendida para LearningSession que incluye las capacidades
- */
-interface LearningSessionWithCapabilities extends LearningSession {
-  capabilities?: Capability[];
-  learning_session_capabilities?: LearningSessionCapability[];
-}
+### Tipos Básicos
 
-/**
- * Interfaz extendida para Capability que incluye las sesiones
- */
-interface CapabilityWithSessions extends Capability {
-  learning_sessions?: LearningSession[];
-  learning_session_capabilities?: LearningSessionCapability[];
-}
-```
+**LearningSessionCapability**: Interfaz que representa la relación entre una sesión de aprendizaje y una capacidad.
+
+**Propiedades principales**:
+- `id`: Identificador único (number)
+- `learning_session_id`: ID de la sesión de aprendizaje (number)
+- `capability_id`: ID de la capacidad asociada (number)
+- `score`: Puntuación opcional (number | null)
+- `created_at`, `updated_at`: Marcas de tiempo
+
+**Relaciones opcionales**:
+- `learning_session`: Datos completos de la sesión
+- `capability`: Datos completos de la capacidad
+
+### Tipos Extendidos
+
+**LearningSessionWithCapabilities**: Extensión de LearningSession que incluye las capacidades asociadas.
+- `capabilities`: Lista de capacidades
+- `learning_session_capabilities`: Relaciones completas con información adicional
+
+**CapabilityWithSessions**: Extensión de Capability que incluye las sesiones relacionadas.
+- `learning_sessions`: Lista de sesiones
+- `learning_session_capabilities`: Relaciones completas con información adicional
 
 ## 🔄 Uso en Laravel
 
-### En el modelo LearningSession
-```php
-// app/Models/LearningSession.php
+### Relaciones
 
-/**
- * Obtiene las capacidades asociadas a esta sesión
- */
-public function capabilities()
-{
-    return $this->belongsToMany(
-        Capability::class,
-        'learning_session_capabilities',
-        'learning_session_id',
-        'capability_id'
-    )->withTimestamps();
-}
-```
+**En el modelo LearningSession**:
+- **Método**: `capabilities()`
+- **Tipo**: Relación muchos a muchos con `Capability`
+- **Tabla pivote**: `learning_session_capabilities`
+- **Claves**: `learning_session_id` y `capability_id`
+- **Timestamps**: Incluye marcas de tiempo automáticas
 
-### En el modelo Capability
-```php
-// app/Models/Capability.php
+**En el modelo Capability**:
+- **Método**: `learningSessions()`
+- **Tipo**: Relación muchos a muchos con `LearningSession`
+- **Tabla pivote**: `learning_session_capabilities`
+- **Claves**: `capability_id` y `learning_session_id`
+- **Timestamps**: Incluye marcas de tiempo automáticas
 
-/**
- * Obtiene las sesiones de aprendizaje asociadas a esta capacidad
- */
-public function learningSessions()
-{
-    return $this->belongsToMany(
-        LearningSession::class,
-        'learning_session_capabilities',
-        'capability_id',
-        'learning_session_id'
-    )->withTimestamps();
-}
-```
+### Operaciones Comunes
 
-### Ejemplo de consulta
-```php
-// Obtener una sesión con sus capacidades
-$session = LearningSession::with('capabilities')->find($id);
+1. **Consultar capacidades de una sesión**:
+   - Carga ansiosa de capacidades con `with('capabilities')`
+   - Ordenamiento por orden de asociación
 
-// Obtener una capacidad con sus sesiones
-$capability = Capability::with('learningSessions')->find($id);
+2. **Gestionar relaciones**:
+   - Añadir capacidad: `attach()`
+   - Sincronizar capacidades: `sync()`
+   - Eliminar capacidad: `detach()`
+   - Actualizar metadatos: `updateExistingPivot()`
 
-// Crear una nueva relación
-$session->capabilities()->attach($capabilityId);
+## 📊 Uso en React
 
-// Sincronizar capacidades (elimina las anteriores y agrega las nuevas)
-$session->capabilities()->sync([1, 2, 3]);
-```
+### Componentes Principales
 
-## 📊 Ejemplo de Uso en React
+**SessionCard**: Muestra la información de una sesión con sus capacidades asociadas.
+- **Props**: `session` (LearningSessionWithCapabilities)
+- **Visualización**: Lista de capacidades con puntuación
+- **Acciones**: Ver detalles, editar relación
 
-### Componente de Sesión con Capacidades
-```tsx
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+**CapabilityList**: Muestra las capacidades de una sesión.
+- **Props**: `capabilities` (Capability[])
+- **Visualización**: Lista con iconos y puntuación
+- **Filtros**: Por puntuación, tipo de capacidad
 
-type SessionCardProps = {
-  session: LearningSessionWithCapabilities;
-};
+### Flujo de Datos
 
-export function SessionCard({ session }: SessionCardProps) {
-  return (
-    <Card className="w-full">
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle>{session.name}</CardTitle>
+1. **Carga inicial**:
+   - Obtener sesión con capacidades usando `LearningSession::with('capabilities')`
+   - Mapear datos al tipo TypeScript correspondiente
+
+2. **Actualización**:
+   - Enviar cambios al backend mediante mutaciones
+   - Actualizar caché local con la respuesta
+   - Refrescar la interfaz de usuario
+
+3. **Validación**:
+   - Verificar que las capacidades sean compatibles con la sesión
+   - Validar puntuaciones dentro de rangos permitidos
+
+### Mejoras de UX
+
+- **Carga perezosa**: Cargar capacidades solo cuando se expanda la sección
+- **Edición en línea**: Permitir editar puntuación directamente
+- **Filtrado**: Búsqueda y filtrado de capacidades
+- **Ordenamiento**: Arrastrar y soltar para cambiar el orden de las capacidades
             <CardDescription className="mt-1">
               {new Date(session.application_date).toLocaleDateString()}
             </CardDescription>

@@ -95,7 +95,6 @@ GET /api/v1/teacher/learning-sessions
           "name": "Resolución de ecuaciones lineales",
           "pivot": {
             "score": 85.5,
-            "feedback": "Buen progreso"
           }
         }
       ]
@@ -150,7 +149,6 @@ POST /api/v1/teacher/learning-sessions
     {
       "id": 1,
       "score": 85.5,
-      "feedback": "Comentarios adicionales"
     }
   ]
 }
@@ -188,12 +186,10 @@ POST /api/v1/teacher/learning-sessions/{learning_session}/capabilities
   {
     "id": 1,
     "score": 90,
-    "feedback": "Excelente desempeño"
   },
   {
     "id": 2,
     "score": 75,
-    "feedback": "Necesita mejorar"
   }
 ]
 ```
@@ -517,11 +513,69 @@ DELETE /teacher/application-forms/{application_form}
 ## Endpoints para Estudiantes
 
 ### Fichas de Aplicación del Estudiante
+
+#### Listar Fichas de Aplicación Asignadas
 ```
-GET /student/application-forms
-GET /student/application-forms/{application_form}
-POST /student/application-forms/{application_form}/submit
+GET /student/application-form-responses
 ```
+Recupera la lista de formularios que el estudiante tiene asignados para responder.
+
+#### Ver una Ficha de Aplicación para Responder
+```
+GET /student/application-form-responses/{application_form_response}
+```
+Recupera los detalles de una ficha específica, incluyendo todas las preguntas, para que el estudiante pueda responderla. El `{application_form_response}` es el ID de la respuesta, no del formulario.
+
+#### Enviar o Actualizar Respuestas de una Ficha de Aplicación
+```
+PUT /student/application-form-responses/{application_form_response}
+```
+Envía las respuestas del estudiante para una ficha de aplicación. Este endpoint se usa tanto para guardar el progreso como para el envío final.
+
+**Parámetros de URL:**
+- `application_form_response`: ID de la respuesta del formulario que se está actualizando.
+
+**Cuerpo de la solicitud (JSON):**
+El cuerpo debe contener un array `responses`, donde cada objeto representa la respuesta a una pregunta.
+
+```json
+{
+  "responses": [
+    {
+      "application_form_question_id": 1,
+      "selected_options": [
+        {
+          "question_option_id": 10,
+          "selected_order": 1, // Para preguntas de ordenamiento
+          "paired_with_option_id": null // Para preguntas de emparejamiento
+        },
+        {
+          "question_option_id": 12,
+          "selected_order": 2,
+          "paired_with_option_id": null
+        }
+      ],
+      "explanation": "Mi justificación para esta respuesta."
+    },
+    {
+      "application_form_question_id": 2,
+      "selected_options": [
+        {
+          "question_option_id": 15, // Opción de la izquierda
+          "selected_order": null,
+          "paired_with_option_id": 16 // Opción de la derecha emparejada
+        }
+      ],
+      "explanation": null
+    }
+  ]
+}
+```
+
+**Detalles del payload `selected_options`:**
+- Para preguntas de **Opción Única / Múltiple / Verdadero-Falso**: El array `selected_options` contendrá objetos donde solo `question_option_id` es relevante.
+- Para preguntas de **Ordenamiento**: El campo `selected_order` indica la posición (1, 2, 3...) que el estudiante asignó a cada `question_option_id`.
+- Para preguntas de **Emparejamiento**: Para cada opción del lado izquierdo, `question_option_id` será el ID de esa opción, y `paired_with_option_id` será el ID de la opción del lado derecho con la que se emparejó.
 
 ## Endpoints para Administradores
 
@@ -571,7 +625,6 @@ const api = axios.create({
 // Ejemplo de petición
 try {
   const response = await api.get('/teacher/questions');
-  console.log(response.data);
 } catch (error) {
   console.error('Error:', error.response?.data);
 }
@@ -880,7 +933,7 @@ GET /api/learning-sessions/1?include=educationalInstitution,competency,teacherCl
 - `educationalInstitution`: Institución educativa asociada
 - `competency`: Competencia asociada
 - `teacherClassroomCurricularArea`: Relación con el área curricular del aula del profesor
-- `applicationForms`: Fichas de aplicación asociadas
+- `applicationForm`: Fichas de aplicación asociadas
 
 ### Fichas de Aplicación
 ```

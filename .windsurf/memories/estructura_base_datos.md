@@ -61,7 +61,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 27. `2025_06_22_100330_create_application_forms_table.php` - Formularios de aplicación
 28. `2025_06_22_100340_create_application_form_responses_table.php` - Respuestas a formularios
 29. `2025_06_22_100350_create_application_form_questions_table.php` - Preguntas de formularios
-30. `2025_06_22_100360_create_application_form_response_question_table.php` - Respuestas a preguntas
+30. `2025_06_22_100360_create_application_form_response_questions_table.php` - Respuestas a preguntas
 31. `2025_06_22_100370_create_application_form_response_question_options_table.php` - Opciones de respuestas
 
 ### Migraciones de Recompensas y Tienda
@@ -424,7 +424,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `application_form_id`: FK a application_forms (restrict on delete)
   - `student_id`: FK a students.user_id (restrict on delete)
   - `score`: Puntuación obtenida (decimal 10,2, nullable)
-  - `status`: Estado (enum: 'pending', 'in_progress', 'submitted', 'in_review', 'graded', 'returned', 'late')
+  - `status`: Estado (enum: 'pending', 'in progress', 'submitted', 'in review', 'graded', 'returned', 'late')
   - `started_at`, `submitted_at`, `graded_at`: Marcas de tiempo (timestamp, nullable)
   - `created_at`, `updated_at`, `deleted_at`: Marcas de tiempo (timestamp)
 - **Índices**:
@@ -440,26 +440,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `applicationForm`: Formulario respondido (BelongsTo)
   - `student`: Estudiante que respondió (BelongsTo)
   - `responseQuestions`: Respuestas a preguntas individuales (HasMany)
-  - `questionResponses`: Relación directa con las respuestas a preguntas (HasMany a través de application_form_response_question)
-
-### 7. Sistema de Evaluación
-**Archivos relacionados:**
-- `[15] 2025_06_22_100090_create_question_types_table.php` - Tipos de preguntas
-- `[16] 2025_06_22_100100_create_questions_table.php` - Preguntas
-- `[17] 2025_06_22_100110_create_question_options_table.php` - Opciones de preguntas
-- `[25] 2025_06_22_100300_create_learning_sessions_table.php` - Sesiones de aprendizaje
-- `[26] 2025_06_22_100310_create_learning_session_capabilities_table.php` - Capacidades por sesión
-- `[27] 2025_06_22_100330_create_application_forms_table.php` - Formularios de aplicación
-- `[28] 2025_06_22_100340_create_application_form_responses_table.php` - Respuestas a formularios
-- `[29] 2025_06_22_100350_create_application_form_questions_table.php` - Preguntas de formularios
-- `[30] 2025_06_22_100360_create_application_form_response_question_table.php` - Respuestas a preguntas
-- `[31] 2025_06_22_100370_create_application_form_response_question_options_table.php` - Opciones de respuestas
-
-### 8. Preguntas y Opciones
-
-#### questions
-- **Propósito**: Banco de preguntas para evaluaciones
-- **Campos clave**:
+  - `questionResponses`: Relación directa con las respuestas a preguntas (HasMany a través de application_form_response_questions)
   - `id`: Identificador único (bigint, autoincremental)
   - `name`: Nombre de la pregunta (string, 255)
   - `description`: Enunciado de la pregunta (text)
@@ -482,13 +463,12 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `options`: Opciones de respuesta
   - `applicationFormQuestions`: Relación con formularios
 
-#### application_form_response_question
+#### application_form_response_questions
 - **Descripción**: Respuestas individuales a preguntas dentro de un formulario respondido
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
   - `application_form_response_id`: FK a application_form_responses (cascade on delete)
   - `application_form_question_id`: FK a application_form_questions (cascade on delete)
-  - `question_option_id`: FK a question_options (null on delete)
   - `explanation`: Explicación del estudiante (text, nullable)
   - `score`: Puntuación obtenida (decimal 10,2, nullable)
   - `points_store`: Puntos obtenidos (decimal 10,2, nullable)
@@ -496,8 +476,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 - **Índices**:
   - `idx_afrq_response` (application_form_response_id)
   - `idx_afrq_question` (application_form_question_id)
-  - `idx_afrq_option` (question_option_id)
-  - `uq_application_form_response_question` (application_form_response_id, application_form_question_id) - Restricción única
+  - `uq_application_form_response_questions` (application_form_response_id, application_form_question_id) - Restricción única
 - **Relaciones**:
   - `response`: Respuesta principal (BelongsTo)
   - `applicationFormQuestion`: Pregunta del formulario (BelongsTo)
@@ -778,8 +757,6 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `help_message`: Mensaje de ayuda (text, nullable)
   - `difficulty`: Dificultad (enum: 'easy', 'medium', 'hard')
   - `explanation_required`: Si requiere explicación (boolean)
-  - `correct_feedback`: Retroalimentación para respuesta correcta (text, nullable)
-  - `incorrect_feedback`: Retroalimentación para respuesta incorrecta (text, nullable)
   - `question_type_id`: FK a question_types (bigint)
   - `capability_id`: FK a capabilities (bigint)
   - `teacher_id`: FK a users (bigint)
@@ -802,7 +779,6 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `is_correct`: Si es la respuesta correcta (boolean)
   - `order`: Orden de visualización (integer)
   - `score`: Puntuación de la opción (decimal 5,2)
-  - `feedback`: Retroalimentación específica (text, nullable)
   - `created_at`, `updated_at`: Marcas de tiempo
 
 ### 5. Sistema de Gamificación
@@ -957,26 +933,42 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - Se renombró `title` a `name` para mayor consistencia
   - Se optimizaron los índices para mejorar el rendimiento
 
-#### application_form_questions
-- **Propósito**: Relación entre formularios y preguntas
+#### application_form_response_questions
+- **Propósito**: Almacena la respuesta de un estudiante a una pregunta individual dentro de un formulario. Esta tabla actúa como un nexo entre la respuesta general y las opciones específicas seleccionadas.
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
-  - `application_form_id`: FK a application_forms (bigint)
-  - `question_id`: FK a questions (bigint)
-  - `order`: Orden en el formulario (integer)
-  - `points`: Puntuación de la pregunta (decimal 5,2)
+  - `application_form_response_id`: FK a la respuesta general del formulario (`application_form_responses`)
+  - `application_form_question_id`: FK a la pregunta específica del formulario (`application_form_questions`)
+  - `explanation`: Justificación o respuesta abierta del estudiante (text, nullable)
+  - `score`: Puntuación obtenida para esta pregunta (decimal)
+  - `points_store`: Puntos de tienda ganados por esta respuesta (decimal)
+  - `question_option_id`: FK a `question_options`. Se usa para preguntas de respuesta única donde la opción se puede guardar directamente aquí. Para preguntas de selección múltiple, ordenamiento o emparejamiento, las respuestas se gestionan en `application_form_response_question_options`. (bigint, nullable)
+  - `created_at`, `updated_at`: Marcas de tiempo
+  - `deleted_at`: Eliminación lógica (soft delete)
+- **Relaciones**:
+  - `selectedOptions()`: Relación 1:N con `application_form_response_question_options`, que contiene las opciones específicas seleccionadas por el estudiante para esta pregunta.
+
+#### application_form_response_question_options
+- **Propósito**: Almacena las opciones que un estudiante ha seleccionado para una pregunta específica en su respuesta a un formulario. Es una tabla pivot clave que también maneja la lógica para preguntas complejas.
+- **Campos clave**:
+  - `id`: Identificador único (bigint, autoincremental)
+  - `application_form_response_question_id`: FK a la respuesta de la pregunta (`application_form_response_questions`)
+  - `question_option_id`: FK a la opción de pregunta original (`question_options`)
+  - `score`: Puntuación obtenida por esta opción (decimal)
+  - `is_correct`: Si la opción seleccionada es correcta (boolean)
+  - `selected_order`: **Para preguntas de ordenamiento (tipo 5)**. Almacena la posición (1, 2, 3, ...) en la que el estudiante colocó esta opción. Es `null` para otros tipos de pregunta.
+  - `paired_with_option_id`: **Para preguntas de emparejamiento (tipo 3)**. Si esta opción es del lado izquierdo del par, este campo guarda el ID de la opción del lado derecho con la que fue emparejada. Es `null` para otros tipos de pregunta.
   - `created_at`, `updated_at`: Marcas de tiempo
 
 #### application_form_responses
 - **Descripción**: Respuestas de los estudiantes a los formularios
 - **Campos clave**:
-  - `id`: Identificador único (bigint, autoincremental)
+{{ ... }}
   - `application_form_id`: FK a application_forms (bigint)
   - `student_id`: FK a users (bigint)
   - `score`: Puntuación obtenida (decimal 10,2, nullable)
-  - `status`: Estado (enum: 'pending', 'in_progress', 'submitted', 'in_review', 'graded', 'returned', 'late')
+  - `status`: Estado (enum: 'pending', 'in progress', 'submitted', 'in review', 'graded', 'returned', 'late')
   - `started_at`, `submitted_at`: Marcas de tiempo
-  - `feedback`: Retroalimentación general (text, nullable)
   - `created_at`, `updated_at`: Marcas de tiempo
 
 ### 5.1 Sistema de Logros y Recompensas (subsección de Gamificación)

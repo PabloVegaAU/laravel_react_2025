@@ -1,11 +1,7 @@
-import { StudentLevelHistory } from '../student/student-level-history'
-import { Level } from './level'
-
 /**
  * Represents a rank/achievement level in the educational system
- * Based on:
- * - Migration: database/migrations/2025_06_22_100010_create_ranges_table.php
- * - Model: app/Models/Range.php
+ * @see database/migrations/2025_06_22_100010_create_ranges_table.php
+ * @see app/Models/Range.php
  */
 export interface Range {
   /** Unique identifier */
@@ -37,23 +33,12 @@ export interface Range {
 
   /** Timestamp when the record was soft deleted (if applicable) */
   deleted_at: string | null
-
-  /** Relationships */
-
-  /** The level required to achieve this range */
-  level?: Level
-
-  /** All levels that belong to this range */
-  levels?: Level[]
-
-  /** Student level history entries for this range */
-  student_level_histories?: StudentLevelHistory[]
 }
 
 /**
  * Type for creating a new range
  */
-export type CreateRange = Omit<Range, 'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'level' | 'levels'>
+export type CreateRange = Omit<Range, 'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'level'>
 
 /**
  * Type for updating an existing range

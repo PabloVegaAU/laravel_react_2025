@@ -133,4 +133,21 @@ class ApplicationFormResponse extends Model
 
         return $submittedAt->greaterThanOrEqualTo($endDate);
     }
+
+    /**
+     * Actualiza el puntaje total sumando los puntajes de todas las preguntas respondidas.
+     */
+    public function updateTotalScore(): bool
+    {
+        $totalScore = $this->responseQuestions()
+            ->with('applicationFormQuestion')
+            ->get()
+            ->sum(function ($responseQuestion) {
+                return $responseQuestion->score ?? 0;
+            });
+
+        $this->score = $totalScore;
+
+        return $this->save();
+    }
 }

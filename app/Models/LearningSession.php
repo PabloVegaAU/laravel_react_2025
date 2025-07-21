@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class LearningSession extends Model
@@ -67,8 +67,8 @@ class LearningSession extends Model
         return $this->belongsTo(TeacherClassroomCurricularAreaCycle::class);
     }
 
-    public function applicationForms(): HasMany
+    public function applicationForm(): HasOne
     {
-        return $this->hasMany(ApplicationForm::class, 'learning_session_id');
+        return $this->hasOne(ApplicationForm::class, 'learning_session_id');
     }
 }
