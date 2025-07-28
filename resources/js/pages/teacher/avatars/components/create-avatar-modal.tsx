@@ -6,46 +6,29 @@ import { useForm } from '@inertiajs/react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
-type Level = {
-  id: number
-  name: string
-}
-
-type CreateBackgroundModalProps = {
+type CreateAvatarModalProps = {
   isOpen: boolean
   onClose: () => void
-  onSuccess: (background: any) => void
+  onSuccess: (newAvatar: any) => void
 }
 
-export function CreateBackgroundModal({ isOpen, onClose, onSuccess }: CreateBackgroundModalProps) {
-  const [levels, setLevels] = useState<Level[]>([])
+export function CreateAvatarModal({ isOpen, onClose, onSuccess }: CreateAvatarModalProps) {
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   const { data, setData, errors, reset } = useForm({
     name: '',
-    level_required: '',
     points_store: '',
-    image: null as File | null
+    image: null as File | null,
+    is_active: true
   })
 
   useEffect(() => {
     if (isOpen) {
-      fetchLevels()
       reset()
       setPreviewImage(null)
     }
   }, [isOpen])
-
-  const fetchLevels = async () => {
-    try {
-      const res = await fetch('/api/levels')
-      const json = await res.json()
-      setLevels(json.levels || [])
-    } catch (err) {
-      console.error('Error al obtener niveles:', err)
-    }
-  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -62,46 +45,79 @@ export function CreateBackgroundModal({ isOpen, onClose, onSuccess }: CreateBack
     setIsLoading(true)
 
     try {
-      const formData = new FormData()
-      formData.append('p_name', data.name)
-      formData.append('p_level_required', data.level_required)
-      formData.append('p_points_store', data.points_store)
+      let imageUrl = ''
+
       if (data.image) {
-        formData.append('p_image', data.image)
+        const imageForm = new FormData()
+        imageForm.append('image', data.image)
+
+        try {
+          const uploadResponse = await fetch('/api/upload', {
+            method: 'POST',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: imageForm
+          })
+
+          if (uploadResponse.ok) {
+            const uploadResult = await uploadResponse.json()
+            if (uploadResult.success && uploadResult.url) {
+              imageUrl = uploadResult.url
+            } else {
+              toast.warning('No se pudo obtener la URL de la imagen, se usará vacía.')
+            }
+          } else {
+            toast.warning('No se pudo subir la imagen, se usará vacía.')
+          }
+        } catch (uploadError) {
+          console.warn('Error al intentar subir imagen, se omite:', uploadError)
+          toast.warning('La imagen no se subió, pero el avatar será creado igualmente.')
+        }
+      }
+
+      const payload = {
+        p_id: 0,
+        p_name: data.name,
+        p_image_url: imageUrl,
+        p_price: data.points_store,
+        p_is_active: data.is_active
       }
 
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-      const response = await fetch('/api/backgroundgra', {
+      const response = await fetch('/api/avatargra', {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
           'X-CSRF-TOKEN': csrfToken
         },
-        body: formData
+        body: JSON.stringify(payload)
       })
 
       const result = await response.json()
+
       if (response.ok && result.success) {
-        const newBackground = result.data[0]
-        toast.success(newBackground.mensa || 'Fondo creado correctamente')
+        const resData = result.data[0]
+        toast.success(resData.mensa || 'Avatar creado correctamente')
 
         onSuccess({
-          id: newBackground.numid,
+          id: resData.numid,
           name: data.name,
-          level_required: parseInt(data.level_required),
           points_store: parseFloat(data.points_store),
-          image: '' // si no lo devuelve puedes dejarlo vacío o predefinido
+          image: imageUrl,
+          is_active: data.is_active
         })
 
         onClose()
         reset()
         setPreviewImage(null)
       } else {
-        toast.error(result.message || 'Error al crear fondo')
+        toast.error(result.message || 'Error al crear avatar')
       }
     } catch (err) {
-      console.error('Error al crear fondo:', err)
-      toast.error('Error del servidor al guardar fondo')
+      console.error('Error al crear avatar:', err)
+      toast.error('Error del servidor al guardar avatar')
     } finally {
       setIsLoading(false)
     }
@@ -111,7 +127,7 @@ export function CreateBackgroundModal({ isOpen, onClose, onSuccess }: CreateBack
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className='sm:max-w-[500px]'>
         <DialogHeader>
-          <DialogTitle>Crear Fondo</DialogTitle>
+          <DialogTitle>Crear Avatar</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className='space-y-4'>
@@ -121,40 +137,18 @@ export function CreateBackgroundModal({ isOpen, onClose, onSuccess }: CreateBack
             {errors.name && <p className='text-sm text-red-500'>{errors.name}</p>}
           </div>
 
-          <div className='grid grid-cols-2 gap-4'>
-            <div className='space-y-2'>
-              <Label htmlFor='level_required'>Nivel Requerido</Label>
-              <select
-                id='level_required'
-                value={data.level_required}
-                onChange={(e) => setData('level_required', e.target.value)}
-                className='border-input bg-background ring-offset-background flex h-10 w-full rounded-md border px-3 py-2 text-sm'
-                required
-              >
-                <option value=''>Seleccionar nivel</option>
-                {levels.map((level) => (
-                  <option key={level.id} value={level.id}>
-                    Nivel {level.name}
-                  </option>
-                ))}
-              </select>
-              {errors.level_required && <p className='text-sm text-red-500'>{errors.level_required}</p>}
-            </div>
-
-            <div className='space-y-2'>
-              <Label htmlFor='points_store'>Costo (puntos)</Label>
-              <Input
-                id='points_store'
-                type='number'
-                min='0'
-                value={data.points_store}
-                onChange={(e) => setData('points_store', e.target.value)}
-                required
-              />
-              {errors.points_store && <p className='text-sm text-red-500'>{errors.points_store}</p>}
-            </div>
+          <div className='space-y-2'>
+            <Label htmlFor='points_store'>Costo (puntos)</Label>
+            <Input
+              id='points_store'
+              type='number'
+              min='0'
+              value={data.points_store}
+              onChange={(e) => setData('points_store', e.target.value)}
+              required
+            />
+            {errors.points_store && <p className='text-sm text-red-500'>{errors.points_store}</p>}
           </div>
-
           <div className='space-y-2'>
             <Label>Imagen</Label>
             <div className='mt-1 flex justify-center rounded-md border-2 border-dashed px-6 pt-5 pb-6'>
@@ -174,11 +168,11 @@ export function CreateBackgroundModal({ isOpen, onClose, onSuccess }: CreateBack
                 <div className='flex text-sm text-gray-600'>
                   <label htmlFor='file-upload' className='relative cursor-pointer text-indigo-600 hover:text-indigo-500'>
                     <span>Cargar imagen</span>
-                    <input id='file-upload' type='file' className='sr-only' onChange={handleFileChange} accept='image/*' />
+                    <input id='file-upload' type='file' className='sr-only' onChange={handleFileChange} accept='image/*' required />
                   </label>
                   <p className='pl-1'>o arrastra y suelta</p>
                 </div>
-                <p className='text-xs text-gray-500'>PNG, JPG, GIF hasta 2MB</p>
+                <p className='text-xs text-gray-500'>PNG, JPG, GIF hasta 10MB</p>
               </div>
             </div>
             {errors.image && <p className='text-sm text-red-500'>{errors.image}</p>}

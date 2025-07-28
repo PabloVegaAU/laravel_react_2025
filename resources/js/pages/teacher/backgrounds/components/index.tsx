@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import AppLayout from '@/layouts/app-layout'
 import { router } from '@inertiajs/react'
-import { Edit, Eye, Plus, Search, Trash2 } from 'lucide-react'
+import { Edit, Plus, Search, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { CreateBackgroundModal } from './create-background-modal'
 import { EditBackgroundModal } from './edit-background-modal'
@@ -28,11 +28,22 @@ export default function TeacherBackgroundsPage() {
   useEffect(() => {
     const fetchBackgrounds = async () => {
       try {
-        const response = await fetch('/teacher/backgrounds')
+        const response = await fetch('/api/backgroundslist', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+          }
+        })
         const data = await response.json()
-        setBackgrounds(data.backgrounds || [])
+        if (data.success) {
+          setBackgrounds(data.data)
+        } else {
+          console.error('Error en datos:', data.message)
+        }
       } catch (error) {
-        console.error('Error fetching backgrounds:', error)
+        console.error('Error al obtener fondos:', error)
       }
     }
 
@@ -91,7 +102,7 @@ export default function TeacherBackgroundsPage() {
                 <TableHead>Estado</TableHead>
                 <TableHead>Nivel Requerido</TableHead>
                 <TableHead>Costo</TableHead>
-                <TableHead className='text-right'>Acción</TableHead>
+                <TableHead className='text-center'>Acción</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -104,17 +115,7 @@ export default function TeacherBackgroundsPage() {
                   </TableCell>
                   <TableCell>Nivel {background.level_required}</TableCell>
                   <TableCell>{background.points_store} pts</TableCell>
-                  <TableCell className='flex justify-end space-x-2'>
-                    <Button
-                      variant='ghost'
-                      size='icon'
-                      onClick={() => {
-                        setSelectedBackground(background)
-                        // You can implement view functionality here if needed
-                      }}
-                    >
-                      <Eye className='h-4 w-4' />
-                    </Button>
+                  <TableCell className='flex justify-center space-x-2'>
                     <Button
                       variant='ghost'
                       size='icon'
@@ -140,7 +141,7 @@ export default function TeacherBackgroundsPage() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={(newBackground) => {
-          setBackgrounds([...backgrounds, newBackground])
+          setBackgrounds((prev) => [...prev, newBackground]) // evita problemas si el estado aún no está actualizado
           setIsCreateModalOpen(false)
         }}
       />
@@ -154,7 +155,7 @@ export default function TeacherBackgroundsPage() {
           }}
           background={selectedBackground}
           onSuccess={(updatedBackground) => {
-            setBackgrounds(backgrounds.map((bg) => (bg.id === updatedBackground.id ? updatedBackground : bg)))
+            setBackgrounds((prev) => prev.map((bg) => (bg.id === updatedBackground.id ? updatedBackground : bg)))
             setIsEditModalOpen(false)
             setSelectedBackground(null)
           }}

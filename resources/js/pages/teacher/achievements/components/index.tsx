@@ -2,62 +2,74 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import AppLayout from '@/layouts/app-layout'
-import { Plus, Search } from 'lucide-react'
-import { useState } from 'react'
-import { AssignAchievementModal } from './assign-achievement-modal'
+import axios from 'axios'
+import { Search } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { AssignAchievementModal } from './AssignAchievementModal'
+import { StudentSearchModal } from './student-search-modal'
+import { StudentAchievementsModal } from './StudentAchievementsModal'
+
+type Achievement = {
+  id: number
+  name: string
+  description: string
+  activo: boolean
+}
 
 type Student = {
   id: number
   name: string
-  grade: string
-  section: string
-  achievements: number
+  email: string
 }
 
-export default function TeacherAchievementsPage() {
+export default function AchievementsListPage() {
+  const [achievements, setAchievements] = useState<Achievement[]>([])
   const [searchTerm, setSearchTerm] = useState('')
-  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
+  const [isStudentModalOpen, setIsStudentModalOpen] = useState(false)
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
+  const [isAchievementsModalOpen, setIsAchievementsModalOpen] = useState(false)
+  const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null)
+  const [assignModalOpen, setAssignModalOpen] = useState(false)
+  const [selectedAchievement, setSelectedAchievement] = useState<number | null>(null)
 
-  // Mock data - replace with actual API call
-  const students: Student[] = [
-    { id: 1, name: 'Juan Pérez', grade: '5to', section: 'A', achievements: 3 },
-    { id: 2, name: 'María Gómez', grade: '5to', section: 'A', achievements: 5 },
-    { id: 3, name: 'Carlos López', grade: '5to', section: 'B', achievements: 2 }
-  ]
+  useEffect(() => {
+    fetchAchievements()
+  }, [])
 
-  const filteredStudents = students.filter(
-    (student) =>
-      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.grade.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.section.toLowerCase().includes(searchTerm.toLowerCase())
+  const fetchAchievements = async () => {
+    try {
+      const response = await axios.post('/api/achievementslist')
+      if (Array.isArray(response.data)) {
+        setAchievements(response.data)
+      } else {
+        console.error('Respuesta inesperada:', response.data)
+      }
+    } catch (error) {
+      console.error('❌ Error al cargar logros:', error)
+    }
+  }
+
+  const filtered = achievements.filter(
+    (a) => a.name.toLowerCase().includes(searchTerm.toLowerCase()) || a.description.toLowerCase().includes(searchTerm.toLowerCase())
   )
-
-  const handleAssignAchievement = (student: Student) => {
-    setSelectedStudent(student)
-    setIsAssignModalOpen(true)
-  }
-
-  const handleViewAchievements = (student: Student) => {
-    setSelectedStudent(student)
-    setIsViewModalOpen(true)
-  }
 
   return (
     <AppLayout>
       <div className='container mx-auto p-6'>
-        <div className='mb-6 flex items-center justify-between'>
-          <h1 className='text-2xl font-bold text-gray-800'>Gestión de Logros</h1>
-          <div className='relative w-64'>
-            <Search className='absolute top-2.5 left-2.5 h-4 w-4 text-gray-500' />
-            <Input
-              type='search'
-              placeholder='Buscar estudiante...'
-              className='pl-8'
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        <div className='mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between'>
+          <h1 className='text-2xl font-bold text-gray-800'>Listado de Logros</h1>
+          <div className='flex gap-4'>
+            <div className='relative w-64'>
+              <Search className='absolute top-2.5 left-2.5 h-4 w-4 text-gray-500' />
+              <Input
+                type='search'
+                placeholder='Buscar logro...'
+                className='pl-8'
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <Button onClick={() => setIsSearchModalOpen(true)}>Buscar estudiante</Button>
           </div>
         </div>
 
@@ -65,26 +77,33 @@ export default function TeacherAchievementsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Estudiante</TableHead>
-                <TableHead>Grado</TableHead>
-                <TableHead>Sección</TableHead>
-                <TableHead>Logros</TableHead>
-                <TableHead className='text-right'>Acciones</TableHead>
+                <TableHead>ID</TableHead>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Descripción</TableHead>
+                <TableHead>Activo</TableHead>
+                <TableHead>Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredStudents.map((student) => (
-                <TableRow key={student.id}>
-                  <TableCell className='font-medium'>{student.name}</TableCell>
-                  <TableCell>{student.grade}</TableCell>
-                  <TableCell>{student.section}</TableCell>
-                  <TableCell>{student.achievements}</TableCell>
-                  <TableCell className='flex justify-end space-x-2'>
-                    <Button variant='outline' size='sm' onClick={() => handleViewAchievements(student)}>
-                      Ver logros
-                    </Button>
-                    <Button size='sm' onClick={() => handleAssignAchievement(student)}>
-                      <Plus className='mr-2 h-4 w-4' />
+              {filtered.map((achievement) => (
+                <TableRow key={achievement.id}>
+                  <TableCell>{achievement.id}</TableCell>
+                  <TableCell className='font-medium'>{achievement.name}</TableCell>
+                  <TableCell>{achievement.description}</TableCell>
+                  <TableCell>
+                    <span
+                      className={`inline-block rounded-full px-3 py-1 text-sm font-semibold ${achievement.activo ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}
+                    >
+                      {achievement.activo ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      onClick={() => {
+                        setSelectedAchievement(achievement.id)
+                        setAssignModalOpen(true)
+                      }}
+                    >
                       Asignar
                     </Button>
                   </TableCell>
@@ -93,9 +112,21 @@ export default function TeacherAchievementsPage() {
             </TableBody>
           </Table>
         </div>
-
-        <AssignAchievementModal isOpen={isAssignModalOpen} onClose={() => setIsAssignModalOpen(false)} student={selectedStudent} />
       </div>
+
+      <StudentSearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+        onSelect={(student) => {
+          setSelectedStudentId(student.student_id) // ← 👈 AQUÍ USAS student_id
+          setIsSearchModalOpen(false)
+          setIsAchievementsModalOpen(true)
+        }}
+      />
+
+      <StudentAchievementsModal isOpen={isAchievementsModalOpen} onClose={() => setIsAchievementsModalOpen(false)} studentId={selectedStudentId} />
+
+      <AssignAchievementModal isOpen={assignModalOpen} onClose={() => setAssignModalOpen(false)} prizeId={selectedAchievement} />
     </AppLayout>
   )
 }

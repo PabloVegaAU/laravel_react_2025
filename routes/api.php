@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ApiController;
 use App\Http\Controllers\Api\LevelController;
 use App\Http\Controllers\Api\PrizeController;
 use Illuminate\Http\Request;
@@ -46,3 +47,34 @@ Route::prefix('avatars')->group(function () {
     Route::put('/{id}', [\App\Http\Controllers\Api\AvatarController::class, 'update']);
     Route::delete('/{id}', [\App\Http\Controllers\Api\AvatarController::class, 'destroy']);
 });
+
+Route::post('achievementassign', [ApiController::class, 'achievementassign']);
+Route::post('achievementtogglestatus', [ApiController::class, 'achievementtogglestatus']);
+Route::post('achievementslist', [ApiController::class, 'achievementslist']);
+Route::post('avatargra', [ApiController::class, 'avatargra']);
+Route::post('avatarlistforpurchase', [ApiController::class, 'avatarlistforpurchase']);
+Route::post('avatarpurchase', [ApiController::class, 'avatarpurchase']);
+Route::post('avatartogglestatus', [ApiController::class, 'avatartogglestatus']);
+Route::post('avatarslist', [ApiController::class, 'avatarslist']);
+Route::post('backgroundgra', [ApiController::class, 'backgroundgra']);
+Route::post('backgroundlistforpurchase', [ApiController::class, 'backgroundlistforpurchase']);
+Route::post('backgroundpurchase', [ApiController::class, 'backgroundpurchase']);
+Route::post('backgroundtogglestatus', [ApiController::class, 'backgroundtogglestatus']);
+Route::post('backgroundslist', [ApiController::class, 'backgroundslist']);
+Route::post('prizegra', [ApiController::class, 'prizegra']);
+Route::post('prizelistforpurchase', [ApiController::class, 'prizelistforpurchase']);
+Route::post('prizepurchase', [ApiController::class, 'prizepurchase']);
+Route::post('prizetogglestatus', [ApiController::class, 'prizetogglestatus']);
+Route::post('prizeslist', [ApiController::class, 'prizeslist']);
+Route::post('studentachievementslist', [ApiController::class, 'studentachievementslist']);
+Route::post('studentavatarapply', [ApiController::class, 'studentavatarapply']);
+Route::post('studentavatarslist', [ApiController::class, 'studentavatarslist']);
+Route::post('studentbackgroundapply', [ApiController::class, 'studentbackgroundapply']);
+Route::post('studentbackgroundslist', [ApiController::class, 'studentbackgroundslist']);
+Route::post('studentprizeshistory', [ApiController::class, 'studentprizeshistory']);
+Route::post('studentprofile', [ApiController::class, 'studentprofile']);
+Route::post('studentprofileupd', [ApiController::class, 'studentprofileupd']);
+Route::post('studentprogressbar', [ApiController::class, 'studentprogressbar']);
+Route::post('studentprogressupd', [ApiController::class, 'studentprogressupd']);
+Route::post('studentssearch', [ApiController::class, 'studentssearch']);
+Route::post('getstudentbyuserid', [ApiController::class, 'getstudentbyuserid']);

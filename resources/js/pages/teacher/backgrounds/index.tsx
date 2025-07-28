@@ -1,7 +1,6 @@
-import { PageProps } from '@/types'
 import BackgroundsPage from './components'
 
-export default function TeacherBackgroundsPage({ auth }: PageProps) {
+export default function TeacherBackgroundsPage() {
   return <BackgroundsPage />
 }
 

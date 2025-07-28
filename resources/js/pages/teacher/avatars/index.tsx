@@ -1,118 +1,191 @@
-import { Avatar, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import AppLayout from '@/layouts/app-layout'
-import { Avatar as AvatarType } from '@/types/avatar'
-import { SharedData } from '@/types/core/shared'
-import { Head, Link, router } from '@inertiajs/react'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { Avatar } from '@/types/avatar'
+import { Head } from '@inertiajs/react'
+import { Edit, Plus, Search, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+import { CreateAvatarModal } from './components/create-avatar-modal'
+import { EditAvatarModal } from './components/edit-avatar-modal'
 
-interface PageProps {
-  auth: SharedData['auth']
-  [key: string]: any
-}
+export default function AvatarIndex({ auth, avatars: initialAvatars }: { auth: any; avatars: Avatar[] }) {
+  const [searchTerm, setSearchTerm] = useState('')
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(null)
+  const [avatars, setAvatars] = useState<Avatar[]>(initialAvatars || [])
 
-interface Props extends PageProps {
-  avatars: AvatarType[]
-}
+  // Fetch avatars when component mounts or auth changes
+  useEffect(() => {
+    const fetchAvatars = async () => {
+      try {
+        const response = await fetch('/api/avatars', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+          }
+        })
+        const data = await response.json()
+        if (data.success) {
+          setAvatars(data.data || [])
+        } else {
+          console.error('Error en datos:', data.message)
+        }
+      } catch (error) {
+        console.error('Error al obtener avatares:', error)
+      }
+    }
 
-export default function AvatarIndex({ auth, avatars }: Props) {
-  const [isLoading, setIsLoading] = useState<Record<number, boolean>>({})
+    fetchAvatars()
+  }, [auth])
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: number) => {
     if (!confirm('¿Estás seguro de que deseas eliminar este avatar?')) {
       return
     }
 
-    setIsLoading((prev) => ({ ...prev, [id]: true }))
+    try {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+      const response = await fetch(`/api/avatars/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': csrfToken,
+          'Content-Type': 'application/json'
+        }
+      })
 
-    router.delete(route('teacher.avatars.destroy', id), {
-      onFinish: () => {
-        setIsLoading((prev) => {
-          const newState = { ...prev }
-          delete newState[id]
-          return newState
-        })
+      const result = await response.json()
+
+      if (response.ok && result.success) {
+        setAvatars((prev) => prev.filter((avatar) => avatar.id !== id))
+        toast.success('Avatar eliminado correctamente')
+      } else {
+        toast.error(result.message || 'Error al eliminar el avatar')
       }
-    })
+    } catch (error) {
+      console.error('Error al eliminar avatar:', error)
+      toast.error('Error del servidor al eliminar el avatar')
+    }
   }
+
+  const handleCreateSuccess = (newAvatar: any) => {
+    setAvatars((prev) => [newAvatar, ...prev])
+  }
+
+  const handleUpdateSuccess = (updatedAvatar: any) => {
+    setAvatars((prev) => prev.map((avatar) => (avatar.id === updatedAvatar.id ? updatedAvatar : avatar)))
+  }
+
+  const filteredAvatars = avatars.filter(
+    (avatar) =>
+      avatar.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (avatar.level_required_name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
+  )
 
   return (
     <AppLayout user={auth.user}>
       <div className='container mx-auto p-6'>
+        <Head title='Gestión de Avatares' />
+
         <div className='mb-6 flex items-center justify-between'>
-          <Head title='Gestión de Avatares' />
+          <h1 className='text-2xl font-bold'>Gestión de Avatares</h1>
+          <Button onClick={() => setIsCreateModalOpen(true)}>
+            <Plus className='mr-2 h-4 w-4' />
+            Nuevo Avatar
+          </Button>
+        </div>
 
-          <div className='container mx-auto py-6'>
-            <div className='mb-6 flex items-center justify-between'>
-              <h2 className='text-2xl font-bold tracking-tight'>Gestión de Avatares</h2>
-              <Button asChild>
-                <Link href={route('teacher.avatars.create')}>
-                  <Plus className='mr-2 h-4 w-4' />
-                  Nuevo Avatar
-                </Link>
-              </Button>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Lista de Avatares</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Avatar</TableHead>
-                      <TableHead>Nombre</TableHead>
-                      <TableHead>Precio</TableHead>
-                      <TableHead>Estado</TableHead>
-                      <TableHead className='text-right'>Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {avatars.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={5} className='py-4 text-center'>
-                          No hay avatares registrados.
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      avatars.map((avatar) => (
-                        <TableRow key={avatar.id}>
-                          <TableCell>
-                            <Avatar className='h-12 w-12'>
-                              <AvatarImage src={avatar.image} alt={avatar.name} />
-                            </Avatar>
-                          </TableCell>
-                          <TableCell className='font-medium'>{avatar.name}</TableCell>
-                          <TableCell>{avatar.points_store}</TableCell>
-                          <TableCell>
-                            <Badge variant='default'>{avatar.points_store} puntos</Badge>
-                          </TableCell>
-                          <TableCell className='text-right'>
-                            <div className='flex justify-end space-x-2'>
-                              <Button variant='outline' size='icon' asChild>
-                                <Link href={route('teacher.avatars.edit', avatar.id)}>
-                                  <Pencil className='h-4 w-4' />
-                                </Link>
-                              </Button>
-                              <Button variant='outline' size='icon' onClick={() => handleDelete(avatar.id)} disabled={isLoading[avatar.id]}>
-                                <Trash2 className='text-destructive h-4 w-4' />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
+        <div className='mb-6'>
+          <div className='relative'>
+            <Search className='absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400' />
+            <Input
+              type='text'
+              placeholder='Buscar avatares...'
+              className='pl-10'
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
         </div>
+
+        <div className='rounded-md border'>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className='text-center'>Nombre</TableHead>
+                <TableHead className='text-center'>Nivel Requerido</TableHead>
+                <TableHead className='text-center'>Puntos</TableHead>
+                <TableHead className='text-center'>Acciones</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredAvatars.length > 0 ? (
+                filteredAvatars.map((avatar) => (
+                  <TableRow key={avatar.id}>
+                    <TableCell className='text-center font-medium'>{avatar.name}</TableCell>
+                    <TableCell className='text-center'>Nivel {avatar.level_required_name || avatar.level_required}</TableCell>
+                    <TableCell className='text-center'>{avatar.price} pts</TableCell>
+                    <TableCell className='text-center'>
+                      <div className='flex justify-center space-x-2'>
+                        <Button
+                          variant='ghost'
+                          size='icon'
+                          onClick={() => {
+                            const handleEditClick = (avatar: Avatar) => {
+                              console.log('Setting selected avatar:', avatar)
+                              setSelectedAvatar(avatar)
+                              setIsEditModalOpen(true)
+                            }
+                            handleEditClick(avatar)
+                          }}
+                        >
+                          <Edit className='h-4 w-4' />
+                          <span className='sr-only'>Editar</span>
+                        </Button>
+                        <Button variant='ghost' size='icon' onClick={() => handleDelete(avatar.id)}>
+                          <Trash2 className='h-4 w-4 text-red-500' />
+                          <span className='sr-only'>Eliminar</span>
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} className='h-24 text-center'>
+                    {searchTerm ? 'No se encontraron avatares que coincidan con la búsqueda' : 'No hay avatares disponibles'}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Create Avatar Modal */}
+        <CreateAvatarModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} onSuccess={handleCreateSuccess} />
+
+        {/* Edit Avatar Modal */}
+        {selectedAvatar && (
+          <>
+            {console.log('Rendering EditAvatarModal with avatar:', selectedAvatar)}
+            <EditAvatarModal
+              key={`edit-modal-${selectedAvatar.id}`}
+              isOpen={isEditModalOpen}
+              onClose={() => {
+                console.log('Closing edit modal')
+                setIsEditModalOpen(false)
+                setSelectedAvatar(null)
+              }}
+              avatar={selectedAvatar}
+              onSuccess={handleUpdateSuccess}
+            />
+          </>
+        )}
       </div>
     </AppLayout>
   )

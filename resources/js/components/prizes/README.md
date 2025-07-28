@@ -18,7 +18,6 @@ A card component that displays information about a single prize.
 
 ```tsx
 import { PrizeCard } from '@/components/prizes'
-
 ;<PrizeCard prize={prize} onRedeem={(prize) => handleRedeem(prize)} className='custom-class' />
 ```
 
@@ -39,7 +38,6 @@ A responsive grid layout for displaying multiple PrizeCard components.
 
 ```tsx
 import { PrizeGrid } from '@/components/prizes'
-
 ;<PrizeGrid prizes={prizes} loading={isLoading} onRedeem={handleRedeem} emptyMessage='No prizes found' skeletonCount={6} className='my-4' />
 ```
 

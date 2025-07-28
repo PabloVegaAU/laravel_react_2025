@@ -12,7 +12,17 @@ class ProfileController extends Controller
      */
     public function index()
     {
-        return Inertia::render('student/profile/index');
+        $user = auth()->user();
+        $studentId = $user->id;
+
+        return Inertia::render('student/profile/index', [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'student_id' => $studentId,
+            ],
+        ]);
     }
 
     /**
@@ -20,6 +30,16 @@ class ProfileController extends Controller
      */
     public function objects()
     {
-        return Inertia::render('student/objects/index');
+        $user = auth()->user();
+        $studentId = $user->id;
+
+        return Inertia::render('student/objects/index', [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'student_id' => $studentId,
+            ],
+        ]);
     }
 }

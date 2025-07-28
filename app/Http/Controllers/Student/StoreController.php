@@ -14,11 +14,12 @@ class StoreController extends Controller
      */
     public function index()
     {
-        $userId = auth()->id();
+        $user = auth()->user();
 
-        // Obtener la matrícula activa del estudiante
+        $studentId = $user->id;
+
         $enrollment = Enrollment::with('classroom')
-            ->where('student_id', $userId)
+            ->where('student_id', $studentId)
             ->where('academic_year', now()->year)
             ->first();
 
@@ -26,10 +27,15 @@ class StoreController extends Controller
             return Inertia::render('student/store/index', [
                 'applicationForms' => [],
                 'error' => 'No estás matriculado en ningún aula este año académico.',
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'student_id' => $studentId,
+                ],
             ]);
         }
 
-        // Obtener las fichas de aplicación para el aula del estudiante
         $applicationForms = ApplicationForm::whereHas('teacherClassroomCurricularArea', function ($query) use ($enrollment) {
             $query->where('classroom_id', $enrollment->classroom_id);
         })
@@ -45,21 +51,57 @@ class StoreController extends Controller
 
         return Inertia::render('student/store/index', [
             'applicationForms' => $applicationForms,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'student_id' => $studentId,
+            ],
         ]);
     }
 
     public function avatars()
     {
-        return Inertia::render('student/store/avatars');
+        $user = auth()->user();
+        $studentId = $user->id;
+
+        return Inertia::render('student/store/avatars', [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'student_id' => $studentId,
+            ],
+        ]);
     }
 
     public function backgrounds()
     {
-        return Inertia::render('student/store/backgrounds');
+        $user = auth()->user();
+        $studentId = $user->id;
+
+        return Inertia::render('student/store/backgrounds', [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'student_id' => $studentId,
+            ],
+        ]);
     }
 
     public function rewards()
     {
-        return Inertia::render('student/store/rewards');
+        $user = auth()->user();
+        $studentId = $user->id;
+
+        return Inertia::render('student/store/rewards', [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'student_id' => $studentId,
+            ],
+        ]);
     }
 }
