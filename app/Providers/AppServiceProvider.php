@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +20,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Validator::extend('string_or_image', function ($attribute, $value, $parameters, $validator) {
+            return (new \App\Rules\StringOrImage($parameters[0] ?? null))->passes($attribute, $value);
+        });
     }
 }

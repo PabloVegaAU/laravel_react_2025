@@ -252,7 +252,7 @@ class QuestionController extends Controller
             'options.*.pair_side' => 'sometimes|in:left,right|nullable',
             'options.*.score' => 'sometimes|numeric|min:0',
             'explanation_required' => 'sometimes|boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'image' => ['nullable', 'string_or_image:jpeg,png,jpg,webp', 'max:2048'],
         ]);
 
         DB::beginTransaction();
