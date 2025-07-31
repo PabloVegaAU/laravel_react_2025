@@ -12,7 +12,6 @@ export interface ApplicationFormResponseQuestionOption {
   question_option: QuestionOption
   paired_with_option_id: number | null
   selected_order: number | null
-  score: number
   is_correct: boolean
   created_at: string
   updated_at: string
@@ -27,7 +26,6 @@ export interface ApplicationFormResponseQuestionOption {
 export interface CreateApplicationFormResponseQuestionOptionData {
   question_option_id: number
   is_correct?: boolean
-  score?: number
   selected_order?: number | null
   paired_with_option_id?: number | null
 }
@@ -40,7 +38,6 @@ export interface CreateApplicationFormResponseQuestionOptionData {
 export interface UpdateApplicationFormResponseQuestionOptionData {
   id: number
   is_correct?: boolean
-  score?: number
   selected_order?: number | null
   paired_with_option_id?: number | null
 }

@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils'
 import { ApplicationFormResponseQuestion, QuestionOption } from '@/types/application-form'
 import { GripVertical } from 'lucide-react'
-import { DragEvent, useCallback, useMemo, useRef, useState } from 'react'
+import { DragEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 interface OrderingResponseProps {
   question: ApplicationFormResponseQuestion
@@ -16,6 +16,10 @@ export function OrderingResponse({ question, order = [], onOrderChange, disabled
 
   const dragItem = useRef<number | null>(null)
   const dragOverItem = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (order.length === 0) onOrderChange(orderedOptions.map((opt) => opt.id))
+  }, [])
 
   const questionOptions = useMemo(() => question.application_form_question.question?.options || [], [question])
 

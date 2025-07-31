@@ -70,7 +70,6 @@ stateDiagram
   - `value`: text - Valor personalizado (para respuestas abiertas)
   - `order`: integer - Orden de la opción (para preguntas de ordenamiento)
   - `is_correct`: boolean - Si la opción seleccionada es correcta
-  - `score`: decimal - Puntuación obtenida por esta opción
   - `timestamps()`: created_at, updated_at
 
 ### Relaciones
@@ -114,7 +113,6 @@ interface ApplicationFormResponseQuestionOption {
   value: string | null;
   order: number | null;
   is_correct: boolean;
-  score: number | null;
   created_at: string;
   updated_at: string;
   
@@ -161,7 +159,6 @@ interface ApplicationFormResponseQuestionOption {
 | Columna | Tipo | Nulo | Default | Descripción |
 |---|---|---|---|---|
 | id | bigint | No | Auto | ID único de la opción de respuesta |
-| score | decimal(10,2) | No | 0 | Puntaje obtenido por esta opción |
 | is_correct | boolean | No | false | Indica si la opción seleccionada es correcta |
 | selected_order | unsignedInteger | Sí | NULL | Orden seleccionado por el usuario (para preguntas de ordenamiento) |
 | application_form_response_question_id | bigint | No | - | Referencia a la respuesta de la pregunta |
@@ -243,7 +240,6 @@ export interface ApplicationFormResponseQuestionOption {
   question_option: QuestionOption;
   paired_with_option_id: number | null;
   selected_order: number | null;
-  score: number;
   is_correct: boolean;
   created_at: string;
   updated_at: string;
@@ -256,7 +252,6 @@ export interface ApplicationFormResponseQuestionOption {
 export interface CreateApplicationFormResponseQuestionOptionData {
   question_option_id: number;
   is_correct?: boolean;
-  score?: number;
   selected_order?: number | null;
   paired_with_option_id?: number | null;
 }
@@ -267,7 +262,6 @@ export interface CreateApplicationFormResponseQuestionOptionData {
 export interface UpdateApplicationFormResponseQuestionOptionData {
   id: number;
   is_correct?: boolean;
-  score?: number;
   selected_order?: number | null;
   paired_with_option_id?: number | null;
 }

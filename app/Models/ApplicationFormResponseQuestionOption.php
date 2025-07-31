@@ -16,14 +16,12 @@ class ApplicationFormResponseQuestionOption extends Model
     protected $fillable = [
         'application_form_response_question_id',
         'question_option_id',
-        'score',
         'is_correct',
         'selected_order',
         'paired_with_option_id',
     ];
 
     protected $casts = [
-        'score' => 'decimal:2',
         'is_correct' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',

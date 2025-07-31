@@ -24,7 +24,6 @@ export interface Student {
   entry_date: string
   status: StudentStatus
   experience_achieved: number
-  points_store_achieved: number
   points_store: number
   graduation_date: string | null
   created_at: string
@@ -56,7 +55,6 @@ export interface CreateStudent {
   entry_date: string
   status?: StudentStatus
   experience_achieved?: number
-  points_store_achieved?: number
   points_store?: number
   graduation_date?: string | null
 }

@@ -31,11 +31,6 @@ return new class extends Migration
                 ->default(0)
                 ->comment('Experiencia total acumulada');
 
-            $table->decimal('points_store_achieved', 10, 2)
-                ->unsigned()
-                ->default(0)
-                ->comment('Puntos de la tienda acumulados');
-
             $table->decimal('points_store', 10, 2)
                 ->unsigned()
                 ->default(0)

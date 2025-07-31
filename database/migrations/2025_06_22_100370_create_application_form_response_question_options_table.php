@@ -16,10 +16,6 @@ return new class extends Migration
             $table->id()->comment('ID único de la opción de respuesta a la pregunta');
 
             // Datos de evaluación
-            $table->decimal('score', 10, 2)
-                ->default(0)
-                ->comment('Puntaje obtenido por esta opción');
-
             $table->boolean('is_correct')
                 ->default(false)
                 ->comment('Indica si la opción seleccionada es correcta');

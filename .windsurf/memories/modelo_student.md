@@ -44,7 +44,6 @@
   - `entry_date`: date - Fecha de ingreso
   - `status`: enum - Estado actual (active, inactive, etc.)
   - `experience_achieved`: decimal(10,2) - Experiencia acumulada
-  - `points_store_achieved`: decimal(10,2) - Puntos totales ganados
   - `points_store`: decimal(10,2) - Puntos disponibles
   - `graduation_date`: date - Fecha de graduación
   - `timestamps`: created_at, updated_at, deleted_at
@@ -138,7 +137,6 @@ interface Student extends User {
   entry_date: string;
   status: StudentStatus;
   experience_achieved: number;
-  points_store_achieved: number;
   points_store: number;
   graduation_date: string | null;
   created_at: string;
@@ -183,7 +181,6 @@ type CreateStudent = {
   entry_date: string;
   status?: StudentStatus;
   experience_achieved?: number;
-  points_store_achieved?: number;
   points_store?: number;
   graduation_date?: string | null;
 };
@@ -340,7 +337,6 @@ interface Student extends User {
   entry_date: string;
   status: StudentStatus;  // 'active' | 'inactive' | 'suspended' | 'graduated' | 'withdrawn'
   experience_achieved: number;
-  points_store_achieved: number;
   points_store: number;
   graduation_date: string | null;
   created_at: string;
@@ -373,7 +369,6 @@ type CreateStudent = {
   entry_date: string;
   status?: StudentStatus;
   experience_achieved?: number;
-  points_store_achieved?: number;
   points_store?: number;
   graduation_date?: string | null;
 };

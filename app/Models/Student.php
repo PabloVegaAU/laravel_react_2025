@@ -29,7 +29,6 @@ class Student extends Model
         'entry_date',
         'status',
         'experience_achieved',
-        'points_store_achieved',
         'points_store',
         'graduation_date',
     ];
@@ -44,14 +43,12 @@ class Student extends Model
 
     protected $casts = [
         'experience_achieved' => 'decimal:2',
-        'points_store_achieved' => 'decimal:2',
         'points_store' => 'decimal:2',
     ];
 
     protected $attributes = [
         'status' => 'active',
         'experience_achieved' => 0,
-        'points_store_achieved' => 0,
         'points_store' => 0,
     ];
 

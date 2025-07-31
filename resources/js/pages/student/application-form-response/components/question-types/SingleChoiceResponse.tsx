@@ -11,29 +11,20 @@ interface SingleChoiceResponseProps {
 // Componente de pregunta de opción única
 export function SingleChoiceResponse({ question, selectedOptions, onOptionSelect, disabled = false }: SingleChoiceResponseProps) {
   const options = question.application_form_question.question?.options || []
-  const isGraded = question.status !== 'pending'
-
-  // Verificar si la opción es correcta (solo para preguntas calificadas)
-  const isOptionCorrect = (optionId: number): boolean => {
-    if (!isGraded) return false
-    return question.selected_options.some((opt) => opt.question_option_id === optionId && opt.is_correct)
-  }
 
   return (
     <BaseQuestionResponse question={question} selectedOptions={selectedOptions} onOptionSelect={onOptionSelect}>
       <div className='space-y-3'>
         {options.map((option) => {
           const isSelected = selectedOptions.includes(option.id)
-          const isCorrect = isOptionCorrect(option.id)
 
           return (
             <ResponseOptionComponent
               key={option.id}
               option={option}
               isSelected={isSelected}
-              isCorrect={isCorrect}
               onClick={() => onOptionSelect(option.id)}
-              disabled={disabled || isGraded}
+              disabled={disabled}
             />
           )
         })}

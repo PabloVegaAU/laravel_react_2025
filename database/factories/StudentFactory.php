@@ -21,7 +21,6 @@ class StudentFactory extends Factory
             'entry_date' => now()->subMonths(rand(1, 12)),
             'status' => 'active',
             'experience_achieved' => 0,
-            'points_store_achieved' => 0,
             'points_store' => 0,
             'graduation_date' => null,
         ];

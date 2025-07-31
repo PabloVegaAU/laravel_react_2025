@@ -506,7 +506,6 @@ declare namespace App {
     entry_date: string;
     status: 'active' | 'inactive' | 'graduated' | 'withdrawn' | 'suspended';
     experience_achieved: number;
-    points_store_achieved: number;
     points_store: number;
     graduation_date: string | null;
     level: Level;

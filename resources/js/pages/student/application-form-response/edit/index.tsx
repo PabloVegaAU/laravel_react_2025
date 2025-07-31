@@ -22,7 +22,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 export default function ApplicationFormResponseEdit({ application_form_response }: PageProps) {
-  console.log(application_form_response)
   // Transformar los datos de la respuesta inicial en una estructura de diccionario plana.
   const initialResponses = application_form_response.response_questions.reduce(
     (acc, responseQuestion) => {
@@ -277,7 +276,7 @@ export default function ApplicationFormResponseEdit({ application_form_response 
                     <p>
                       Puntaje:{' '}
                       <span className='font-semibold'>
-                        {application_form_response.application_form.score_max} / {Math.round(application_form_response.score || 0)}
+                        {application_form_response.application_form.score_max} / {application_form_response.score}
                       </span>
                     </p>
                   </Badge>

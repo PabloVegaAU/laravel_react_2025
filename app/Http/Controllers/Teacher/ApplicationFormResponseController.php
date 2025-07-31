@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ApplicationFormResponse;
 use App\Models\ApplicationFormResponseQuestion;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ApplicationFormResponseController extends Controller
@@ -114,7 +115,6 @@ class ApplicationFormResponseController extends Controller
                     return array_merge($option->toArray(), [
                         'question_option' => $option->questionOption,
                         'is_correct' => $option->is_correct,
-                        'score' => $option->score,
                     ]);
                 }),
                 'score' => $question->score,
@@ -158,7 +158,6 @@ class ApplicationFormResponseController extends Controller
                     return array_merge($option->toArray(), [
                         'question_option' => $option->questionOption,
                         'is_correct' => $option->is_correct,
-                        'score' => $option->score,
                     ]);
                 }),
                 'score' => $question->score,
@@ -177,29 +176,68 @@ class ApplicationFormResponseController extends Controller
     public function update(Request $request, string $id)
     {
 
-        $data = $request->validate([
+        $validated = $request->validate([
             'response_questions' => 'required|array',
             'response_questions.*.id' => 'required|exists:application_form_response_questions,id',
             'response_questions.*.is_correct' => 'required|boolean',
         ]);
 
-        $applicationFormResponse = ApplicationFormResponse::findOrFail($id);
+        try {
+            DB::beginTransaction();
 
-        // Cambiar estado
-        $applicationFormResponse->update([
-            'status' => 'graded',
-            'graded_at' => now(),
-        ]);
+            $applicationFormResponse = ApplicationFormResponse::with('student')->findOrFail($id);
 
-        foreach ($data['response_questions'] as $question) {
-            ApplicationFormResponseQuestion::where('id', $question['id'])->update([
-                'is_correct' => $question['is_correct'],
+            // Cambiar estado
+            $applicationFormResponse->update([
+                'status' => 'graded',
+                'graded_at' => now(),
             ]);
-        }
 
-        return redirect()
-            ->route('teacher.application-form-responses.index')
-            ->with('success', 'Retroalimentación guardada correctamente');
+            $totalScore = 0;
+
+            foreach ($validated['response_questions'] as $responseQuestion) {
+                $applicationFormResponseQuestion = ApplicationFormResponseQuestion::where('id', $responseQuestion['id'])->firstOrFail();
+                $applicationFormResponseQuestion->update([
+                    'is_correct' => $responseQuestion['is_correct'],
+                ]);
+
+                // Si es correcto
+                if ($responseQuestion['is_correct']) {
+                    // Asignar experiencia y puntos al estudiante
+                    $student = $applicationFormResponse->student;
+                    $student->update([
+                        'experience_achieved' => $student->experience_achieved + $applicationFormResponseQuestion->score,
+                        'points_store' => $student->points_store + $applicationFormResponseQuestion->points_store,
+                    ]);
+                }
+
+                // Si es incorrecto
+                if (! $responseQuestion['is_correct']) {
+                    $applicationFormResponseQuestion->update([
+                        'score' => 0,
+                        'points_store' => 0,
+                    ]);
+                }
+
+                $totalScore += $applicationFormResponseQuestion->score;
+            }
+
+            $applicationFormResponse->update([
+                'score' => $totalScore,
+            ]);
+
+            DB::commit();
+
+            return redirect()
+                ->route('teacher.application-form-responses.index')
+                ->with('success', 'Retroalimentación guardada correctamente');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return redirect()
+                ->route('teacher.application-form-responses.index')
+                ->with('error', 'Error al revisar la respuesta'.$e->getMessage());
+        }
     }
 
     /**
