@@ -20,7 +20,7 @@ export function AppSidebar() {
   const showPeopleSection = peopleNavItems.length > 0
   const showSchoolSection = schoolNavItems.length > 0
   const showApplicationFormsSection = applicationFormsNavItems.length > 0
-  const showStoreSection = storeNavItems.length >= 0
+  const showStoreSection = storeNavItems.length > 0
 
   return (
     <Sidebar collapsible='icon' variant='inset'>
