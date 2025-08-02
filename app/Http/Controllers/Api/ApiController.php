@@ -45,6 +45,47 @@ class ApiController extends Controller
         }
     }
 
+    public function achievementassigntwo(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'p_achievement_id' => 'required|integer',
+            'p_student_ids' => 'required|array',
+            'p_student_ids.*' => 'integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error en la validación de datos',
+                'errors' => $validator->errors(),
+            ], 400);
+        }
+
+        try {
+            $p_achievement_id = (int) $request->input('p_achievement_id');
+            $p_student_ids = $request->input('p_student_ids');
+
+            // Convertir el array a formato PostgreSQL literal: {1,2,3}
+            $studentIdsPgArray = '{'.implode(',', $p_student_ids).'}';
+
+            $results = DB::select('SELECT * FROM public.spu_achievement_assign_two(?, ?)', [
+                $p_achievement_id,
+                $studentIdsPgArray,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => $results,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al asignar logro(s)',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     public function achievementtogglestatus(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [

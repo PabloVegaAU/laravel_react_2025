@@ -2,8 +2,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import AppLayout from '@/layouts/app-layout'
-import { Edit, Gift, Plus, Search, Trash2 } from 'lucide-react'
+
+import { Edit, Plus, Search, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { CreatePrizeModal } from './create-prize-modal'
 import { EditPrizeModal } from './edit-prize-modal'
 
@@ -11,98 +13,109 @@ type Prize = {
   id: number
   name: string
   description: string
-  image: string
-  stock: number
   points_cost: number
-  is_active: boolean
+  stock: number
   available_until: string | null
+  is_active: boolean
+  image: string
+  created_at: string
+  updated_at: string
 }
 
 export default function TeacherPrizesPage() {
-  const [searchTerm, setSearchTerm] = useState('')
+  const [prizes, setPrizes] = useState<Prize[]>([])
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedPrize, setSelectedPrize] = useState<Prize | null>(null)
-  const [prizes, setPrizes] = useState<Prize[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
 
-  // Fetch prizes
-  useEffect(() => {
-    const fetchPrizes = async () => {
-      try {
-        setIsLoading(true)
-        const response = await fetch('/api/prizes')
-        const data = await response.json()
-        if (data.success) {
-          setPrizes(data.data || [])
+  // Función para cargar los premios
+  const fetchPrizes = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch('/teacher/prizes?page=1', {
+        headers: {
+          Accept: 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'Content-Type': 'application/json'
         }
-      } catch (error) {
-        console.error('Error fetching prizes:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
+      })
 
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Error response:', errorText)
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+
+      // Handle different possible response structures
+      if (data.prizes && data.prizes.data) {
+        setPrizes(data.prizes.data)
+      } else if (Array.isArray(data)) {
+        setPrizes(data)
+      } else if (data.data) {
+        setPrizes(data.data)
+      } else {
+        console.warn('Unexpected API response structure:', data)
+        setPrizes([])
+      }
+    } catch (error) {
+      console.error('Error al cargar los premios:', error)
+      toast.error('Error al cargar la lista de premios')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Cargar los premios al montar el componente
+  useEffect(() => {
     fetchPrizes()
   }, [])
 
   const filteredPrizes = prizes.filter(
-    (prize) => prize.name.toLowerCase().includes(searchTerm.toLowerCase()) || prize.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    (prize) =>
+      prize.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      prize.points_cost.toString().includes(searchTerm) ||
+      prize.stock.toString().includes(searchTerm)
   )
 
-  const handleDelete = async (id: number) => {
-    if (confirm('¿Estás seguro de que deseas eliminar este premio?')) {
-      try {
-        const response = await fetch(`/api/prizes/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-            Accept: 'application/json',
-            'Content-Type': 'application/json'
-          }
-        })
-
-        if (response.ok) {
-          setPrizes(prizes.filter((prize) => prize.id !== id))
-        } else {
-          const errorData = await response.json()
-          console.error('Error deleting prize:', errorData)
-          alert('Error al eliminar el premio: ' + (errorData.message || 'Error desconocido'))
-        }
-      } catch (error) {
-        console.error('Error deleting prize:', error)
-        alert('Error al eliminar el premio. Por favor, inténtalo de nuevo.')
-      }
+  const handleDelete = async (prizeId: number) => {
+    if (!confirm('¿Estás seguro de que deseas eliminar este premio?')) {
+      return
     }
-  }
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Sin fecha límite'
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
-  }
+    try {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+      const response = await fetch(`/teacher/prizes/${prizeId}`, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': csrfToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ _method: 'DELETE' })
+      })
 
-  if (isLoading) {
-    return (
-      <AppLayout>
-        <div className='flex h-64 items-center justify-center'>
-          <div className='border-primary h-12 w-12 animate-spin rounded-full border-t-2 border-b-2'></div>
-        </div>
-      </AppLayout>
-    )
+      if (!response.ok) {
+        throw new Error('Error al eliminar el premio')
+      }
+
+      // Recargar la lista completa de premios
+      await fetchPrizes()
+      toast.success('Premio eliminado exitosamente')
+    } catch (error) {
+      console.error('Error deleting prize:', error)
+      toast.error(error instanceof Error ? error.message : 'Error al eliminar el premio')
+    }
   }
 
   return (
     <AppLayout>
       <div className='container mx-auto p-6'>
         <div className='mb-6 flex items-center justify-between'>
-          <div className='flex items-center space-x-2'>
-            <Gift className='text-primary h-8 w-8' />
-            <h1 className='text-2xl font-bold text-gray-800'>Gestión de Premios</h1>
-          </div>
+          <h1 className='text-2xl font-bold text-gray-800'>Gestión de Premios</h1>
           <div className='flex items-center space-x-4'>
             <div className='relative w-64'>
               <Search className='absolute top-2.5 left-2.5 h-4 w-4 text-gray-500' />
@@ -121,51 +134,48 @@ export default function TeacherPrizesPage() {
           </div>
         </div>
 
-        <div className='overflow-hidden rounded-lg border bg-white'>
+        <div className='rounded-lg border bg-white'>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className='w-12'>#</TableHead>
+                <TableHead>Imagen</TableHead>
                 <TableHead>Nombre</TableHead>
-                <TableHead>Descripción</TableHead>
-                <TableHead className='text-center'>Disponible</TableHead>
-                <TableHead className='text-center'>Stock</TableHead>
-                <TableHead className='text-center'>Costo (puntos)</TableHead>
-                <TableHead className='text-center'>Disponible hasta</TableHead>
-                <TableHead className='text-right'>Acciones</TableHead>
+                <TableHead>Puntos</TableHead>
+                <TableHead>Stock</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredPrizes.length > 0 ? (
-                filteredPrizes.map((prize, index) => (
-                  <TableRow key={prize.id}>
-                    <TableCell>{index + 1}</TableCell>
-                    <TableCell className='font-medium'>
-                      <div className='flex items-center space-x-3'>
-                        {prize.image && <img src={`/storage/${prize.image}`} alt={prize.name} className='h-10 w-10 rounded object-cover' />}
-                        <span>{prize.name}</span>
+              {filteredPrizes.map((prize) => (
+                <TableRow key={prize.id}>
+                  <TableCell>
+                    {prize.image ? (
+                      <img
+                        src={prize.image.startsWith('http') ? prize.image : `/storage/${prize.image}`}
+                        alt={prize.name}
+                        className='h-10 w-10 rounded-full object-cover'
+                      />
+                    ) : (
+                      <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gray-200'>
+                        <span className='text-xs text-gray-500'>Sin imagen</span>
                       </div>
-                    </TableCell>
-                    <TableCell className='max-w-xs truncate'>{prize.description || 'Sin descripción'}</TableCell>
-                    <TableCell className='text-center'>
-                      <span
-                        className={`rounded-full px-2 py-1 text-xs ${prize.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
-                      >
-                        {prize.is_active ? 'Activo' : 'Inactivo'}
-                      </span>
-                    </TableCell>
-                    <TableCell className='text-center'>
-                      <span
-                        className={`rounded-full px-2 py-1 text-xs ${prize.stock > 0 ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}
-                      >
-                        {prize.stock}
-                      </span>
-                    </TableCell>
-                    <TableCell className='text-center'>
-                      <span className='font-medium'>{prize.points_cost}</span>
-                    </TableCell>
-                    <TableCell className='text-center text-sm'>{formatDate(prize.available_until)}</TableCell>
-                    <TableCell className='flex justify-end space-x-2'>
+                    )}
+                  </TableCell>
+                  <TableCell className='font-medium'>{prize.name}</TableCell>
+                  <TableCell>{prize.points_cost} pts</TableCell>
+                  <TableCell>{prize.stock} unidades</TableCell>
+                  <TableCell>
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                        prize.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {prize.is_active ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className='flex space-x-2'>
                       <Button
                         variant='ghost'
                         size='icon'
@@ -173,29 +183,23 @@ export default function TeacherPrizesPage() {
                           setSelectedPrize(prize)
                           setIsEditModalOpen(true)
                         }}
+                        title='Editar premio'
                       >
                         <Edit className='h-4 w-4' />
                       </Button>
                       <Button
                         variant='ghost'
                         size='icon'
-                        className='text-red-600 hover:bg-red-50 hover:text-red-800'
                         onClick={() => handleDelete(prize.id)}
+                        className='text-red-600 hover:text-red-800'
+                        title='Eliminar premio'
                       >
                         <Trash2 className='h-4 w-4' />
                       </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={8} className='py-8 text-center text-gray-500'>
-                    {searchTerm
-                      ? 'No se encontraron premios que coincidan con la búsqueda.'
-                      : 'No hay premios registrados. Crea tu primer premio para comenzar.'}
+                    </div>
                   </TableCell>
                 </TableRow>
-              )}
+              ))}
             </TableBody>
           </Table>
         </div>
@@ -204,8 +208,8 @@ export default function TeacherPrizesPage() {
       <CreatePrizeModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={(newPrize) => {
-          setPrizes([newPrize, ...prizes])
+        onSuccess={async () => {
+          await fetchPrizes()
           setIsCreateModalOpen(false)
         }}
       />
@@ -215,13 +219,13 @@ export default function TeacherPrizesPage() {
           isOpen={isEditModalOpen}
           onClose={() => {
             setIsEditModalOpen(false)
-            setSelectedPrize(null)
+            setSelectedPrize(null) // Reset selectedPrize when closing
           }}
           prize={selectedPrize}
-          onSuccess={(updatedPrize) => {
-            setPrizes(prizes.map((prize) => (prize.id === updatedPrize.id ? updatedPrize : prize)))
+          onSuccess={async () => {
+            await fetchPrizes()
             setIsEditModalOpen(false)
-            setSelectedPrize(null)
+            setSelectedPrize(null) // Reset selectedPrize after successful update
           }}
         />
       )}

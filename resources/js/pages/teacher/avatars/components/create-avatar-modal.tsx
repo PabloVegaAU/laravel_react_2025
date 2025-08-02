@@ -2,122 +2,111 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Avatar } from '@/types'
 import { useForm } from '@inertiajs/react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
+type CreateAvatarFormData = {
+  name: string
+  price: number | string
+  is_active: boolean
+  image_url: File | string | null
+  required_level_id: number | null
+  [key: string]: any // Index signature to satisfy Inertia's useForm
+}
+
 type CreateAvatarModalProps = {
   isOpen: boolean
   onClose: () => void
-  onSuccess: (newAvatar: any) => void
+  onSuccess: (avatar: Avatar) => void
 }
 
 export function CreateAvatarModal({ isOpen, onClose, onSuccess }: CreateAvatarModalProps) {
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [levels, setLevels] = useState<{ id: number; level: number }[]>([])
 
-  const { data, setData, errors, reset } = useForm({
+  const { data, setData, errors, reset } = useForm<CreateAvatarFormData>({
     name: '',
-    points_store: '',
-    image: null as File | null,
-    is_active: true
+    price: 0,
+    is_active: true,
+    image_url: null,
+    required_level_id: null
   })
 
   useEffect(() => {
     if (isOpen) {
       reset()
       setPreviewImage(null)
+      // Fetch levels for the dropdown
+      fetch('/api/levels')
+        .then((res) => res.json())
+        .then((data) => setLevels(data.data || []))
+        .catch(console.error)
     }
   }, [isOpen])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      setData('image', file)
+      setData('image_url', file)
       const reader = new FileReader()
       reader.onloadend = () => setPreviewImage(reader.result as string)
       reader.readAsDataURL(file)
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      let imageUrl = ''
-
-      if (data.image) {
-        const imageForm = new FormData()
-        imageForm.append('image', data.image)
-
-        try {
-          const uploadResponse = await fetch('/api/upload', {
-            method: 'POST',
-            headers: {
-              'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: imageForm
-          })
-
-          if (uploadResponse.ok) {
-            const uploadResult = await uploadResponse.json()
-            if (uploadResult.success && uploadResult.url) {
-              imageUrl = uploadResult.url
-            } else {
-              toast.warning('No se pudo obtener la URL de la imagen, se usará vacía.')
-            }
-          } else {
-            toast.warning('No se pudo subir la imagen, se usará vacía.')
-          }
-        } catch (uploadError) {
-          console.warn('Error al intentar subir imagen, se omite:', uploadError)
-          toast.warning('La imagen no se subió, pero el avatar será creado igualmente.')
-        }
+      const formData = new FormData()
+      formData.append('name', data.name)
+      formData.append('price', data.price.toString())
+      formData.append('is_active', data.is_active ? '1' : '0')
+      if (data.required_level_id) {
+        formData.append('required_level_id', data.required_level_id.toString())
       }
-
-      const payload = {
-        p_id: 0,
-        p_name: data.name,
-        p_image_url: imageUrl,
-        p_price: data.points_store,
-        p_is_active: data.is_active
+      if (data.image_url instanceof File) {
+        formData.append('image_url', data.image_url)
       }
 
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-      const response = await fetch('/api/avatargra', {
+      const response = await fetch('/teacher/avatars', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
           'X-Requested-With': 'XMLHttpRequest',
-          'X-CSRF-TOKEN': csrfToken
+          Accept: 'application/json'
         },
-        body: JSON.stringify(payload)
+        body: formData
       })
 
-      const result = await response.json()
+      const responseData = await response.json()
 
-      if (response.ok && result.success) {
-        const resData = result.data[0]
-        toast.success(resData.mensa || 'Avatar creado correctamente')
-
-        onSuccess({
-          id: resData.numid,
-          name: data.name,
-          points_store: parseFloat(data.points_store),
-          image: imageUrl,
-          is_active: data.is_active
-        })
-
-        onClose()
-        reset()
-        setPreviewImage(null)
-      } else {
-        toast.error(result.message || 'Error al crear avatar')
+      if (!response.ok) {
+        if (responseData.errors) {
+          // Show validation errors as toast
+          Object.values(responseData.errors)
+            .flat()
+            .forEach((errorMsg) => {
+              toast.error(String(errorMsg))
+            })
+          return
+        }
+        throw new Error(responseData.message || 'Error creando avatar')
       }
-    } catch (err) {
-      console.error('Error al crear avatar:', err)
-      toast.error('Error del servidor al guardar avatar')
+
+      toast.success('Avatar creado correctamente')
+      onSuccess(responseData.data || responseData.avatar)
+      onClose()
+    } catch (error) {
+      console.error('Error creando avatar:', error)
+      if (error instanceof Error && !error.message.includes('validation')) {
+        toast.error(error.message || 'Error creando avatar')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -130,27 +119,63 @@ export function CreateAvatarModal({ isOpen, onClose, onSuccess }: CreateAvatarMo
           <DialogTitle>Crear Avatar</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className='space-y-4'>
+        <form onSubmit={onSubmit} className='space-y-4'>
           <div className='space-y-2'>
-            <Label htmlFor='name'>Nombre</Label>
+            <Label htmlFor='name'>Nombre *</Label>
             <Input id='name' value={data.name} onChange={(e) => setData('name', e.target.value)} required />
             {errors.name && <p className='text-sm text-red-500'>{errors.name}</p>}
           </div>
 
           <div className='space-y-2'>
-            <Label htmlFor='points_store'>Costo (puntos)</Label>
-            <Input
-              id='points_store'
-              type='number'
-              min='0'
-              value={data.points_store}
-              onChange={(e) => setData('points_store', e.target.value)}
-              required
-            />
-            {errors.points_store && <p className='text-sm text-red-500'>{errors.points_store}</p>}
+            <Label htmlFor='price'>Precio *</Label>
+            <div className='relative mt-1 rounded-md shadow-sm'>
+              <Input
+                id='price'
+                type='number'
+                min='0'
+                step='0.01'
+                value={data.price}
+                onChange={(e) => setData('price', parseFloat(e.target.value) || 0)}
+                className='pl-7'
+                required
+              />
+            </div>
+            {errors.price && <p className='text-sm text-red-500'>{errors.price}</p>}
           </div>
+
+          <div className='space-y-2' style={{ display: 'none' }}>
+            <Label htmlFor='required_level_id'>Nivel requerido</Label>
+            <select
+              id='required_level_id'
+              value={data.required_level_id || ''}
+              onChange={(e) => setData('required_level_id', e.target.value ? parseInt(e.target.value) : null)}
+              className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50'
+            >
+              <option value=''>None (Available to all levels)</option>
+              {levels.map((level) => (
+                <option key={level.id} value={level.id}>
+                  Level {level.level}
+                </option>
+              ))}
+            </select>
+            {errors.required_level_id && <p className='text-sm text-red-500'>{errors.required_level_id}</p>}
+          </div>
+
+          <div className='flex items-center space-x-2'>
+            <input
+              type='checkbox'
+              id='is_active'
+              checked={data.is_active}
+              onChange={(e) => setData('is_active', e.target.checked)}
+              className='h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500'
+            />
+            <Label htmlFor='is_active' className='text-sm font-medium text-gray-700'>
+              Activo
+            </Label>
+          </div>
+
           <div className='space-y-2'>
-            <Label>Imagen</Label>
+            <Label>Imagen del Avatar *</Label>
             <div className='mt-1 flex justify-center rounded-md border-2 border-dashed px-6 pt-5 pb-6'>
               <div className='space-y-1 text-center'>
                 {previewImage ? (
@@ -166,13 +191,16 @@ export function CreateAvatarModal({ isOpen, onClose, onSuccess }: CreateAvatarMo
                   </svg>
                 )}
                 <div className='flex text-sm text-gray-600'>
-                  <label htmlFor='file-upload' className='relative cursor-pointer text-indigo-600 hover:text-indigo-500'>
+                  <Input id='image_url' name='image_url' type='file' accept='image/*' onChange={handleFileChange} className='sr-only' />
+                  <Label
+                    htmlFor='image_url'
+                    className='relative cursor-pointer rounded-md bg-white font-medium text-indigo-600 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:outline-none hover:text-indigo-500'
+                  >
                     <span>Cargar imagen</span>
-                    <input id='file-upload' type='file' className='sr-only' onChange={handleFileChange} accept='image/*' required />
-                  </label>
+                  </Label>
                   <p className='pl-1'>o arrastra y suelta</p>
                 </div>
-                <p className='text-xs text-gray-500'>PNG, JPG, GIF hasta 10MB</p>
+                <p className='text-xs text-gray-500'>PNG, JPG, GIF hasta 2MB</p>
               </div>
             </div>
             {errors.image && <p className='text-sm text-red-500'>{errors.image}</p>}

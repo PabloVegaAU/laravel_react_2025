@@ -5,96 +5,124 @@ namespace App\Http\Controllers\Teacher;
 use App\Http\Controllers\Controller;
 use App\Models\Avatar;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class AvatarController extends Controller
 {
-    /**
-     * Display a listing of the avatars.
-     *
-     * @return \Inertia\Response
-     */
     public function index()
     {
-        $avatars = Avatar::latest()->get();
+        $avatars = Avatar::latest()->paginate(10);
+
+        if (request()->wantsJson()) {
+            return response()->json([
+                'avatars' => $avatars,
+            ]);
+        }
 
         return Inertia::render('teacher/avatars/index', [
             'avatars' => $avatars,
         ]);
     }
 
-    /**
-     * Show the form for creating a new avatar.
-     *
-     * @return \Inertia\Response
-     */
     public function create()
     {
-        return Inertia::render('teacher/avatars/create');
+        return response()->json([]);
     }
 
-    /**
-     * Store a newly created avatar in storage.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
-        // This method is handled by the API controller
-        return redirect()->route('teacher.avatars.index');
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'is_active' => 'required|boolean',
+            'image_url' => 'required|image|max:2048',
+        ]);
+
+        try {
+            $imagePath = $request->file('image_url')->store('avatars', 'public');
+
+            $avatar = Avatar::create([
+                'name' => $validated['name'],
+                'price' => $validated['price'],
+                'is_active' => $validated['is_active'],
+                'image_url' => $imagePath,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Avatar creado exitosamente.',
+                'data' => $avatar,
+            ], 201);
+
+        } catch (\Exception $e) {
+            \Log::error('Error creando avatar: '.$e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al crear el avatar.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
-    /**
-     * Display the specified avatar.
-     *
-     * @param  int  $id
-     * @return \Inertia\Response
-     */
-    public function show($id)
+    public function show(string $id)
     {
         $avatar = Avatar::findOrFail($id);
 
-        return Inertia::render('teacher/avatars/show', [
+        return response()->json([
             'avatar' => $avatar,
         ]);
     }
 
-    /**
-     * Show the form for editing the specified avatar.
-     *
-     * @param  int  $id
-     * @return \Inertia\Response
-     */
-    public function edit($id)
+    public function edit(string $id)
     {
         $avatar = Avatar::findOrFail($id);
 
-        return Inertia::render('teacher/avatars/edit', [
+        return response()->json([
             'avatar' => $avatar,
         ]);
     }
 
-    /**
-     * Update the specified avatar in storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
+    public function update(Request $request, string $id)
     {
-        // This method is handled by the API controller
-        return redirect()->route('teacher.avatars.index');
+        $avatar = Avatar::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'is_active' => 'required|boolean',
+            'image_url' => 'nullable|image|max:2048',
+        ]);
+
+        $updateData = [
+            'name' => $validated['name'],
+            'price' => $validated['price'],
+            'is_active' => $validated['is_active'],
+        ];
+
+        if ($request->hasFile('image_url')) {
+            if ($avatar->image_url) {
+                Storage::disk('public')->delete($avatar->image_url);
+            }
+            $updateData['image_url'] = $request->file('image_url')->store('avatars', 'public');
+        }
+
+        $avatar->update($updateData);
+
+        return redirect()->route('teacher.avatars.index')
+            ->with('success', 'Avatar actualizado exitosamente.');
     }
 
-    /**
-     * Remove the specified avatar from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
+    public function destroy(Avatar $avatar)
     {
-        // This method is handled by the API controller
-        return redirect()->route('teacher.avatars.index');
+        if ($avatar->image_url) {
+            Storage::disk('public')->delete($avatar->image_url);
+        }
+
+        $avatar->delete();
+
+        return redirect()->route('teacher.avatars.index')
+            ->with('success', 'Avatar eliminado exitosamente.');
     }
 }
