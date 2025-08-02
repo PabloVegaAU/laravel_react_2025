@@ -14,7 +14,13 @@ export interface Avatar {
   name: string
 
   /** URL o ruta a la imagen del avatar */
-  image: string
+  image_url: string
+
+  /** Precio en puntos del avatar */
+  price: number
+
+  /** Indica si el avatar está activo */
+  is_active: boolean
 
   /** Nivel requerido para desbloquear este avatar */
   level_required: number
@@ -25,13 +31,14 @@ export interface Avatar {
   /** Fechas de creación y actualización */
   created_at: string
   updated_at: string
+  deleted_at: string | null
 
   // Relaciones
   /** Nivel requerido para desbloquear este avatar */
-  required_level?: Level
+  requiredLevel?: Level
 
   /** Avatares de los estudiantes */
-  student_avatars?: StudentAvatar[]
+  studentAvatars?: StudentAvatar[]
 
   /** Estudiantes que han desbloqueado este avatar */
   students?: Student[]

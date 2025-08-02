@@ -49,6 +49,7 @@ Route::prefix('avatars')->group(function () {
 });
 
 Route::post('achievementassign', [ApiController::class, 'achievementassign']);
+Route::post('achievementassigntwo', [ApiController::class, 'achievementassigntwo']);
 Route::post('achievementtogglestatus', [ApiController::class, 'achievementtogglestatus']);
 Route::post('achievementslist', [ApiController::class, 'achievementslist']);
 Route::post('avatargra', [ApiController::class, 'avatargra']);

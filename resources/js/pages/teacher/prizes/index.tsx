@@ -1,17 +1,8 @@
-import { PrizeManagement } from '@/components/prizes'
-import AppLayout from '@/layouts/app-layout'
-import { Head } from '@inertiajs/react'
+import BackgroundsPage from './components'
 
-export default function TeacherPrizesPage() {
-  return (
-    <AppLayout>
-      <Head title='Gestión de Premios' />
-      <div className='container mx-auto p-4'>
-        <PrizeManagement canManage={true} className='mt-6' />
-      </div>
-    </AppLayout>
-  )
+export default function TeacherBackgroundsPage() {
+  return <BackgroundsPage />
 }
 
 // Add a display name for the component for better debugging
-TeacherPrizesPage.displayName = 'TeacherPrizesPage'
+TeacherBackgroundsPage.displayName = 'TeacherBackgroundsPage'

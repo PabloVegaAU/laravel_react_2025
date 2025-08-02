@@ -1,314 +1,311 @@
 import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
-import { cn } from '@/lib/utils'
-import { format, parseISO } from 'date-fns'
-import { es } from 'date-fns/locale'
-import { CalendarIcon, Loader2 } from 'lucide-react'
+import { useForm } from '@inertiajs/react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+
+type Level = {
+  id: number
+  name: string
+}
+
+type Prize = {
+  id: number
+  name: string
+  description: string
+  points_cost: number
+  stock: number
+  available_until: string | null
+  is_active: boolean
+  image: string
+  created_at: string
+  updated_at: string
+}
 
 type EditPrizeModalProps = {
   isOpen: boolean
   onClose: () => void
-  prize: any
-  onSuccess: (updatedPrize: any) => void
+  prize: Prize | null
+  onSuccess: (updatedPrize: Prize) => void
 }
 
-export function EditPrizeModal({ isOpen, onClose, prize, onSuccess }: EditPrizeModalProps) {
+type PrizeFormData = {
+  name: string
+  description: string
+  points_cost: string
+  stock: string
+  available_until: string
+  is_active: boolean
+  image: File | null
+  _method: 'PUT'
+}
+
+export function EditPrizeModal({ isOpen, onClose, prize: initialPrize, onSuccess }: EditPrizeModalProps) {
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [date, setDate] = useState<Date | undefined>(undefined)
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    stock: '0',
-    points_cost: '0',
-    is_active: true,
-    available_until: '',
-    image: null as File | null
+  const [prize, setPrize] = useState<Prize | null>(initialPrize)
+
+  // Resetear el estado cuando cambia el premio inicial
+  useEffect(() => {
+    setPrize(initialPrize)
+  }, [initialPrize])
+
+  // No renderizar si no hay premio o el modal está cerrado
+  if (!isOpen || !prize) return null
+
+  // Inicializar el formulario con los datos del premio
+  const { data, setData, errors, reset } = useForm<PrizeFormData>({
+    name: prize.name || '',
+    description: prize.description || '',
+    points_cost: prize.points_cost?.toString() || '0',
+    stock: prize.stock?.toString() || '1',
+    available_until: prize.available_until || '',
+    is_active: prize.is_active ?? true,
+    image: null,
+    _method: 'PUT'
   })
 
-  // Initialize form data when prize changes or modal opens
+  // Actualizar el formulario cuando cambia el premio
   useEffect(() => {
     if (prize) {
-      setFormData({
-        name: prize.name || '',
+      setData({
+        name: prize.name,
         description: prize.description || '',
-        stock: prize.stock?.toString() || '0',
-        points_cost: prize.points_cost?.toString() || '0',
-        is_active: prize.is_active ?? true,
+        points_cost: prize.points_cost.toString(),
+        stock: prize.stock.toString(),
         available_until: prize.available_until || '',
-        image: null
+        is_active: prize.is_active,
+        image: null,
+        _method: 'PUT'
       })
 
-      // Set preview image if it exists
-      if (prize.image) {
-        setPreviewImage(`/storage/${prize.image}`)
+      // Asegurarse de que la imagen sea una URL válida y no se intente usar como ID
+      if (prize.image && typeof prize.image === 'string') {
+        if (prize.image.startsWith('http') || prize.image.startsWith('/storage')) {
+          setPreviewImage(prize.image)
+        } else if (!prize.image.includes('.')) {
+          // Si parece un ID de imagen, construye la URL correcta
+          setPreviewImage(`/storage/${prize.image}`)
+        } else {
+          // Si es solo un nombre de archivo, asumir que está en storage
+          setPreviewImage(`/storage/prizes/${prize.image}`)
+        }
       } else {
         setPreviewImage(null)
       }
-
-      // Set date if available
-      if (prize.available_until) {
-        setDate(parseISO(prize.available_until))
-      } else {
-        setDate(undefined)
-      }
     }
-  }, [prize])
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value
-    }))
-  }
+  }, [prize, setData])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      setFormData((prev) => ({
-        ...prev,
-        image: file
-      }))
-
-      // Create preview
+      setData('image', file)
       const reader = new FileReader()
-      reader.onloadend = () => {
-        setPreviewImage(reader.result as string)
-      }
+      reader.onloadend = () => setPreviewImage(reader.result as string)
       reader.readAsDataURL(file)
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!formData.name) {
-      toast.error('El nombre del premio es obligatorio')
+    // Double check prize exists before proceeding
+    if (!prize) {
+      toast.error('No se pudo cargar la información del premio')
+      onClose()
       return
     }
 
     setIsLoading(true)
 
     try {
-      const formDataToSend = new FormData()
-      formDataToSend.append('_method', 'PUT')
-      formDataToSend.append('name', formData.name)
-      formDataToSend.append('description', formData.description)
-      formDataToSend.append('stock', formData.stock)
-      formDataToSend.append('points_cost', formData.points_cost)
-      formDataToSend.append('is_active', formData.is_active ? '1' : '0')
+      const formData = new FormData()
+      formData.append('name', data.name)
+      formData.append('description', data.description)
+      formData.append('points_cost', data.points_cost)
+      formData.append('stock', data.stock)
+      formData.append('available_until', data.available_until)
+      formData.append('is_active', data.is_active ? '1' : '0')
+      formData.append('_method', 'PUT')
 
-      if (date) {
-        formDataToSend.append('available_until', date.toISOString().split('T')[0])
-      } else {
-        formDataToSend.append('available_until', '')
+      if (data.image) {
+        formData.append('image', data.image)
       }
 
-      if (formData.image) {
-        formDataToSend.append('image', formData.image)
-      }
-
-      const response = await fetch(`/api/prizes/${prize.id}`, {
-        method: 'POST', // Using POST with _method=PUT for Laravel
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+      const response = await fetch(`/teacher/prizes/${prize.id}`, {
+        method: 'POST',
         headers: {
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': csrfToken,
           Accept: 'application/json'
         },
-        body: formDataToSend
+        body: formData
       })
 
-      const data = await response.json()
-
-      if (response.ok) {
-        toast.success('Premio actualizado exitosamente')
-        onSuccess(data.data)
-        onClose()
-      } else {
-        console.error('Error updating prize:', data)
-        const errorMessage = data.message || 'Error al actualizar el premio'
-        const errors = data.errors ? Object.values(data.errors).flat().join('\n') : ''
-        toast.error(`${errorMessage}${errors ? '\n' + errors : ''}`)
+      let responseData
+      try {
+        responseData = await response.json()
+      } catch (e) {
+        console.error('Error parsing JSON response:', e)
+        throw new Error('Error al procesar la respuesta del servidor')
       }
+
+      if (!response.ok) {
+        if (responseData.errors) {
+          // Mostrar errores de validación como toast
+          Object.values(responseData.errors)
+            .flat()
+            .forEach((errorMsg) => {
+              toast.error(String(errorMsg))
+            })
+          return
+        }
+        throw new Error(responseData.message || 'Error al actualizar el premio')
+      }
+
+      // El backend devuelve los datos del premio directamente en la respuesta
+      // o dentro de una propiedad 'prize' según el controlador
+      const prizeData = responseData.prize || responseData
+
+      if (!prizeData) {
+        console.error('Datos de premio no encontrados en la respuesta:', responseData)
+        throw new Error('No se recibieron datos del premio actualizado')
+      }
+
+      toast.success('Premio actualizado exitosamente')
+
+      // Construir el objeto de premio actualizado con los datos del servidor
+      // Asegurando que todos los campos requeridos estén presentes
+      const updatedPrize: Prize = {
+        id: prizeData.id || prize?.id || 0,
+        name: prizeData.name || '',
+        description: prizeData.description || '',
+        points_cost: prizeData.points_cost || 0,
+        stock: prizeData.stock || 0,
+        available_until: prizeData.available_until || null,
+        is_active: prizeData.is_active ?? true,
+        // Si hay una nueva imagen en la respuesta, usarla, de lo contrario mantener la existente
+        image: prizeData.image || prize?.image || '',
+        created_at: prizeData.created_at || new Date().toISOString(),
+        updated_at: prizeData.updated_at || new Date().toISOString()
+      }
+
+      onSuccess(updatedPrize)
+      onClose()
     } catch (error) {
       console.error('Error updating prize:', error)
-      toast.error('Error al conectar con el servidor')
+      if (error instanceof Error && !error.message.includes('validation')) {
+        toast.error(error.message || 'Error al actualizar el premio')
+      }
     } finally {
       setIsLoading(false)
     }
   }
 
-  if (!prize) return null
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className='max-h-[90vh] overflow-y-auto sm:max-w-[600px]'>
+      <DialogContent className='sm:max-w-[500px]'>
         <DialogHeader>
           <DialogTitle>Editar Premio</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className='space-y-4'>
-          <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-            <div className='space-y-4'>
-              <div>
-                <Label htmlFor='name'>Nombre del Premio *</Label>
-                <Input
-                  id='name'
-                  name='name'
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  placeholder='Ej: Auriculares inalámbricos'
-                  disabled={isLoading}
-                />
-              </div>
+        <form onSubmit={onSubmit} className='space-y-4'>
+          <div className='space-y-2'>
+            <Label htmlFor='name'>Nombre *</Label>
+            <Input id='name' value={data.name} onChange={(e) => setData('name', e.target.value)} required />
+            {errors.name && <p className='text-sm text-red-500'>{errors.name}</p>}
+          </div>
 
-              <div>
-                <Label htmlFor='description'>Descripción</Label>
-                <Textarea
-                  id='description'
-                  name='description'
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  placeholder='Descripción detallada del premio'
-                  rows={3}
-                  disabled={isLoading}
-                />
-              </div>
+          <div className='space-y-2'>
+            <Label htmlFor='description'>Descripción</Label>
+            <Input id='description' value={data.description} onChange={(e) => setData('description', e.target.value)} />
+            {errors.description && <p className='text-sm text-red-500'>{errors.description}</p>}
+          </div>
 
-              <div className='grid grid-cols-2 gap-4'>
-                <div>
-                  <Label htmlFor='stock'>Stock</Label>
-                  <Input id='stock' name='stock' type='number' min='0' value={formData.stock} onChange={handleInputChange} disabled={isLoading} />
-                </div>
-
-                <div>
-                  <Label htmlFor='points_cost'>Costo en Puntos</Label>
-                  <Input
-                    id='points_cost'
-                    name='points_cost'
-                    type='number'
-                    min='0'
-                    value={formData.points_cost}
-                    onChange={handleInputChange}
-                    disabled={isLoading}
-                  />
-                </div>
-              </div>
-
-              <div className='flex items-center justify-between pt-2'>
-                <Label htmlFor='is_active'>¿Premio activo?</Label>
-                <Switch
-                  id='is_active'
-                  checked={formData.is_active}
-                  onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, is_active: checked }))}
-                  disabled={isLoading}
-                />
-              </div>
-
-              <div>
-                <Label>Disponible hasta</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant='outline'
-                      className={cn('w-full justify-start text-left font-normal', !date && 'text-muted-foreground')}
-                      disabled={isLoading}
-                    >
-                      <CalendarIcon className='mr-2 h-4 w-4' />
-                      {date ? format(date, 'PPP', { locale: es }) : <span>Seleccionar fecha</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className='w-auto p-0' align='start'>
-                    <Calendar mode='single' selected={date} onSelect={setDate} initialFocus locale={es} disabled={(date) => date < new Date()} />
-                  </PopoverContent>
-                </Popover>
-              </div>
+          <div className='grid grid-cols-2 gap-4'>
+            <div className='space-y-2'>
+              <Label htmlFor='points_cost'>Costo en puntos *</Label>
+              <Input
+                id='points_cost'
+                type='number'
+                min='0'
+                value={data.points_cost}
+                onChange={(e) => setData('points_cost', e.target.value)}
+                required
+              />
+              {errors.points_cost && <p className='text-sm text-red-500'>{errors.points_cost}</p>}
             </div>
 
-            <div className='space-y-4'>
-              <div>
-                <Label>Imagen del Premio</Label>
-                <div className='mt-1 flex justify-center rounded-lg border-2 border-dashed px-6 pt-5 pb-6'>
-                  <div className='space-y-1 text-center'>
-                    {previewImage ? (
-                      <div className='relative'>
-                        <img src={previewImage} alt='Vista previa' className='mx-auto h-40 w-auto rounded object-contain' />
-                        <div className='mt-2 flex justify-center space-x-2'>
-                          <Button
-                            type='button'
-                            variant='outline'
-                            size='sm'
-                            onClick={() => {
-                              setPreviewImage(null)
-                              setFormData((prev) => ({ ...prev, image: null }))
-                            }}
-                            disabled={isLoading}
-                          >
-                            Cambiar imagen
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <svg className='mx-auto h-12 w-12 text-gray-400' stroke='currentColor' fill='none' viewBox='0 0 48 48' aria-hidden='true'>
-                          <path
-                            d='M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02'
-                            strokeWidth={2}
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                          />
-                        </svg>
-                        <div className='flex text-sm text-gray-600'>
-                          <label
-                            htmlFor='image-upload'
-                            className='text-primary hover:text-primary/90 relative cursor-pointer rounded-md bg-white font-medium focus-within:outline-none'
-                          >
-                            <span>Subir una imagen</span>
-                            <input
-                              id='image-upload'
-                              name='image-upload'
-                              type='file'
-                              className='sr-only'
-                              accept='image/*'
-                              onChange={handleFileChange}
-                              disabled={isLoading}
-                            />
-                          </label>
-                          <p className='pl-1'>o arrastrar y soltar</p>
-                        </div>
-                        <p className='text-xs text-gray-500'>PNG, JPG, GIF hasta 2MB</p>
-                      </>
-                    )}
-                  </div>
-                </div>
-                {!formData.image && prize.image && (
-                  <p className='mt-1 text-xs text-gray-500'>La imagen actual se mantendrá si no selecciona una nueva.</p>
-                )}
-              </div>
+            <div className='space-y-2'>
+              <Label htmlFor='stock'>Cantidad disponible *</Label>
+              <Input id='stock' type='number' min='0' value={data.stock} onChange={(e) => setData('stock', e.target.value)} required />
+              {errors.stock && <p className='text-sm text-red-500'>{errors.stock}</p>}
             </div>
           </div>
 
-          <DialogFooter className='mt-6'>
+          <div className='space-y-2' style={{ display: 'none' }}>
+            <Label htmlFor='available_until'>Disponible hasta</Label>
+            <Input
+              id='available_until'
+              type='datetime-local'
+              value={data.available_until}
+              onChange={(e) => setData('available_until', e.target.value)}
+            />
+            {errors.available_until && <p className='text-sm text-red-500'>{errors.available_until}</p>}
+          </div>
+
+          <div className='flex items-center space-x-2'>
+            <input
+              type='checkbox'
+              id='is_active'
+              checked={data.is_active}
+              onChange={(e) => setData('is_active', e.target.checked)}
+              className='h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500'
+            />
+            <Label htmlFor='is_active' className='text-sm font-medium text-gray-700'>
+              Activo
+            </Label>
+          </div>
+
+          {/* Imagen */}
+          <div className='space-y-2'>
+            <Label>Imagen</Label>
+            <div className='mt-1 flex justify-center rounded-md border-2 border-dashed px-6 pt-5 pb-6'>
+              <div className='space-y-1 text-center'>
+                {previewImage ? (
+                  <img src={previewImage} alt='Preview' className='h-32 w-full rounded-md object-cover' />
+                ) : (
+                  <svg className='mx-auto h-12 w-12 text-gray-400' stroke='currentColor' fill='none' viewBox='0 0 48 48'>
+                    <path
+                      d='M28 8H12a4 4 0 00-4 4v20m32-12v8v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28l4 4m4-24h8m-4-4v8m-12 4h.02'
+                      strokeWidth={2}
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                    />
+                  </svg>
+                )}
+                <div className='flex text-sm text-gray-600'>
+                  <label htmlFor='file-upload-edit' className='relative cursor-pointer text-indigo-600 hover:text-indigo-500'>
+                    <span>Cambiar imagen</span>
+                    <input id='file-upload-edit' type='file' className='sr-only' onChange={handleFileChange} accept='image/*' />
+                  </label>
+                  <p className='pl-1'>o arrastra y suelta</p>
+                </div>
+                <p className='text-xs text-gray-500'>PNG, JPG, GIF hasta 2MB</p>
+              </div>
+            </div>
+            {errors.image && <p className='text-sm text-red-500'>{errors.image}</p>}
+          </div>
+
+          <DialogFooter>
             <Button type='button' variant='outline' onClick={onClose} disabled={isLoading}>
               Cancelar
             </Button>
-            <Button type='submit' disabled={isLoading || !formData.name}>
-              {isLoading ? (
-                <>
-                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                  Actualizando...
-                </>
-              ) : (
-                'Actualizar Premio'
-              )}
+            <Button type='submit' disabled={isLoading}>
+              {isLoading ? 'Actualizando...' : 'Actualizar'}
             </Button>
           </DialogFooter>
         </form>

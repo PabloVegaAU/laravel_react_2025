@@ -43,14 +43,21 @@ export function AssignAchievementModal({ isOpen, onClose, prizeId }: Props) {
   }
 
   const handleAssign = async () => {
-    for (const studentId of selectedIds) {
-      await axios.post('/api/prizepurchase', {
-        p_student_id: studentId,
-        p_prize_id: prizeId
+    try {
+      const res = await axios.post('/api/achievementassigntwo', {
+        p_achievement_id: prizeId,
+        p_student_ids: selectedIds
       })
+
+      const result = res.data?.data?.[0] || {}
+      const mensaje = result.mensa || 'Logro(s) asignado(s)'
+      alert(`✅ ${mensaje}`)
+
+      onClose()
+    } catch (err) {
+      console.error('❌ Error al asignar logro:', err)
+      alert('❌ Error al asignar logro')
     }
-    alert('✅ Logro asignado correctamente')
-    onClose()
   }
 
   return (
