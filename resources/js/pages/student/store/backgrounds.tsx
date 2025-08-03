@@ -9,7 +9,7 @@ import { toast } from 'sonner'
 const breadcrumbs: BreadcrumbItem[] = [
   {
     title: 'Tienda de Puntos',
-    href: 'student/store'
+    href: '#'
   },
   {
     title: 'Fondos',

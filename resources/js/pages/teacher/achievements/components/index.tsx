@@ -126,7 +126,7 @@ export default function AchievementsListPage() {
 
       <StudentAchievementsModal isOpen={isAchievementsModalOpen} onClose={() => setIsAchievementsModalOpen(false)} studentId={selectedStudentId} />
 
-      <AssignAchievementModal isOpen={assignModalOpen} onClose={() => setAssignModalOpen(false)} prizeId={selectedAchievement} />
+      <AssignAchievementModal isOpen={assignModalOpen} onClose={() => setAssignModalOpen(false)} achievementId={selectedAchievement} />
     </AppLayout>
   )
 }
