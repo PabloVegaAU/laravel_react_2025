@@ -78,6 +78,22 @@ export default function MyObjects() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
   const [achievements, setAchievements] = useState<any[]>([])
   const [renderKey, setRenderKey] = useState(0)
+  const [puntos, setPuntos] = useState<number | null>(null)
+  const [isApplying, setIsApplying] = useState(false)
+
+  const fetchStudentProfile = async (studentId: number) => {
+    try {
+      const response = await axios.post('/api/studentprofile', {
+        p_student_id: studentId
+      })
+      if (response.data.success && response.data.data.length > 0) {
+        setPuntos(response.data.data[0].puntos)
+      }
+    } catch (error) {
+      console.error('Error al cargar el perfil del estudiante:', error)
+      toast.error('Error al cargar los puntos del estudiante')
+    }
+  }
 
   useEffect(() => {
     setRenderKey((prev) => prev + 1)
@@ -93,6 +109,9 @@ export default function MyObjects() {
       const fetchData = async () => {
         const studentId = user?.student_id
         if (!studentId) return
+
+        // Fetch student points
+        await fetchStudentProfile(Number(studentId))
 
         try {
           if (activeTab === 'logros') {
@@ -247,6 +266,74 @@ export default function MyObjects() {
     setIsPreviewOpen(true)
   }
 
+  const handleApplyItem = async (item: Item) => {
+    if (!item || !user?.student_id) {
+      toast.error('Error: No se pudo identificar el usuario o el objeto')
+      return
+    }
+
+    // Get the correct ID based on item type
+    const itemId = item.tipo === 'fondo' ? (item as any).background_id : item.id
+
+    // Check if item has a valid ID
+    if (itemId === undefined || itemId === null) {
+      console.error('Item has no valid ID:', item)
+      toast.error(`Error: No se pudo identificar el ID del ${item.tipo}`)
+      return
+    }
+
+    try {
+      setIsApplying(true)
+      let endpoint = ''
+      let requestData = new URLSearchParams()
+
+      // Always add student_id
+      requestData.append('p_student_id', user.student_id.toString())
+
+      if (item.tipo === 'avatar') {
+        endpoint = '/api/studentavatarapply'
+        requestData.append('p_avatar_id', itemId.toString())
+      } else if (item.tipo === 'fondo') {
+        endpoint = '/api/studentbackgroundapply'
+        requestData.append('p_background_id', itemId.toString())
+      } else {
+        toast.error('Tipo de objeto no soportado')
+        return
+      }
+
+      console.log('Sending request to:', endpoint)
+      console.log('Item:', item)
+      console.log('Request data:', Object.fromEntries(requestData.entries()))
+
+      const response = await axios.post(endpoint, requestData, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      })
+
+      // Handle the response format: { data: [{ mensa: "...", error: 0, numid: 12 }], success: true }
+      const result = response.data?.data?.[0] || response.data?.[0]
+
+      if (result?.error === 0 && result?.mensa) {
+        toast.success(result.mensa)
+        // Update the user's avatar or background in the store
+        useUserStore.getState().setUser({
+          ...user,
+          [item.tipo]: item.image
+        })
+        setIsPreviewOpen(false)
+      } else {
+        throw new Error(result?.mensa || 'Error al aplicar el objeto')
+      }
+    } catch (error: any) {
+      console.error(`Error applying ${item.tipo}:`, error)
+      const errorMessage = error.response?.data?.data?.[0]?.mensa || error.response?.data?.[0]?.mensa || `Error al aplicar el ${item.tipo}`
+      toast.error(errorMessage)
+    } finally {
+      setIsApplying(false)
+    }
+  }
+
   const handleClosePreview = () => {
     setIsPreviewOpen(false)
     setTimeout(() => setSelectedItem(null), 200)
@@ -281,16 +368,9 @@ export default function MyObjects() {
             </div>
             <div className='flex items-center space-x-4'>
               <div className='rounded-lg bg-yellow-100 px-4 py-2'>
-                <span className='font-medium'>Monedas: </span>
-                <span className='font-bold text-yellow-700'>{coins.toLocaleString()}</span>
+                <span className='font-medium'>Tus puntos: </span>
+                <span className='font-bold text-yellow-700'>{puntos !== null ? `${puntos} pts` : '...'}</span>
               </div>
-              <button
-                className='flex items-center space-x-2 rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600'
-                onClick={() => toast.info('Próximamente: Tienda de objetos')}
-              >
-                <span>Tienda</span>
-                <SparklesIcon className='h-4 w-4' />
-              </button>
             </div>
           </div>
 
@@ -344,7 +424,7 @@ export default function MyObjects() {
             <div key={renderKey} className='grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'>
               {getFilteredItems().map((item) => (
                 <div
-                  key={`${item.tipo}-${item.id}`}
+                  key={`${item.tipo}-${item.id || Math.random().toString(36).substr(2, 9)}`}
                   onClick={() => handleItemClick(item)}
                   className='group relative cursor-pointer overflow-hidden rounded-xl bg-white p-3 shadow-sm transition-all hover:shadow-md hover:ring-2 hover:ring-blue-500'
                 >
@@ -378,7 +458,6 @@ export default function MyObjects() {
                   <div className='text-center'>
                     <h3 className='truncate text-sm font-medium text-gray-900'>{item.name}</h3>
                     <p className='mt-1 text-xs text-gray-500'>{getItemTypeLabel(item.tipo)}</p>
-
                     {/* Additional Info */}
                     <div className='mt-2 flex items-center justify-center space-x-2'>
                       {item.precio !== undefined && item.precio > 0 && (
@@ -401,7 +480,7 @@ export default function MyObjects() {
 
           {/* Item Preview Modal */}
           {isPreviewOpen && selectedItem && (
-            <div className='bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black p-4'>
+            <div className='bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black p-4' style={{ backgroundColor: '#00000080' }}>
               <div className='relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl'>
                 <button
                   onClick={handleClosePreview}
@@ -483,14 +562,24 @@ export default function MyObjects() {
                       )}
                     </div>
 
-                    <div className='mt-6'>
+                    <div className='mt-4 flex justify-between space-x-2'>
                       <button
                         type='button'
-                        className='w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none'
                         onClick={handleClosePreview}
+                        className='flex-1 rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none'
                       >
                         Cerrar
                       </button>
+                      {(selectedItem?.tipo === 'avatar' || selectedItem?.tipo === 'fondo') && (
+                        <button
+                          type='button'
+                          onClick={() => handleApplyItem(selectedItem)}
+                          disabled={isApplying}
+                          className='flex-1 rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50'
+                        >
+                          {isApplying ? 'Aplicando...' : `Usar este ${selectedItem.tipo}`}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

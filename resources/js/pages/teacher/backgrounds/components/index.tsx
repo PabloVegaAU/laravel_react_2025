@@ -153,9 +153,30 @@ export default function TeacherBackgroundsPage() {
             setIsEditModalOpen(false)
             setSelectedBackground(null)
           }}
-          background={selectedBackground}
+          background={{
+            ...selectedBackground,
+            level_name: `Nivel ${selectedBackground.level_required}`, // Add level_name
+            level_required: {
+              id: selectedBackground.level_required,
+              level: selectedBackground.level_required,
+              name: `Nivel ${selectedBackground.level_required}`
+            }
+          }}
           onSuccess={(updatedBackground) => {
-            setBackgrounds((prev) => prev.map((bg) => (bg.id === updatedBackground.id ? updatedBackground : bg)))
+            setBackgrounds((prev) =>
+              prev.map((bg) =>
+                bg.id === updatedBackground.id
+                  ? {
+                      ...updatedBackground,
+                      level_required: (() => {
+                        const level = updatedBackground.level_required
+                        return typeof level === 'object' && level !== null ? (level as { level: number }).level : (level as number)
+                      })(),
+                      points_store: Number(updatedBackground.points_store)
+                    }
+                  : bg
+              )
+            )
             setIsEditModalOpen(false)
             setSelectedBackground(null)
           }}

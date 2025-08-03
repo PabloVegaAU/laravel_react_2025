@@ -4,11 +4,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import axios from 'axios'
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 type Props = {
   isOpen: boolean
   onClose: () => void
-  prizeId: number | null
+  achievementId: number | null
 }
 
 type Student = {
@@ -18,7 +19,7 @@ type Student = {
   points_store: string
 }
 
-export function AssignAchievementModal({ isOpen, onClose, prizeId }: Props) {
+export function AssignAchievementModal({ isOpen, onClose, achievementId }: Props) {
   const [students, setStudents] = useState<Student[]>([])
   const [selectedIds, setSelectedIds] = useState<number[]>([])
 
@@ -30,11 +31,14 @@ export function AssignAchievementModal({ isOpen, onClose, prizeId }: Props) {
   }, [isOpen])
 
   const fetchStudents = async () => {
+    if (!achievementId) return
+
     try {
-      const res = await axios.post('/api/getstudentbyuserid', { p_user_id: 0 })
+      const res = await axios.post('/api/getstudentbyuserid', { p_achievement_id: achievementId })
       setStudents(res.data)
     } catch (err) {
       console.error('❌ Error al obtener estudiantes:', err)
+      toast.error('Error al cargar los estudiantes')
     }
   }
 
@@ -45,7 +49,7 @@ export function AssignAchievementModal({ isOpen, onClose, prizeId }: Props) {
   const handleAssign = async () => {
     try {
       const res = await axios.post('/api/achievementassigntwo', {
-        p_achievement_id: prizeId,
+        p_achievement_id: achievementId,
         p_student_ids: selectedIds
       })
 

@@ -81,17 +81,11 @@ export function EditPrizeModal({ isOpen, onClose, prize: initialPrize, onSuccess
         _method: 'PUT'
       })
 
-      // Asegurarse de que la imagen sea una URL válida y no se intente usar como ID
+      // Set preview image if there's an existing image
       if (prize.image && typeof prize.image === 'string') {
-        if (prize.image.startsWith('http') || prize.image.startsWith('/storage')) {
-          setPreviewImage(prize.image)
-        } else if (!prize.image.includes('.')) {
-          // Si parece un ID de imagen, construye la URL correcta
-          setPreviewImage(`/storage/${prize.image}`)
-        } else {
-          // Si es solo un nombre de archivo, asumir que está en storage
-          setPreviewImage(`/storage/prizes/${prize.image}`)
-        }
+        // Ensure the image URL is properly formatted
+        const imageUrl = prize.image.startsWith('http') || prize.image.startsWith('/') ? prize.image : `/storage/${prize.image}`
+        setPreviewImage(imageUrl)
       } else {
         setPreviewImage(null)
       }

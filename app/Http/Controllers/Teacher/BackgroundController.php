@@ -144,7 +144,6 @@ class BackgroundController extends Controller
         ];
 
         if ($request->hasFile('image')) {
-            // Delete old image if exists
             if ($background->image) {
                 Storage::disk('public')->delete($background->image);
             }

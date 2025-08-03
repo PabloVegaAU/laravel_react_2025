@@ -16,7 +16,7 @@ type InertiaUser = {
 const breadcrumbs: BreadcrumbItem[] = [
   {
     title: 'Tienda de Puntos',
-    href: 'student/store'
+    href: '#'
   }
 ]
 
@@ -65,7 +65,12 @@ export default function Dashboard() {
         <div className='text-base'>Tus puntos: {puntos !== null ? `${puntos} pts` : '...'}</div>
       </header>
       <div className='mb-2 flex justify-end px-5'>
-        <button className='rounded-sm bg-orange-300 px-4 py-1 text-sm font-semibold text-black'>MIS OBJETOS</button>
+        <button
+          onClick={() => router.visit('/student/objects')}
+          className='flex items-center space-x-2 rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600'
+        >
+          <span>MIS OBJETOS</span>
+        </button>
       </div>
       <main className='p-5 text-center'>
         <p className='mb-4 text-sm font-semibold'>COMPRAR</p>

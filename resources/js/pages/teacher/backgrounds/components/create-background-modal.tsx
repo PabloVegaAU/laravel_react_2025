@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 type Level = {
   id: number
   name: string
+  level: number
 }
 
 type CreateBackgroundModalProps = {
@@ -29,6 +30,33 @@ export function CreateBackgroundModal({ isOpen, onClose, onSuccess }: CreateBack
     image: null as File | null
   })
 
+  // Fetch levels when modal opens
+  const fetchLevels = async () => {
+    try {
+      const url = '/api/levels'
+      console.log('Fetching levels from:', url)
+      const response = await fetch(url, {
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'include'
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log('Levels API response:', data)
+      setLevels(data.levels || [])
+    } catch (error) {
+      console.error('Error fetching levels:', error)
+      setLevels([]) // Ensure levels is always an array even on error
+    }
+  }
+
   useEffect(() => {
     if (isOpen) {
       fetchLevels()
@@ -37,22 +65,14 @@ export function CreateBackgroundModal({ isOpen, onClose, onSuccess }: CreateBack
     }
   }, [isOpen])
 
-  const fetchLevels = async () => {
-    try {
-      const res = await fetch('/api/levels')
-      const json = await res.json()
-      setLevels(json.levels || [])
-    } catch (err) {
-      console.error('Error al obtener niveles:', err)
-    }
-  }
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
       setData('image', file)
       const reader = new FileReader()
-      reader.onloadend = () => setPreviewImage(reader.result as string)
+      reader.onloadend = () => {
+        setPreviewImage(reader.result as string)
+      }
       reader.readAsDataURL(file)
     }
   }
@@ -63,45 +83,53 @@ export function CreateBackgroundModal({ isOpen, onClose, onSuccess }: CreateBack
 
     try {
       const formData = new FormData()
-      formData.append('p_name', data.name)
-      formData.append('p_level_required', data.level_required)
-      formData.append('p_points_store', data.points_store)
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+
+      // Add CSRF token to form data
+      formData.append('_token', csrfToken)
+      formData.append('name', data.name)
+      formData.append('level_required', data.level_required)
+      formData.append('points_store', data.points_store)
       if (data.image) {
-        formData.append('p_image', data.image)
+        formData.append('image', data.image)
       }
 
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-      const response = await fetch('/api/backgroundgra', {
+      const response = await fetch('/teacher/backgrounds', {
         method: 'POST',
+        body: formData,
         headers: {
           'X-Requested-With': 'XMLHttpRequest',
+          Accept: 'application/json',
           'X-CSRF-TOKEN': csrfToken
         },
-        body: formData
+        credentials: 'include'
       })
 
-      const result = await response.json()
-      if (response.ok && result.success) {
-        const newBackground = result.data[0]
-        toast.success(newBackground.mensa || 'Fondo creado correctamente')
+      const responseData = await response.json()
 
-        onSuccess({
-          id: newBackground.numid,
-          name: data.name,
-          level_required: parseInt(data.level_required),
-          points_store: parseFloat(data.points_store),
-          image: '' // si no lo devuelve puedes dejarlo vacío o predefinido
-        })
+      if (response.ok) {
+        // Show success message
+        toast.success(responseData.message || 'Fondo creado exitosamente')
 
-        onClose()
+        // Reset form and close modal
         reset()
         setPreviewImage(null)
+
+        // Call the onSuccess callback with the new background data
+        if (onSuccess && typeof onSuccess === 'function') {
+          onSuccess(responseData.data)
+        }
+
+        // Close the modal
+        onClose()
       } else {
-        toast.error(result.message || 'Error al crear fondo')
+        // Show error message
+        toast.error(responseData.message || 'Error al crear el fondo')
+        console.error('Error creating background:', responseData)
       }
-    } catch (err) {
-      console.error('Error al crear fondo:', err)
-      toast.error('Error del servidor al guardar fondo')
+    } catch (error) {
+      console.error('Error creating background:', error)
+      toast.error('Error al procesar la solicitud')
     } finally {
       setIsLoading(false)
     }
@@ -134,7 +162,7 @@ export function CreateBackgroundModal({ isOpen, onClose, onSuccess }: CreateBack
                 <option value=''>Seleccionar nivel</option>
                 {levels.map((level) => (
                   <option key={level.id} value={level.id}>
-                    Nivel {level.name}
+                    Nivel {level.level} - {level.name}
                   </option>
                 ))}
               </select>

@@ -2,144 +2,235 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Background, EditModalBackground, Level } from '@/types/background'
 import { useForm } from '@inertiajs/react'
 import { useEffect, useState } from 'react'
-
-type Level = {
-  id: number
-  name: string
-}
-
-type Background = {
-  id: number
-  name: string
-  level_required: number
-  points_store: number
-  image: string
-}
+import { toast } from 'sonner'
 
 type EditBackgroundModalProps = {
   isOpen: boolean
   onClose: () => void
-  background: Background | null
+  background: EditModalBackground
   onSuccess: (updatedBackground: Background) => void
 }
 
-// ...imports
-export function EditBackgroundModal({ isOpen, onClose, background, onSuccess }: EditBackgroundModalProps) {
+export function EditBackgroundModal({ isOpen, onClose, background: initialBackground, onSuccess }: EditBackgroundModalProps) {
   const [levels, setLevels] = useState<Level[]>([])
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  // Local state for the form
+  // Form state type
+  type FormDataState = {
+    name: string
+    level_required: string
+    points_store: string
+    image: string | File | null
+  }
 
-  const { data, setData, errors, reset } = useForm({
-    name: background?.name || '',
-    level_required: background?.level_required.toString() || '',
-    points_store: background?.points_store.toString() || '',
-    image: null as File | null,
-    _method: 'PUT' as const
+  const [formData, setFormData] = useState<FormDataState>({
+    name: initialBackground.name,
+    level_required: initialBackground.level_required.level.toString(),
+    points_store:
+      typeof initialBackground.points_store === 'number' ? initialBackground.points_store.toString() : initialBackground.points_store || '0',
+    image: initialBackground.image || null
   })
 
+  // Reset state when initial background changes
   useEffect(() => {
-    if (background) {
-      setData({
-        name: background.name,
-        level_required: background.level_required.toString(),
-        points_store: background.points_store.toString(),
-        image: null,
-        _method: 'PUT'
-      })
-      setPreviewImage(background.image ? `/storage/${background.image}` : null)
+    setFormData({
+      name: initialBackground.name,
+      level_required: initialBackground.level_required.level.toString(),
+      points_store:
+        typeof initialBackground.points_store === 'number' ? initialBackground.points_store.toString() : initialBackground.points_store || '0',
+      image: initialBackground.image || null
+    })
+
+    // Set preview image if there's an existing image
+    if (initialBackground.image) {
+      // Ensure the image URL is properly formatted
+      const imageUrl =
+        initialBackground.image.startsWith('http') || initialBackground.image.startsWith('/')
+          ? initialBackground.image
+          : `/storage/${initialBackground.image}`
+      setPreviewImage(imageUrl)
+    } else {
+      setPreviewImage(null)
     }
-  }, [background])
+  }, [initialBackground])
 
+  // Don't render if modal is closed
+  if (!isOpen) return null
+
+  // Define form data type
+  type FormData = {
+    name: string
+    level_required: string
+    points_store: string
+    image: File | null
+  }
+
+  // Form state
+  const { errors, reset } = useForm<FormData>()
+
+  const [formState, setFormState] = useState({
+    level_required: initialBackground.level_required,
+    calculated_level: initialBackground.level_required.level.toString()
+  })
+
+  // Update form data when initialBackground changes
   useEffect(() => {
-    if (isOpen) fetchLevels()
-  }, [isOpen])
+    setFormData((prev) => ({
+      ...prev,
+      name: initialBackground.name,
+      level_required: initialBackground.level_required.level.toString(),
+      points_store:
+        typeof initialBackground.points_store === 'number' ? initialBackground.points_store.toString() : initialBackground.points_store || '0',
+      image: initialBackground.image || null
+    }))
+  }, [initialBackground])
 
+  // Log when form data changes
+  useEffect(() => {
+    console.log('Form data updated:', formData)
+  }, [formData])
+
+  // Fetch levels when modal opens
   const fetchLevels = async () => {
     try {
-      const response = await fetch('/api/levels')
+      const url = '/api/levels'
+      console.log('Fetching levels from:', url)
+      const response = await fetch(url, {
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'include'
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
       const data = await response.json()
+      console.log('Levels API response:', data)
       setLevels(data.levels || [])
     } catch (error) {
       console.error('Error fetching levels:', error)
+      setLevels([]) // Ensure levels is always an array even on error
     }
   }
+
+  // Fetch levels when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchLevels()
+    }
+  }, [isOpen])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      setData('image', file)
+      setFormData((prev) => ({
+        ...prev,
+        image: file
+      }))
       const reader = new FileReader()
-      reader.onloadend = () => {
-        setPreviewImage(reader.result as string)
-      }
+      reader.onloadend = () => setPreviewImage(reader.result as string)
       reader.readAsDataURL(file)
     }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!background) return
+
+    // Validate form data
+    if (!formData.name || !formData.points_store) {
+      toast.error('Por favor completa todos los campos requeridos')
+      return
+    }
+
+    // Find the selected level
+    const selectedLevel = levels.find((level) => level.id === parseInt(formData.level_required))
+
+    if (!selectedLevel) {
+      toast.error('Nivel no válido')
+      return
+    }
+
     setIsLoading(true)
 
     try {
-      let uploadedImagePath = background.image
+      const formDataToSend = new FormData()
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
 
-      // Si hay nueva imagen, súbela primero
-      if (data.image) {
-        const imageForm = new FormData()
-        imageForm.append('image', data.image)
+      // Add form data
+      formDataToSend.append('_token', csrfToken)
+      formDataToSend.append('_method', 'PUT')
+      formDataToSend.append('name', formData.name)
+      formDataToSend.append('level_required', selectedLevel.level.toString())
+      formDataToSend.append('points_store', formData.points_store)
 
-        const uploadRes = await fetch('/api/upload-image', {
-          method: 'POST',
-          body: imageForm,
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-          },
-          credentials: 'include'
-        })
-
-        const uploadData = await uploadRes.json()
-        if (uploadRes.ok && uploadData.success && uploadData.path) {
-          uploadedImagePath = uploadData.path
-        } else {
-          throw new Error('Error al subir imagen')
-        }
+      if (formData.image && typeof formData.image !== 'string') {
+        formDataToSend.append('image', formData.image)
       }
 
-      const response = await fetch('/api/backgroundgra', {
+      // Prepare the updated background data for the parent component
+      const updatedBackground: Background = {
+        ...initialBackground,
+        name: formData.name,
+        level_required: selectedLevel.level,
+        level_name: selectedLevel.name,
+        points_store: formData.points_store,
+        image: typeof formData.image === 'string' ? formData.image : initialBackground.image || ''
+      }
+
+      const response = await fetch(`/teacher/backgrounds/${initialBackground.id}`, {
         method: 'POST',
+        body: formDataToSend,
         headers: {
-          'Content-Type': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': csrfToken
         },
-        body: JSON.stringify({
-          p_id: background.id,
-          p_name: data.name,
-          p_image: uploadedImagePath,
-          p_level_required: parseInt(data.level_required),
-          p_points_store: parseFloat(data.points_store)
-        })
+        credentials: 'include'
       })
 
-      const result = await response.json()
+      const responseData = await response.json()
+
       if (response.ok) {
-        onSuccess(result)
+        // Show success message
+        toast.success(responseData.message || 'Fondo actualizado exitosamente')
+        window.location.reload()
+        // Call the onSuccess callback with the updated background data
+        if (onSuccess && typeof onSuccess === 'function') {
+          // Safely access response data with fallbacks to existing background data
+          const updatedData = responseData.data || {}
+          onSuccess({
+            ...initialBackground,
+            ...updatedData,
+            name: updatedData.name || initialBackground.name,
+            points_store: updatedData.points_store || initialBackground.points_store,
+            image: updatedData.image || initialBackground.image,
+            level_required: updatedData.level_required || initialBackground.level_required,
+            updated_at: updatedData.updated_at || new Date().toISOString()
+          })
+        }
+
+        // Close the modal
         onClose()
       } else {
-        console.error('Error updating background:', result)
+        // Show error message
+        toast.error(responseData.message || 'Error al actualizar el fondo')
+        console.error('Error updating background:', responseData)
       }
     } catch (error) {
-      console.error('Error:', error)
+      console.error('Error updating background:', error)
+      toast.error('Error al procesar la solicitud')
     } finally {
       setIsLoading(false)
     }
   }
-
-  if (!background) return null
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -152,7 +243,7 @@ export function EditBackgroundModal({ isOpen, onClose, background, onSuccess }: 
           {/* Nombre */}
           <div className='space-y-2'>
             <Label htmlFor='name'>Nombre</Label>
-            <Input id='name' value={data.name} onChange={(e) => setData('name', e.target.value)} required />
+            <Input id='name' value={formData.name} onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))} required />
             {errors.name && <p className='text-sm text-red-500'>{errors.name}</p>}
           </div>
 
@@ -162,15 +253,17 @@ export function EditBackgroundModal({ isOpen, onClose, background, onSuccess }: 
               <Label htmlFor='level_required'>Nivel Requerido</Label>
               <select
                 id='level_required'
-                value={data.level_required}
-                onChange={(e) => setData('level_required', e.target.value)}
-                className='border-input bg-background ring-offset-background flex h-10 w-full rounded-md border px-3 py-2 text-sm'
+                value={formData.level_required}
+                onChange={(e) => {
+                  setFormData((prev) => ({ ...prev, level_required: e.target.value }))
+                }}
+                className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50'
                 required
               >
                 <option value=''>Seleccionar nivel</option>
                 {levels.map((level) => (
-                  <option key={level.id} value={level.id}>
-                    Nivel {level.name}
+                  <option key={level.id} value={level.id.toString()}>
+                    Nivel {level.level}
                   </option>
                 ))}
               </select>
@@ -182,8 +275,9 @@ export function EditBackgroundModal({ isOpen, onClose, background, onSuccess }: 
                 id='points_store'
                 type='number'
                 min='0'
-                value={data.points_store}
-                onChange={(e) => setData('points_store', e.target.value)}
+                value={formData.points_store}
+                onChange={(e) => setFormData((prev) => ({ ...prev, points_store: e.target.value }))}
+                placeholder='Ej: 50'
                 required
               />
               {errors.points_store && <p className='text-sm text-red-500'>{errors.points_store}</p>}
@@ -192,26 +286,24 @@ export function EditBackgroundModal({ isOpen, onClose, background, onSuccess }: 
 
           {/* Imagen */}
           <div className='space-y-2'>
-            <Label>Imagen</Label>
+            <Label>Imagen del Fondo</Label>
             <div className='mt-1 flex justify-center rounded-md border-2 border-dashed px-6 pt-5 pb-6'>
               <div className='space-y-1 text-center'>
                 {previewImage ? (
                   <img src={previewImage} alt='Preview' className='h-32 w-full rounded-md object-cover' />
                 ) : (
                   <svg className='mx-auto h-12 w-12 text-gray-400' stroke='currentColor' fill='none' viewBox='0 0 48 48'>
-                    <path
-                      d='M28 8H12a4 4 0 00-4 4v20m32-12v8v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28l4 4m4-24h8m-4-4v8m-12 4h.02'
-                      strokeWidth={2}
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                    />
+                    <path d='M28 8H12a4 4 0 00-4 4v20m32-12v8m-4-4h8m-4-4v8m-12 4h.02' strokeWidth={2} strokeLinecap='round' strokeLinejoin='round' />
                   </svg>
                 )}
                 <div className='flex text-sm text-gray-600'>
-                  <label htmlFor='file-upload-edit' className='relative cursor-pointer text-indigo-600 hover:text-indigo-500'>
+                  <Label
+                    htmlFor='image'
+                    className='relative cursor-pointer rounded-md bg-white font-medium text-indigo-600 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 focus-within:outline-none hover:text-indigo-500'
+                  >
+                    <Input id='image' name='image' type='file' accept='image/*' onChange={handleFileChange} className='sr-only' />
                     <span>Cambiar imagen</span>
-                    <input id='file-upload-edit' type='file' className='sr-only' onChange={handleFileChange} accept='image/*' />
-                  </label>
+                  </Label>
                   <p className='pl-1'>o arrastra y suelta</p>
                 </div>
                 <p className='text-xs text-gray-500'>PNG, JPG, GIF hasta 2MB</p>

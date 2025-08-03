@@ -1,3 +1,5 @@
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import AppLayout from '@/layouts/app-layout'
 import { useUserStore } from '@/store/useUserStore'
 import { BreadcrumbItem } from '@/types/core'
@@ -7,7 +9,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 const breadcrumbs: BreadcrumbItem[] = [
-  { title: 'Tienda de Puntos', href: 'student/store' },
+  { title: 'Tienda de Puntos', href: '#' },
   { title: 'Avatares', href: 'student/store/avatars' }
 ]
 
@@ -32,6 +34,8 @@ export default function Dashboard() {
   const { props } = usePage<{ user: InertiaUser }>()
   const [avatars, setAvatars] = useState<Avatar[]>([])
   const [puntos, setPuntos] = useState<number | null>(null)
+  const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(null)
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false)
 
   useEffect(() => {
     setCurrentDashboardRole('/student/store/avatars')
@@ -99,9 +103,57 @@ export default function Dashboard() {
     }
   }
 
+  const handlePreviewClick = (avatar: Avatar) => {
+    setSelectedAvatar(avatar)
+    setIsPreviewOpen(true)
+  }
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title='Tienda de Puntos - Avatares' />
+
+      {/* Preview Modal */}
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className='sm:max-w-[425px]'>
+          <DialogHeader>
+            <DialogTitle>Vista Previa del Avatar</DialogTitle>
+          </DialogHeader>
+          <div className='flex flex-col items-center gap-4 py-4'>
+            <div className='relative h-64 w-64 overflow-hidden rounded-full bg-white shadow-md'>
+              {selectedAvatar?.image ? (
+                <img
+                  src={selectedAvatar.image.startsWith('http') ? selectedAvatar.image : `/storage/${selectedAvatar.image}`}
+                  alt={selectedAvatar.name}
+                  className='h-full w-full object-contain p-4'
+                />
+              ) : (
+                <div className='flex h-full w-full items-center justify-center rounded-full bg-gray-100'>
+                  <span className='text-gray-400'>Sin imagen</span>
+                </div>
+              )}
+            </div>
+            <h3 className='text-xl font-medium'>{selectedAvatar?.name}</h3>
+            <div className='flex items-center gap-2'>
+              <span className='rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-800'>{selectedAvatar?.points_store} pts</span>
+              <span className='rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800'>
+                {selectedAvatar?.adquirido ? 'Adquirido' : 'Disponible'}
+              </span>
+            </div>
+            <Button
+              onClick={() => {
+                if (selectedAvatar) {
+                  handlePurchase(selectedAvatar.avatar_id)
+                }
+                setIsPreviewOpen(false)
+              }}
+              disabled={selectedAvatar?.adquirido}
+              className={`mt-2 w-full ${selectedAvatar?.adquirido ? 'bg-gray-400' : 'bg-green-500 hover:bg-green-600'}`}
+            >
+              {selectedAvatar?.estado_adquisicion}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       <div className='w-full space-y-8 px-4 py-6 sm:px-6 lg:px-8'>
         <div className='mx-auto w-full max-w-7xl space-y-8'>
           {/* Header */}
@@ -118,9 +170,25 @@ export default function Dashboard() {
           {/* Grid de Avatares */}
           <div className='grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'>
             {avatars.map((avatar) => (
-              <div key={avatar.avatar_id} className='rounded-xl bg-white p-3 shadow-sm transition-shadow hover:shadow-md'>
-                <div className='mb-3 flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-gray-100'>
-                  <img src={`/storage/avatars/${avatar.image}`} alt={avatar.name} className='h-full w-full object-contain' />
+              <div
+                key={avatar.avatar_id}
+                className='group relative cursor-pointer rounded-xl bg-white p-3 shadow-sm transition-all hover:shadow-md'
+                onClick={() => handlePreviewClick(avatar)}
+              >
+                <div className='mb-3 flex aspect-square items-center justify-center overflow-hidden rounded-lg bg-white shadow-sm transition-transform duration-300 group-hover:scale-105'>
+                  {avatar.image ? (
+                    <div className='relative h-full w-full'>
+                      <img
+                        src={avatar.image.startsWith('http') ? avatar.image : `/storage/${avatar.image}`}
+                        alt={avatar.name}
+                        className='h-full w-full object-contain p-4 transition-opacity duration-200 group-hover:opacity-90'
+                      />
+                    </div>
+                  ) : (
+                    <div className='flex h-full w-full items-center justify-center bg-gray-100'>
+                      <span className='text-center text-gray-400'>Avatar {avatar.name}</span>
+                    </div>
+                  )}
                 </div>
                 <div className='text-center'>
                   <h3 className='font-medium text-gray-900'>{avatar.name}</h3>
@@ -132,8 +200,11 @@ export default function Dashboard() {
                   </div>
                   <button
                     disabled={avatar.adquirido}
-                    onClick={() => handlePurchase(avatar.avatar_id)}
-                    className={`mt-2 w-full rounded-md py-1 text-sm font-semibold ${
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handlePurchase(avatar.avatar_id)
+                    }}
+                    className={`mt-2 w-full rounded-md py-1 text-sm font-semibold transition-colors ${
                       avatar.adquirido ? 'cursor-not-allowed bg-red-200 text-red-900' : 'bg-green-300 text-green-900 hover:bg-green-400'
                     }`}
                   >

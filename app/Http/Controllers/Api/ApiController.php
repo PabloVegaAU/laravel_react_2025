@@ -137,7 +137,7 @@ class ApiController extends Controller
     public function getstudentbyuserid(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'p_user_id' => 'nullable|integer',
+            'p_achievement_id' => 'nullable|integer',
         ]);
 
         if ($validator->fails()) {
@@ -150,7 +150,7 @@ class ApiController extends Controller
 
         try {
             $result = DB::select('SELECT * FROM public.spu_get_student_by_userid(?)', [
-                $request->p_user_id ?? 0,
+                $request->p_achievement_id ?? 0,
             ]);
 
             return response()->json($result);
