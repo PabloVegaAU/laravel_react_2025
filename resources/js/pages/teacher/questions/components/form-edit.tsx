@@ -174,10 +174,8 @@ export function EditQuestionDialog({
         <PencilIcon className='h-4 w-4' onClick={() => onOpenChange(true)} />
       </DialogTrigger>
       <DialogContent className='sm:max-w-[700px]'>
-        <div className='flex flex-col gap-1'>
-          <DialogTitle>Editar Pregunta</DialogTitle>
-          <DialogDescription>Complete el formulario para edit una nueva pregunta.</DialogDescription>
-        </div>
+        <DialogTitle>Editar Pregunta</DialogTitle>
+        <DialogDescription>Complete el formulario para edit una nueva pregunta.</DialogDescription>
 
         <form onSubmit={handleSubmit} className='flex flex-col gap-6'>
           {/* Selección de área curricular */}

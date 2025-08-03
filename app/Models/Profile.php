@@ -14,7 +14,13 @@ class Profile extends Model
 
     protected $primaryKey = 'user_id';
 
-    public $incrementing = false;
+    protected $fillable = [
+        'first_name',
+        'last_name',
+        'second_last_name',
+        'birth_date',
+        'phone',
+    ];
 
     protected $casts = [
         'birth_date' => 'date',

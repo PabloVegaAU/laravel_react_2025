@@ -40,15 +40,15 @@ export const createNavItems = (permissions: string[] = []) => {
     },
     {
       title: 'Docentes',
-      href: '/admin/docentes',
+      href: '/admin/teachers',
       icon: Users,
-      permission: 'admin.docentes.index'
+      permission: 'admin.teachers.index'
     },
     {
       title: 'Alumnos',
-      href: '/admin/alumnos',
+      href: '/admin/students',
       icon: Users,
-      permission: 'admin.alumnos.index'
+      permission: 'admin.students.index'
     }
   ]
 

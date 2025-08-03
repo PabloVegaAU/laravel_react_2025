@@ -120,10 +120,8 @@ export function CreateQuestionDialog({
         <Button variant='outline-info'>Agregar Pregunta</Button>
       </DialogTrigger>
       <DialogContent className='sm:max-w-[700px]'>
-        <div className='flex flex-col gap-1'>
-          <DialogTitle>Agregar Pregunta</DialogTitle>
-          <DialogDescription>Complete el formulario para agregar una nueva pregunta.</DialogDescription>
-        </div>
+        <DialogTitle>Agregar Pregunta</DialogTitle>
+        <DialogDescription>Complete el formulario para agregar una nueva pregunta.</DialogDescription>
 
         <form onSubmit={handleSubmit} className='flex flex-col gap-6'>
           {/* Selección de área curricular */}

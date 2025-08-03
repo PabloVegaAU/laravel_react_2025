@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\StudentController as AdminStudentController;
+use App\Http\Controllers\Admin\TeacherController as AdminTeacherController;
 use App\Http\Controllers\Student\ApplicationFormResponseController as StudentApplicationFormResponseController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
 use App\Http\Controllers\Student\LearningSessionController as StudentLearningSessionController;
@@ -33,6 +35,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // routes admin
     Route::get('admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+    Route::resource('admin/teachers', AdminTeacherController::class)->names('admin.teachers');
+    Route::resource('admin/students', AdminStudentController::class)->names('admin.students');
 
     // routes teacher
     Route::get('teacher/dashboard', [TeacherDashboardController::class, 'index'])->name('teacher.dashboard');
@@ -46,8 +50,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/list/achievements', [TeacherAchievementController::class, 'getAchievements'])->name('list.achievements');
     });
 
-    Route::resource('teacher/learning-sessions', TeacherLearningSessionController::class)->names('teacher.learning-sessions');
-    Route::put('teacher/learning-sessions/{id}/change-status', [TeacherLearningSessionController::class, 'changeStatus'])->name('teacher.learning-sessions.edit');
+    Route::resource('teacher/learning-sessions', TeacherLearningSessionController::class)->names(names: 'teacher.learning-sessions');
+    Route::put('teacher/learning-sessions/{id}/change-status', [TeacherLearningSessionController::class, 'changeStatus'])->name(name: 'teacher.learning-sessions.edit');
 
     Route::resource('teacher/application-forms', TeacherApplicationFormController::class)->names('teacher.application-forms');
     Route::resource('teacher/questions', TeacherQuestionController::class)->names('teacher.questions');
