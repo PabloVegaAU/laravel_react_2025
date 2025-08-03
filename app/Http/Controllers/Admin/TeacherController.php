@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
 class TeacherController extends Controller
@@ -15,8 +17,8 @@ class TeacherController extends Controller
     public function index()
     {
         $users = User::with(['profile', 'teacher'])
-            ->where('isStudent')
-            ->paginate((10));
+            ->role('teacher')
+            ->paginate(10);
 
         return Inertia::render('admin/teachers/index', [
             'users' => $users,
@@ -36,7 +38,49 @@ class TeacherController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'password' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'firstName' => 'required|string|max:255',
+            'lastName' => 'required|string|max:255',
+            'secondLastName' => 'required|string|max:255',
+            'birthDate' => 'required|date',
+            'phone' => 'required|string|max:255',
+            'entryDate' => 'required|date',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $user = User::create([
+                'name' => $request->name,
+                'password' => Hash::make($request->password),
+                'email' => $request->email,
+            ]);
+
+            $user->assignRole('teacher');
+
+            $user->profile()->create([
+                'first_name' => $request->firstName,
+                'last_name' => $request->lastName,
+                'second_last_name' => $request->secondLastName,
+                'birth_date' => $request->birthDate,
+                'phone' => $request->phone,
+            ]);
+
+            $user->teacher()->create([
+                'status' => 'active',
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('admin.teachers.index')->with('success', 'Docente creado exitosamente');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return redirect()->back()->with('error', 'Error al crear el docente: '.$e->getMessage());
+        }
     }
 
     /**
@@ -52,7 +96,9 @@ class TeacherController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $user = User::with(['profile', 'teacher'])->findOrFail($id);
+
+        return response()->json($user);
     }
 
     /**
@@ -60,7 +106,41 @@ class TeacherController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'password' => 'nullable|string|max:255',
+            'email' => 'required|email|max:255',
+            'firstName' => 'required|string|max:255',
+            'lastName' => 'required|string|max:255',
+            'secondLastName' => 'required|string|max:255',
+            'birthDate' => 'required|date',
+            'phone' => 'required|string|max:255',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $user = User::findOrFail($id);
+            $user->update([
+                'name' => $request->name,
+                'password' => $request->password ? Hash::make($request->password) : $user->password,
+                'email' => $request->email,
+            ]);
+            $user->profile()->update([
+                'first_name' => $request->firstName,
+                'last_name' => $request->lastName,
+                'second_last_name' => $request->secondLastName,
+                'birth_date' => $request->birthDate,
+                'phone' => $request->phone,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route(route: 'admin.teachers.index')->with('success', 'Docente actualizado exitosamente');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return redirect()->back()->with('error', 'Error al actualizar el docente: '.$e->getMessage());
+        }
     }
 
     /**

@@ -5,6 +5,8 @@ import { BreadcrumbItem, PaginatedResponse, ResourcePageProps } from '@/types/co
 import { User } from '@/types/user'
 import { Head } from '@inertiajs/react'
 import { ColumnDef } from '@tanstack/react-table'
+import { CreateTeacherDialog } from './components/form-create'
+import { useState } from 'react'
 
 type PageProps = Omit<ResourcePageProps<User>, 'data'> & {
   users: PaginatedResponse<User>
@@ -18,6 +20,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 export default function Teachers({ users }: PageProps) {
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+
   const columns: ColumnDef<User>[] = [
     {
       header: 'ID',
@@ -40,6 +44,8 @@ export default function Teachers({ users }: PageProps) {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title='Docentes' />
+      <CreateTeacherDialog isOpen={isCreateModalOpen} onOpenChange={setIsCreateModalOpen} />
+
       <div className='flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
         <DataTable columns={columns} data={users} />
       </div>

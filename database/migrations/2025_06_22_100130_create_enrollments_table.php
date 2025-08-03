@@ -40,13 +40,6 @@ return new class extends Migration
                 ->nullable()
                 ->comment('Fecha de finalización de la matrícula');
 
-            // Información adicional
-            $table->string('enrollment_code', 50)
-                ->comment('Código único de matrícula (ej: MAT-2025-001)');
-            $table->text('notes')
-                ->nullable()
-                ->comment('Notas adicionales sobre la matrícula');
-
             // Metadatos
             $table->string('created_by')
                 ->nullable()
@@ -82,7 +75,6 @@ return new class extends Migration
             );
 
             // Restricciones únicas
-            $table->unique('enrollment_code', 'uq_enrollment_code');
             $table->unique(
                 ['student_id', 'classroom_id', 'academic_year'],
                 'uq_enrollment_student_classroom_year'

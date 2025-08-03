@@ -19,7 +19,6 @@ class Enrollment extends Model
         'enrollment_date',
         'start_date',
         'end_date',
-        'enrollment_code',
         'notes',
         'created_by',
         'updated_by',

@@ -24,7 +24,6 @@ export interface Enrollment {
   enrollment_date: string
   start_date: string | null
   end_date: string | null
-  enrollment_code: string
   notes: string | null
   student_id: number
   classroom_id: number

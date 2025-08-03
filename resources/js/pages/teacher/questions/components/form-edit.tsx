@@ -158,6 +158,7 @@ export function EditQuestionDialog({
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     post(route('teacher.questions.update', id), {
+      forceFormData: true,
       preserveScroll: true,
       preserveState: true,
       onSuccess: () => {

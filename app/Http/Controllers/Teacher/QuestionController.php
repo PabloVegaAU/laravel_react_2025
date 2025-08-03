@@ -181,7 +181,6 @@ class QuestionController extends Controller
                 'explanation_required' => $validated['explanation_required'] ?? false,
                 'image' => null, // Se actualizará después si hay imagen
             ]);
-
             // Procesar la imagen después de crear la pregunta para tener el ID
             if (isset($validated['image']) && $validated['image']) {
                 $date = now()->format('Y-m-d');
@@ -252,14 +251,19 @@ class QuestionController extends Controller
             'options.*.pair_side' => 'sometimes|in:left,right|nullable',
             'options.*.score' => 'sometimes|numeric|min:0',
             'explanation_required' => 'sometimes|boolean',
-            'image' => ['nullable', 'string_or_image:jpeg,png,jpg,webp', 'max:2048'],
         ]);
+
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            // Si es imagen validar que mimet type sea imagen
+            $request->validate([
+                'image' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
+            ]);
+        }
 
         DB::beginTransaction();
 
         try {
             $question = Question::findOrFail($id);
-
             // Verificar que el usuario es el propietario de la pregunta
             if ($question->teacher_id !== Auth::id()) {
                 throw new \Exception('No estás autorizado para actualizar esta pregunta.');
