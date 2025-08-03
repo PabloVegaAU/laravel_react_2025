@@ -53,11 +53,11 @@ export function CreateTeacherDialog({ isOpen, onOpenChange }: CreateTeacherDialo
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button variant='outline-info'>Agregar estudiante</Button>
+        <Button variant='outline-info'>Agregar docente</Button>
       </DialogTrigger>
       <DialogContent className='sm:max-w-[700px]'>
-        <DialogTitle>Agregar Pregunta</DialogTitle>
-        <DialogDescription>Complete el formulario para agregar una nueva pregunta.</DialogDescription>
+        <DialogTitle>Agregar docente</DialogTitle>
+        <DialogDescription>Complete el formulario para agregar un nuevo docente.</DialogDescription>
 
         <form onSubmit={handleSubmit} className='flex flex-col gap-6'>
           {/* USUARIO */}

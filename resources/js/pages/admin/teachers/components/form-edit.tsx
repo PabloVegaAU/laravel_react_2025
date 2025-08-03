@@ -9,7 +9,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { LoaderCircle, PencilIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-type EditStudent = {
+type EditTeacher = {
   /* USER */
   name: string
   password: string
@@ -23,11 +23,11 @@ type EditStudent = {
   /* TEACHER */
 }
 
-interface EditStudentDialogProps {
+interface EditTeacherDialogProps {
   userId: number
 }
 
-export function EditStudentDialog({ userId }: EditStudentDialogProps) {
+export function EditTeacherDialog({ userId }: EditTeacherDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
   const queryClient = useQueryClient()
 
@@ -37,7 +37,7 @@ export function EditStudentDialog({ userId }: EditStudentDialogProps) {
     enabled: isOpen
   })
 
-  const { data, setData, put, processing, errors, reset } = useForm<EditStudent>({
+  const { data, setData, put, processing, errors, reset } = useForm<EditTeacher>({
     name: user?.name ?? '',
     password: '',
     email: user?.email ?? '',
@@ -45,7 +45,7 @@ export function EditStudentDialog({ userId }: EditStudentDialogProps) {
     lastName: user?.profile?.last_name ?? '',
     secondLastName: user?.profile?.second_last_name ?? '',
     birthDate: formatDateForInput(user?.profile?.birth_date) ?? '',
-    phone: user?.profile?.phone ?? '',
+    phone: user?.profile?.phone ?? ''
   })
 
   useEffect(() => {
@@ -63,7 +63,7 @@ export function EditStudentDialog({ userId }: EditStudentDialogProps) {
         lastName: user.profile?.last_name ?? '',
         secondLastName: user.profile?.second_last_name ?? '',
         birthDate: formatDateForInput(user.profile?.birth_date) ?? '',
-        phone: user.profile?.phone ?? '',
+        phone: user.profile?.phone ?? ''
       })
     }
   }, [user])
@@ -98,8 +98,8 @@ export function EditStudentDialog({ userId }: EditStudentDialogProps) {
 
       {user && isOpen && !isLoading && (
         <DialogContent className='sm:max-w-[700px]'>
-          <DialogTitle>Editar estudiante</DialogTitle>
-          <DialogDescription>Complete el formulario para editar un estudiante.</DialogDescription>
+          <DialogTitle>Editar docente</DialogTitle>
+          <DialogDescription>Complete el formulario para editar un docente.</DialogDescription>
           <form onSubmit={handleSubmit} className='flex flex-col gap-6'>
             {/* USER */}
             <div className='grid grid-cols-2 gap-2'>
@@ -158,7 +158,7 @@ export function EditStudentDialog({ userId }: EditStudentDialogProps) {
                 <Input id='phone' name='phone' type='text' value={data.phone} onChange={(e) => setData('phone', e.target.value)} />
                 <InputError message={errors.phone} />
               </div>
-            </div>  
+            </div>
 
             {/* SUBMIT */}
             <Button type='submit' className='mt-2 w-full' disabled={processing}>

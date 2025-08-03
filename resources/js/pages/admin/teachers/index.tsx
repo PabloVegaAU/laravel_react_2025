@@ -5,8 +5,9 @@ import { BreadcrumbItem, PaginatedResponse, ResourcePageProps } from '@/types/co
 import { User } from '@/types/user'
 import { Head } from '@inertiajs/react'
 import { ColumnDef } from '@tanstack/react-table'
-import { CreateTeacherDialog } from './components/form-create'
 import { useState } from 'react'
+import { CreateTeacherDialog } from './components/form-create'
+import { EditTeacherDialog } from './components/form-edit'
 
 type PageProps = Omit<ResourcePageProps<User>, 'data'> & {
   users: PaginatedResponse<User>
@@ -37,6 +38,18 @@ export default function Teachers({ users }: PageProps) {
       cell(row) {
         const profile = row.cell.getValue() as Profile
         return profile.first_name + ' ' + profile.last_name + ' ' + profile.second_last_name
+      }
+    },
+    {
+      header: 'Acciones',
+      accessorKey: 'id',
+      cell(row) {
+        const userId = row.cell.getValue() as number
+        return (
+          <div className='flex gap-2'>
+            <EditTeacherDialog userId={userId} />
+          </div>
+        )
       }
     }
   ]

@@ -33,12 +33,6 @@ export const createNavItems = (permissions: string[] = []) => {
 
   const peopleNavItems: NavItem[] = [
     {
-      title: 'Usuarios',
-      href: '/admin/users',
-      icon: Users,
-      permission: 'admin.users.index'
-    },
-    {
       title: 'Docentes',
       href: '/admin/teachers',
       icon: Users,

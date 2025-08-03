@@ -29,7 +29,6 @@ class ApplicationFormResponseQuestionOption extends Model
     ];
 
     protected $attributes = [
-        'score' => 0.00,
         'is_correct' => false,
     ];
 

@@ -68,7 +68,6 @@ class ApplicationFormResponseController extends Controller
                     return array_merge($option->toArray(), [
                         'question_option' => $option->questionOption,
                         'is_correct' => $option->is_correct,
-                        'score' => $option->score,
                     ]);
                 }),
                 'score' => $question->score]);

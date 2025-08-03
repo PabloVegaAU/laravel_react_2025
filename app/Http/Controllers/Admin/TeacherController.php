@@ -47,7 +47,6 @@ class TeacherController extends Controller
             'secondLastName' => 'required|string|max:255',
             'birthDate' => 'required|date',
             'phone' => 'required|string|max:255',
-            'entryDate' => 'required|date',
         ]);
 
         DB::beginTransaction();
