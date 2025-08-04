@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\ClassroomController as AdminClassroomController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\EnrollmentController as AdminEnrollmentController;
 use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 use App\Http\Controllers\Admin\TeacherController as AdminTeacherController;
 use App\Http\Controllers\Student\ApplicationFormResponseController as StudentApplicationFormResponseController;
@@ -38,6 +40,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('admin/teachers', AdminTeacherController::class)->names('admin.teachers');
     Route::get('admin/teachers/classroom-curricular-area-cycles/{id}', [AdminTeacherController::class, 'classroomCurricularAreaCycles'])->name('admin.teachers.classroom-curricular-area-cycles');
     Route::resource('admin/students', AdminStudentController::class)->names('admin.students');
+    Route::resource('admin/enrollments', AdminEnrollmentController::class)->names('admin.enrollments');
+    Route::get('admin/students-to-enrollments', [AdminStudentController::class, 'studentToEnrollments'])->name('admin.students-to-enrollments');
+    Route::get('admin/get-classrooms', [AdminClassroomController::class, 'getClassrooms'])->name('admin.classrooms');
 
     // routes teacher
     Route::get('teacher/dashboard', [TeacherDashboardController::class, 'index'])->name('teacher.dashboard');

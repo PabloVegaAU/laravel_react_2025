@@ -43,6 +43,12 @@ export const createNavItems = (permissions: string[] = []) => {
       href: '/admin/students',
       icon: Users,
       permission: 'admin.students.index'
+    },
+    {
+      title: 'Matriculas',
+      href: '/admin/enrollments',
+      icon: Users,
+      permission: 'admin.enrollments.index'
     }
   ]
 

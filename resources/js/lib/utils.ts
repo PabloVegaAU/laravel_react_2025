@@ -57,3 +57,6 @@ export const getNestedError = (errors: NestedErrors, path: string): string | und
   // 4. Último intento de devolver el valor si es un string
   return typeof current === 'string' ? current : undefined
 }
+
+// Función de utilidad para búsqueda insensible a mayúsculas
+export const normalizeString = (str: string) => str?.toLowerCase() || ''

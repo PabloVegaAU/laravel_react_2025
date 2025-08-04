@@ -33,20 +33,8 @@ return new class extends Migration
             $table->date('enrollment_date')
                 ->useCurrent()
                 ->comment('Fecha en que se realizó la matrícula');
-            $table->date('start_date')
-                ->nullable()
-                ->comment('Fecha de inicio de clases para esta matrícula');
-            $table->date('end_date')
-                ->nullable()
-                ->comment('Fecha de finalización de la matrícula');
 
             // Metadatos
-            $table->string('created_by')
-                ->nullable()
-                ->comment('Usuario que realizó el registro');
-            $table->string('updated_by')
-                ->nullable()
-                ->comment('Usuario que actualizó por última vez');
             $table->timestamps();
             $table->softDeletes();
 
@@ -68,10 +56,6 @@ return new class extends Migration
             $table->index(
                 ['student_id', 'academic_year', 'status'],
                 'idx_enrollment_student_year_status'
-            );
-            $table->index(
-                ['start_date', 'end_date'],
-                'idx_enrollment_date_range'
             );
 
             // Restricciones únicas

@@ -1,3 +1,4 @@
+import { Profile } from '@/types/auth'
 import { Classroom } from '../../academic/classroom'
 import { Enrollment } from '../../academic/enrollment'
 import { Level } from '../../academic/level'
@@ -42,6 +43,7 @@ export interface Student {
   levelHistory?: StudentLevelHistory[]
   storeRewards?: StudentStoreReward[]
   applicationFormResponses?: ApplicationFormResponse[]
+  profile?: Profile
 }
 
 /**

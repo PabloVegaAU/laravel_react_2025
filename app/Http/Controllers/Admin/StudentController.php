@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Student;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +24,14 @@ class StudentController extends Controller
         return Inertia::render('admin/students/index', [
             'users' => $users,
         ]);
+    }
+
+    public function studentToEnrollments()
+    {
+        $students = Student::with(['profile'])
+            ->get();
+
+        return response()->json($students);
     }
 
     /**
