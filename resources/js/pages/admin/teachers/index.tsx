@@ -6,6 +6,7 @@ import { User } from '@/types/user'
 import { Head } from '@inertiajs/react'
 import { ColumnDef } from '@tanstack/react-table'
 import { useState } from 'react'
+import { ClassroomCurricularAreasDialog } from './components/classroom-curricular-areas'
 import { CreateTeacherDialog } from './components/form-create'
 import { EditTeacherDialog } from './components/form-edit'
 
@@ -48,6 +49,7 @@ export default function Teachers({ users }: PageProps) {
         return (
           <div className='flex gap-2'>
             <EditTeacherDialog userId={userId} />
+            <ClassroomCurricularAreasDialog userId={userId} />
           </div>
         )
       }
@@ -57,9 +59,9 @@ export default function Teachers({ users }: PageProps) {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title='Docentes' />
-      <CreateTeacherDialog isOpen={isCreateModalOpen} onOpenChange={setIsCreateModalOpen} />
-
       <div className='flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
+        <CreateTeacherDialog isOpen={isCreateModalOpen} onOpenChange={setIsCreateModalOpen} />
+
         <DataTable columns={columns} data={users} />
       </div>
     </AppLayout>

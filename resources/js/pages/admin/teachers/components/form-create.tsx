@@ -52,8 +52,8 @@ export function CreateTeacherDialog({ isOpen, onOpenChange }: CreateTeacherDialo
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <Button variant='outline-info'>Agregar docente</Button>
+      <DialogTrigger asChild className='w-fit'>
+        <Button variant={isOpen ? 'info' : 'outline-info'}>Agregar docente</Button>
       </DialogTrigger>
       <DialogContent className='sm:max-w-[700px]'>
         <DialogTitle>Agregar docente</DialogTitle>

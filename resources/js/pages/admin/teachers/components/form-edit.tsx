@@ -90,8 +90,8 @@ export function EditTeacherDialog({ userId }: EditTeacherDialogProps) {
         setIsOpen(open)
       }}
     >
-      <DialogTrigger asChild>
-        <Button variant='outline-info'>
+      <DialogTrigger>
+        <Button variant={isOpen ? 'info' : 'outline-info'}>
           <PencilIcon className='size-4' />
         </Button>
       </DialogTrigger>

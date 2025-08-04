@@ -36,6 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // routes admin
     Route::get('admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
     Route::resource('admin/teachers', AdminTeacherController::class)->names('admin.teachers');
+    Route::get('admin/teachers/classroom-curricular-area-cycles/{id}', [AdminTeacherController::class, 'classroomCurricularAreaCycles'])->name('admin.teachers.classroom-curricular-area-cycles');
     Route::resource('admin/students', AdminStudentController::class)->names('admin.students');
 
     // routes teacher

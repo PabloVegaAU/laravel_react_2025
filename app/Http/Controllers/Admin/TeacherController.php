@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\TeacherClassroomCurricularAreaCycle;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +24,23 @@ class TeacherController extends Controller
         return Inertia::render('admin/teachers/index', [
             'users' => $users,
         ]);
+    }
+
+    public function classroomCurricularAreaCycles($id)
+    {
+        $teacherClassroomCurricularAreaCycles = TeacherClassroomCurricularAreaCycle::with(
+            [
+                'classroom',
+                'curricularAreaCycle',
+                'curricularAreaCycle.curricularArea',
+                'curricularAreaCycle.cycle',
+            ]
+        )
+            ->where('teacher_id', $id)
+            ->where('academic_year', date('Y'))
+            ->get();
+
+        return response()->json($teacherClassroomCurricularAreaCycles);
     }
 
     /**
