@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } 
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 import { useTranslations } from '@/lib/translator'
 import { Capability, Competency } from '@/types/academic'
 import { CurricularArea } from '@/types/academic/curricular-area'
@@ -174,7 +175,7 @@ export function EditQuestionDialog({
       <DialogTrigger asChild>
         <PencilIcon className='h-4 w-4' onClick={() => onOpenChange(true)} />
       </DialogTrigger>
-      <DialogContent className='sm:max-w-[700px]'>
+      <DialogContent className='max-h-[100vh] overflow-scroll sm:max-w-[700px]'>
         <DialogTitle>Editar Pregunta</DialogTitle>
         <DialogDescription>Complete el formulario para edit una nueva pregunta.</DialogDescription>
 
@@ -340,7 +341,7 @@ export function EditQuestionDialog({
 
           {/* Nombre */}
           <div className='flex flex-col gap-2'>
-            <Label htmlFor='name'>Nombre *</Label>
+            <Label htmlFor='name'>Título</Label>
             <Input id='name' name='name' type='text' value={data.name} onChange={(e) => setData('name', e.target.value)} required />
             <InputError message={errors.name} />
           </div>
@@ -348,13 +349,7 @@ export function EditQuestionDialog({
           {/* Descripción */}
           <div className='flex flex-col gap-2'>
             <Label htmlFor='description'>Descripción</Label>
-            <Input
-              id='description'
-              name='description'
-              type='text'
-              value={data.description}
-              onChange={(e) => setData('description', e.target.value)}
-            />
+            <Textarea id='description' name='description' value={data.description} onChange={(e) => setData('description', e.target.value)} />
             <InputError message={errors.description} />
           </div>
 

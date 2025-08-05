@@ -3,6 +3,7 @@ import FlashMessages from '@/components/organisms/flash-messages'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import AppLayout from '@/layouts/app-layout'
 import { cn, getNestedError } from '@/lib/utils'
 import { ApplicationFormResponse, ResponseAnswer } from '@/types/application-form'
@@ -14,6 +15,12 @@ type PageProps = {
   application_form_response: ApplicationFormResponse
 }
 
+// La estructura de datos para el formulario, usando un diccionario para las respuestas.
+type TFormData = {
+  responses: Record<number, ResponseAnswer> // Usamos number como clave para acceder por questionId
+  [key: string]: any
+}
+
 const breadcrumbs: BreadcrumbItem[] = [
   {
     title: 'Fichas de aplicación respuesta',
@@ -22,6 +29,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 export default function ApplicationFormResponseEdit({ application_form_response }: PageProps) {
+  console.log(application_form_response)
   // Transformar los datos de la respuesta inicial en una estructura de diccionario plana.
   const initialResponses = application_form_response.response_questions.reduce(
     (acc, responseQuestion) => {
@@ -84,12 +92,6 @@ export default function ApplicationFormResponseEdit({ application_form_response 
     },
     {} as Record<string, ResponseAnswer>
   )
-
-  // La estructura de datos para el formulario, usando un diccionario para las respuestas.
-  type TFormData = {
-    responses: Record<number, ResponseAnswer> // Usamos number como clave para acceder por questionId
-    [key: string]: any
-  }
 
   // Asegurarnos de que el tipo de responses sea correcto
   const { data, setData, put, errors, processing } = useForm<TFormData>({
@@ -213,6 +215,15 @@ export default function ApplicationFormResponseEdit({ application_form_response 
     })
   }
 
+  /**
+   * Maneja el cambio de la explicación para preguntas de respuesta abierta.
+   */
+  const handleExplanationChange = (application_form_question_id: number, explanation: string) => {
+    updateResponse(application_form_question_id, {
+      explanation
+    })
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -327,6 +338,16 @@ export default function ApplicationFormResponseEdit({ application_form_response 
                             }
                             disabled={disabled}
                           />
+                          {/* Explanation */}
+                          {responseQuestion.application_form_question.question.explanation_required && (
+                            <Input
+                              type='text'
+                              name={`responses.${responseQuestion.application_form_question_id}.explanation`}
+                              value={data.responses[responseQuestion.application_form_question_id].explanation || ''}
+                              onChange={(e) => handleExplanationChange(responseQuestion.application_form_question_id, e.target.value)}
+                              disabled={disabled}
+                            />
+                          )}
                           <InputError
                             message={getNestedError(errors, `responses.${responseQuestion.application_form_question_id}.selected_options`)}
                             className='mt-2'

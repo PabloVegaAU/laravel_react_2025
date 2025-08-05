@@ -40,24 +40,37 @@ class ApplicationFormResponseController extends Controller
      */
     public function show(int $id)
     {
+        // Primero obtenemos la respuesta del formulario con las relaciones básicas
         $applicationFormResponse = ApplicationFormResponse::with([
             'applicationForm',
-            'responseQuestions' => function ($query) {
-                $query->with([
-                    'applicationFormQuestion',
-                    'applicationFormQuestion.question' => function ($query) {
-                        $query->with(['questionType', 'options']);
-                    },
-                    'selectedOptions' => function ($query) {
-                        $query->with('questionOption');
-                    },
-                    'questionOption', // For direct question option relationship
-                ]);
-            },
+            'responseQuestions.applicationFormQuestion',
+            'responseQuestions.selectedOptions.questionOption',
         ])
-            ->where('student_id', auth()->id())
             ->where('id', $id)
+            ->where('student_id', auth()->id())
             ->firstOrFail();
+
+        // Cargamos las preguntas con sus relaciones y las ordenamos
+        $applicationFormResponse->load([
+            'responseQuestions' => function ($query) {
+                $query->select('application_form_response_questions.*')
+                    ->join('application_form_questions as afq', 'afq.id', '=', 'application_form_response_questions.application_form_question_id')
+                    ->orderBy('afq.order', 'asc')
+                    ->with([
+                        'applicationFormQuestion' => function ($query) {
+                            $query->with([
+                                'question' => function ($query) {
+                                    $query->with([
+                                        'questionType',
+                                        'options',
+                                    ]);
+                                },
+                            ]);
+                        },
+                        'selectedOptions.questionOption',
+                    ]);
+            },
+        ]);
 
         // Transformar la respuesta para que coincida con las expectativas del frontend
         $formattedResponse = $applicationFormResponse->toArray();
@@ -83,43 +96,47 @@ class ApplicationFormResponseController extends Controller
      */
     public function edit(int $id)
     {
+        // Primero obtenemos la respuesta del formulario con las relaciones básicas
         $applicationFormResponse = ApplicationFormResponse::with([
-            // Cargar el formulario base
             'applicationForm',
-            // Cargar las respuestas a las preguntas
-            'responseQuestions' => function ($query) {
-                $query->with([
-                    // Para cada respuesta, cargar la pregunta del formulario asociada
-                    'applicationFormQuestion' => function ($query) {
-                        $query->with([
-                            // Y para esa pregunta del formulario, cargar la pregunta base con sus opciones
-                            'question' => function ($query) {
-                                $query->orderBy('id', 'desc')->with([
-                                    'questionType',
-                                    // Incluir opciones incluso si están eliminadas temporalmente
-                                    'options',
-                                ]);
-                            },
-                        ]);
-                    },
-                    // Cargar las opciones que el estudiante seleccionó y la información completa de la opción original
-                    'selectedOptions.questionOption',
-                ]);
-            },
+            'responseQuestions.applicationFormQuestion',
+            'responseQuestions.selectedOptions.questionOption',
         ])
             ->where('id', $id)
             ->where('student_id', auth()->id())
             ->firstOrFail();
 
+        // Cargamos las preguntas con sus relaciones y las ordenamos
+        $applicationFormResponse->load([
+            'responseQuestions' => function ($query) {
+                $query->select('application_form_response_questions.*')
+                    ->join('application_form_questions as afq', 'afq.id', '=', 'application_form_response_questions.application_form_question_id')
+                    ->orderBy('afq.order', 'asc')
+                    ->with([
+                        'applicationFormQuestion' => function ($query) {
+                            $query->with([
+                                'question' => function ($query) {
+                                    $query->with([
+                                        'questionType',
+                                        'options',
+                                    ]);
+                                },
+                            ]);
+                        },
+                        'selectedOptions.questionOption',
+                    ]);
+            },
+        ]);
+
         // Si el formulario no ha sido enviado, aleatorizar opciones de ordenamiento y emparejamiento
         if ($applicationFormResponse->status === 'pending') {
             $applicationFormResponse->responseQuestions->each(function ($responseQuestion) {
-                $questionType = $responseQuestion->applicationFormQuestion->question->questionType->name;
+                $questionTypeId = $responseQuestion->applicationFormQuestion->question->questionType->id;
                 $options = $responseQuestion->applicationFormQuestion->question->options;
 
                 // Solo aleatorizar si no hay opciones seleccionadas
                 if ($responseQuestion->selectedOptions->isEmpty()) {
-                    if (in_array($questionType, ['Ordenamiento', 'Emparejamiento'])) {
+                    if (in_array($questionTypeId, [2, 3])) {
                         // Aleatorizar el orden de las opciones
                         $shuffledOptions = $options->shuffle();
 
@@ -204,7 +221,7 @@ class ApplicationFormResponseController extends Controller
                     ], $responseData);
 
                     // Validar el tipo de pregunta
-                    if (! in_array($questionTypeId, [1, 2, 3, 4])) {
+                    if (! in_array($questionTypeId, [1, 2, 3, 4, 5])) {
                         throw new \Exception("Tipo de pregunta no válido: {$questionTypeId}");
                     }
 
@@ -268,6 +285,8 @@ class ApplicationFormResponseController extends Controller
                                     'is_correct' => false, // Se actualizará después
                                 ];
                             }
+                            break;
+                        case 5: // Respuesta abierta
                             break;
 
                         default:

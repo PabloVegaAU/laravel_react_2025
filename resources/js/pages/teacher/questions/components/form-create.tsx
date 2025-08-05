@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } 
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 import { useTranslations } from '@/lib/translator'
 import { Capability, Competency } from '@/types/academic'
 import { CurricularArea } from '@/types/academic/curricular-area'
@@ -47,7 +48,7 @@ export function CreateQuestionDialog({
     competency_id: '',
     options: [],
     help_message: '',
-    explanation_required: false,
+    explanation_required: true,
     image: null
   }
 
@@ -116,10 +117,10 @@ export function CreateQuestionDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
+      <DialogTrigger>
         <Button variant='outline-info'>Agregar Pregunta</Button>
       </DialogTrigger>
-      <DialogContent className='sm:max-w-[700px]'>
+      <DialogContent className='max-h-[100vh] overflow-scroll sm:max-w-[700px]'>
         <DialogTitle>Agregar Pregunta</DialogTitle>
         <DialogDescription>Complete el formulario para agregar una nueva pregunta.</DialogDescription>
 
@@ -183,7 +184,14 @@ export function CreateQuestionDialog({
             {/* Selección de tipo de pregunta */}
             <div className='flex flex-1 flex-col gap-2'>
               <Label htmlFor='question_type_id'>Tipo de Pregunta *</Label>
-              <Select value={data.question_type_id} onValueChange={(value) => setData('question_type_id', value)} required>
+              <Select
+                value={data.question_type_id}
+                onValueChange={(value) => {
+                  setData('question_type_id', value)
+                  if (value === '5') setData('explanation_required', true)
+                }}
+                required
+              >
                 <SelectTrigger id='question_type_id' name='question_type_id'>
                   <SelectValue placeholder='Selecciona un tipo de pregunta' />
                 </SelectTrigger>
@@ -221,6 +229,7 @@ export function CreateQuestionDialog({
                 name='explanation_required'
                 checked={data.explanation_required}
                 onCheckedChange={(value) => setData('explanation_required', value as boolean)}
+                disabled={data.question_type_id === '5'}
               />
               <Label htmlFor='explanation_required'>
                 Explicación
@@ -285,7 +294,7 @@ export function CreateQuestionDialog({
 
           {/* Nombre */}
           <div className='flex flex-col gap-2'>
-            <Label htmlFor='name'>Nombre *</Label>
+            <Label htmlFor='name'>Título</Label>
             <Input id='name' name='name' type='text' value={data.name} onChange={(e) => setData('name', e.target.value)} required />
             <InputError message={errors.name} />
           </div>
@@ -293,13 +302,7 @@ export function CreateQuestionDialog({
           {/* Descripción */}
           <div className='flex flex-col gap-2'>
             <Label htmlFor='description'>Descripción</Label>
-            <Input
-              id='description'
-              name='description'
-              type='text'
-              value={data.description}
-              onChange={(e) => setData('description', e.target.value)}
-            />
+            <Textarea id='description' name='description' value={data.description} onChange={(e) => setData('description', e.target.value)} />
             <InputError message={errors.description} />
           </div>
 

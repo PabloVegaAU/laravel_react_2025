@@ -278,13 +278,13 @@ class LearningSessionController extends Controller
             return back()
                 ->withInput()
                 ->withErrors($e->validator)
-                ->with('error', 'Ocurrió un error inesperado al actualizar el estado de la sesión. Intenta nuevamente.'.$e->getMessage());
+                ->with('error', 'Ocurrió un error inesperado al actualizar el estado de la sesión. Intenta nuevamente.');
         } catch (\Throwable $e) {
             DB::rollBack();
 
             return back()
                 ->withInput()
-                ->with('error', 'Ocurrió un error inesperado al actualizar el estado de la sesión. Intenta nuevamente.'.$e->getMessage());
+                ->with('error', 'Ocurrió un error inesperado al actualizar el estado de la sesión. Intenta nuevamente.');
         }
     }
 

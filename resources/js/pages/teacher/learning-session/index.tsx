@@ -72,11 +72,11 @@ export default function LearningSessionIndex({ learningSessions }: PageProps) {
                 Editar
               </Button>
             </Link>
-            <Link href={`/teacher/learning-sessions/${learningSession.id}`}>
+            {/*  <Link href={`/teacher/learning-sessions/${learningSession.id}`}>
               <Button variant='outline' size='sm'>
                 Ver
               </Button>
-            </Link>
+            </Link> */}
             {learningSession.status === 'active' ? (
               <Button variant='destructive' size='sm' onClick={() => handleStatusChange(learningSession.id, 'inactive')}>
                 Desactivar

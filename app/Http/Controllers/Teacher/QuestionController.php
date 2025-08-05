@@ -30,8 +30,16 @@ class QuestionController extends Controller
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
+        $filters = [
+            'search' => '',
+        ];
+
+        if ($request->has('search')) {
+            $filters['search'] = $request->search;
+        }
+
         $currentYear = now()->year;
         $teacherId = Auth::id();
 
@@ -82,6 +90,10 @@ class QuestionController extends Controller
             }, function ($query) {
                 $query->whereNull('capability_id');
             })
+            /* ->where('name', 'like', "%{$filters['search']}%") */
+            ->when($filters['search'], function ($query) use ($filters) {
+                $query->where('name', 'like', "%{$filters['search']}%");
+            })
             ->with([
                 'questionType:id,name',
                 'capability:id,name,competency_id',
@@ -93,6 +105,7 @@ class QuestionController extends Controller
 
         return Inertia::render('teacher/questions/index', [
             'questions' => $questions,
+            'filters' => $filters,
             'question_types' => $questionTypes,
             'curricular_areas' => $curricularAreas,
             'competencies' => $competencies,

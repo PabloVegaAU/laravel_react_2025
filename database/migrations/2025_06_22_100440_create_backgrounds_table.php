@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('image');
             $table->integer('level_required')->comment('Nivel mínimo requerido para adquirir el fondo');
             $table->decimal('points_store', 10, 2)->comment('Puntos requeridos para adquirir el fondo');
+            $table->boolean('activo')->default(true)->comment('Indica si el fondo está activo');
             $table->timestamps();
         });
     }

@@ -1,12 +1,15 @@
 import DataTable from '@/components/organisms/data-table'
 import FlashMessages from '@/components/organisms/flash-messages'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import AppLayout from '@/layouts/app-layout'
 import { useTranslations } from '@/lib/translator'
 import { Capability, Competency, CurricularArea } from '@/types/academic'
 import { Question, QuestionDifficulty, QuestionType } from '@/types/application-form/question'
 import { BreadcrumbItem } from '@/types/core'
 import { PaginatedResponse, ResourcePageProps } from '@/types/core/api-types'
-import { Head } from '@inertiajs/react'
+import { Head, router } from '@inertiajs/react'
 import { ColumnDef } from '@tanstack/react-table'
 import { useState } from 'react'
 import { CreateQuestionDialog } from './components/form-create'
@@ -29,9 +32,18 @@ const breadcrumbs: BreadcrumbItem[] = [
   }
 ]
 
-export default function Questions({ questions, question_types, capabilities, difficulties, curricular_areas, competencies }: PageProps) {
+export default function Questions({ questions, filters, question_types, capabilities, difficulties, curricular_areas, competencies }: PageProps) {
   const { t } = useTranslations()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [localFilters, setLocalFilters] = useState(filters)
+
+  const handleSearch = () => {
+    router.get(route('teacher.questions.index'), localFilters, {
+      preserveState: true,
+      preserveScroll: true,
+      replace: true
+    })
+  }
 
   const columns: ColumnDef<Question>[] = [
     {
@@ -39,7 +51,7 @@ export default function Questions({ questions, question_types, capabilities, dif
       accessorKey: 'id'
     },
     {
-      header: 'Pregunta',
+      header: 'Título',
       accessorKey: 'name'
     },
     {
@@ -80,16 +92,28 @@ export default function Questions({ questions, question_types, capabilities, dif
       <Head title='Preguntas' />
       <FlashMessages />
       <div className='flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
-        <CreateQuestionDialog
-          isOpen={isCreateModalOpen}
-          onOpenChange={setIsCreateModalOpen}
-          curricularAreas={curricular_areas}
-          competencies={competencies}
-          capabilities={capabilities}
-          difficulties={difficulties}
-          questionTypes={question_types}
-          onSuccess={() => setIsCreateModalOpen(false)}
-        />
+        <div className='flex items-center justify-between gap-4'>
+          <CreateQuestionDialog
+            isOpen={isCreateModalOpen}
+            onOpenChange={setIsCreateModalOpen}
+            curricularAreas={curricular_areas}
+            competencies={competencies}
+            capabilities={capabilities}
+            difficulties={difficulties}
+            questionTypes={question_types}
+            onSuccess={() => setIsCreateModalOpen(false)}
+          />
+
+          {/* Buscador */}
+          <div className='flex items-center gap-4'>
+            <div>
+              <Label>Título</Label>
+              <Input value={localFilters.search} onChange={(e) => setLocalFilters((prev) => ({ ...prev, search: e.target.value }))} />
+            </div>
+
+            <Button onClick={handleSearch}>Buscar</Button>
+          </div>
+        </div>
 
         <DataTable columns={columns} data={questions} />
       </div>

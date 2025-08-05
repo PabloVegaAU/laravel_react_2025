@@ -33,7 +33,7 @@ export default function ApplicationFormResponseEdit({ application_form_response 
   const initValue = {
     response_questions: application_form_response.response_questions.map((responseQuestion) => ({
       id: responseQuestion.id,
-      is_correct: false
+      is_correct: responseQuestion.score > 0
     }))
   }
 
@@ -101,9 +101,11 @@ export default function ApplicationFormResponseEdit({ application_form_response 
                     <div className='flex-1 space-y-4 p-6'>
                       <div className='space-y-4'>
                         {/* Explicación de la respuesta */}
-                        <div>
-                          <p className='text-muted-foreground mt-2 text-sm'>{responseQuestion?.explanation}</p>
-                        </div>
+                        {responseQuestion?.explanation && (
+                          <div>
+                            <p className='text-muted-foreground text-sm'>{responseQuestion?.explanation}</p>
+                          </div>
+                        )}
                         {/* Respuesta del estudiante */}
                         <div>
                           <h4 className='mb-2 font-medium'>Respuesta:</h4>

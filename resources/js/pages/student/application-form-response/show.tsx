@@ -74,79 +74,87 @@ export default function ApplicationFormResponseShow({ application_form_response 
 
                   <CardContent className='space-y-4 p-6'>
                     <div className='space-y-4'>
-                      <div>
-                        <h4 className='mb-2 font-medium'>Tu respuesta:</h4>
-                        {selectedOptions.length > 0 ? (
-                          <div className='space-y-2'>
-                            {questionTypeId === 3 ? (
-                              // Mejor visualización para preguntas de emparejamiento
-                              <div className='space-y-3'>
-                                {selectedOptions.map((selectedOption: any) => {
-                                  const leftOption = question.options?.find((opt: any) => opt.id === selectedOption.question_option_id)
-                                  const rightOption = question.options?.find((opt: any) => opt.id === selectedOption.paired_with_option_id)
+                      {responseQuestion.application_form_question.question.question_type_id !== 5 && (
+                        <div>
+                          <h4 className='mb-2 font-medium'>Tu respuesta:</h4>
+                          {selectedOptions.length > 0 ? (
+                            <div className='space-y-2'>
+                              {questionTypeId === 3 ? (
+                                // Mejor visualización para preguntas de emparejamiento
+                                <div className='space-y-3'>
+                                  {selectedOptions.map((selectedOption: any) => {
+                                    const leftOption = question.options?.find((opt: any) => opt.id === selectedOption.question_option_id)
+                                    const rightOption = question.options?.find((opt: any) => opt.id === selectedOption.paired_with_option_id)
 
-                                  return (
-                                    <div
-                                      key={selectedOption.id}
-                                      className={`group relative overflow-hidden rounded-lg border p-3 transition-all duration-200 ease-in-out`}
-                                    >
-                                      <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                        <div className='flex items-center gap-2'>
-                                          <span className='text-foreground/90 font-medium'>{leftOption?.value || 'Opción no encontrada'}</span>
-                                        </div>
-                                        <ArrowRight className='text-muted-foreground mx-2 hidden h-4 w-4 flex-shrink-0 sm:block' />
-                                        <div className='bg-background/50 flex-1 rounded p-2'>
-                                          <div className='flex items-center gap-2'>
-                                            <span className='text-foreground/80'>{rightOption?.value || 'No seleccionado'}</span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )
-                                })}
-                              </div>
-                            ) : // Mejor visualización para preguntas de ordenamiento
-                            questionTypeId === 2 ? (
-                              <div className='space-y-3'>
-                                {selectedOptions
-                                  .sort((a: any, b: any) => a.order - b.order)
-                                  .map((option: any, index: number) => {
                                     return (
                                       <div
-                                        key={option.id}
-                                        className={`group relative overflow-hidden rounded-lg border p-4 transition-all duration-200 ease-in-out`}
+                                        key={selectedOption.id}
+                                        className={`group relative overflow-hidden rounded-lg border p-3 transition-all duration-200 ease-in-out`}
                                       >
-                                        <div className='flex items-start gap-3'>
-                                          <div className='flex flex-shrink-0 flex-col items-center'>
-                                            <div className='flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium'>
-                                              {index + 1}
-                                            </div>
+                                        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                                          <div className='flex items-center gap-2'>
+                                            <span className='text-foreground/90 font-medium'>{leftOption?.value || 'Opción no encontrada'}</span>
                                           </div>
-                                          <div className='flex-1'>
-                                            <p className='text-foreground text-sm'>{option.question_option?.value}</p>
+                                          <ArrowRight className='text-muted-foreground mx-2 hidden h-4 w-4 flex-shrink-0 sm:block' />
+                                          <div className='bg-background/50 flex-1 rounded p-2'>
+                                            <div className='flex items-center gap-2'>
+                                              <span className='text-foreground/80'>{rightOption?.value || 'No seleccionado'}</span>
+                                            </div>
                                           </div>
                                         </div>
                                       </div>
                                     )
                                   })}
-                              </div>
-                            ) : (
-                              // Mostrar opciones normales para otros tipos de preguntas
-                              selectedOptions.map((option: any) => (
-                                <div key={option.id} className='rounded border p-3'>
-                                  <div className='flex items-start gap-2'>
-                                    <div>
-                                      <p className='text-sm'>{option.question_option?.value}</p>
+                                </div>
+                              ) : // Mejor visualización para preguntas de ordenamiento
+                              questionTypeId === 2 ? (
+                                <div className='space-y-3'>
+                                  {selectedOptions
+                                    .sort((a: any, b: any) => a.order - b.order)
+                                    .map((option: any, index: number) => {
+                                      return (
+                                        <div
+                                          key={option.id}
+                                          className={`group relative overflow-hidden rounded-lg border p-4 transition-all duration-200 ease-in-out`}
+                                        >
+                                          <div className='flex items-start gap-3'>
+                                            <div className='flex flex-shrink-0 flex-col items-center'>
+                                              <div className='flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium'>
+                                                {index + 1}
+                                              </div>
+                                            </div>
+                                            <div className='flex-1'>
+                                              <p className='text-foreground text-sm'>{option.question_option?.value}</p>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )
+                                    })}
+                                </div>
+                              ) : (
+                                // Mostrar opciones normales para otros tipos de preguntas
+                                selectedOptions.map((option: any) => (
+                                  <div key={option.id} className='rounded border p-3'>
+                                    <div className='flex items-start gap-2'>
+                                      <div>
+                                        <p className='text-sm'>{option.question_option?.value}</p>
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              ))
-                            )}
-                          </div>
-                        ) : (
-                          <p className='text-muted-foreground text-sm'>No se proporcionó respuesta</p>
-                        )}
-                      </div>
+                                ))
+                              )}
+                            </div>
+                          ) : (
+                            <p className='text-muted-foreground text-sm'>No se proporcionó respuesta</p>
+                          )}
+                        </div>
+                      )}
+
+                      {responseQuestion.application_form_question.question.explanation_required && (
+                        <div>
+                          <p className='text-muted-foreground text-sm'>Explicación: {responseQuestion.explanation}</p>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

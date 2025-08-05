@@ -29,7 +29,7 @@ export function QuestionResponse({
   const questionType = question.application_form_question.question.question_type.id
 
   switch (questionType) {
-    case 1: // Respuesta unica
+    case 1: // Pregunta unica
       if (!onOptionSelect) return <div>Error: onOptionSelect no fue proporcionado.</div>
       return (
         <SingleChoiceResponse question={question} selectedOptions={response.selected_options} onOptionSelect={onOptionSelect} disabled={disabled} />
@@ -48,6 +48,8 @@ export function QuestionResponse({
     case 4: // Verdadero o falso
       if (!onOptionSelect) return <div>Error: onOptionSelect no fue proporcionado.</div>
       return <TrueFalseResponse question={question} selectedOptions={response.selected_options} onOptionSelect={onOptionSelect} disabled={disabled} />
+    case 5:
+      return null
     default:
       return <div>Tipo de pregunta no soportado.</div>
   }

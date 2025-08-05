@@ -89,23 +89,36 @@ class ApplicationFormResponseController extends Controller
      */
     public function show(string $id)
     {
+        // Primero obtenemos la respuesta del formulario con las relaciones básicas
         $applicationFormResponse = ApplicationFormResponse::with([
             'applicationForm',
-            'responseQuestions' => function ($query) {
-                $query->with([
-                    'applicationFormQuestion',
-                    'applicationFormQuestion.question' => function ($query) {
-                        $query->with(['questionType', 'options']);
-                    },
-                    'selectedOptions' => function ($query) {
-                        $query->with('questionOption');
-                    },
-                    'questionOption',
-                ]);
-            },
+            'responseQuestions.applicationFormQuestion.question.questionType',
+            'responseQuestions.selectedOptions.questionOption',
         ])
             ->where('id', $id)
             ->firstOrFail();
+
+        // Cargamos las preguntas con sus relaciones y las ordenamos
+        $applicationFormResponse->load([
+            'responseQuestions' => function ($query) {
+                $query->select('application_form_response_questions.*')
+                    ->join('application_form_questions as afq', 'afq.id', '=', 'application_form_response_questions.application_form_question_id')
+                    ->orderBy('afq.order', 'asc')
+                    ->with([
+                        'applicationFormQuestion' => function ($query) {
+                            $query->with([
+                                'question' => function ($query) {
+                                    $query->with([
+                                        'questionType',
+                                        'options',
+                                    ]);
+                                },
+                            ]);
+                        },
+                        'selectedOptions.questionOption',
+                    ]);
+            },
+        ]);
 
         $formattedResponse = $applicationFormResponse->toArray();
         $formattedResponse['response_questions'] = $applicationFormResponse->responseQuestions->map(function ($question) {
@@ -132,23 +145,36 @@ class ApplicationFormResponseController extends Controller
      */
     public function edit(int $id)
     {
+        // Primero obtenemos la respuesta del formulario con las relaciones básicas
         $applicationFormResponse = ApplicationFormResponse::with([
             'applicationForm',
-            'responseQuestions' => function ($query) {
-                $query->with([
-                    'applicationFormQuestion',
-                    'applicationFormQuestion.question' => function ($query) {
-                        $query->with(['questionType', 'options']);
-                    },
-                    'selectedOptions' => function ($query) {
-                        $query->with('questionOption');
-                    },
-                    'questionOption',
-                ]);
-            },
+            'responseQuestions.applicationFormQuestion.question.questionType',
+            'responseQuestions.selectedOptions.questionOption',
         ])
             ->where('id', $id)
             ->firstOrFail();
+
+        // Cargamos las preguntas con sus relaciones y las ordenamos
+        $applicationFormResponse->load([
+            'responseQuestions' => function ($query) {
+                $query->select('application_form_response_questions.*')
+                    ->join('application_form_questions as afq', 'afq.id', '=', 'application_form_response_questions.application_form_question_id')
+                    ->orderBy('afq.order', 'asc')
+                    ->with([
+                        'applicationFormQuestion' => function ($query) {
+                            $query->with([
+                                'question' => function ($query) {
+                                    $query->with([
+                                        'questionType',
+                                        'options',
+                                    ]);
+                                },
+                            ]);
+                        },
+                        'selectedOptions.questionOption',
+                    ]);
+            },
+        ]);
 
         $formattedResponse = $applicationFormResponse->toArray();
         $formattedResponse['response_questions'] = $applicationFormResponse->responseQuestions->map(function ($question) {
@@ -196,9 +222,12 @@ class ApplicationFormResponseController extends Controller
             $totalScore = 0;
 
             foreach ($validated['response_questions'] as $responseQuestion) {
-                $applicationFormResponseQuestion = ApplicationFormResponseQuestion::where('id', $responseQuestion['id'])->firstOrFail();
+                $applicationFormResponseQuestion = ApplicationFormResponseQuestion::with('applicationFormQuestion')
+                    ->where('id', $responseQuestion['id'])->firstOrFail();
                 $applicationFormResponseQuestion->update([
                     'is_correct' => $responseQuestion['is_correct'],
+                    'score' => $applicationFormResponseQuestion->applicationFormQuestion->score,
+                    'points_store' => $applicationFormResponseQuestion->applicationFormQuestion->points_store,
                 ]);
 
                 // Si es correcto
@@ -206,7 +235,6 @@ class ApplicationFormResponseController extends Controller
                     // Asignar experiencia y puntos al estudiante
                     $student = $applicationFormResponse->student;
                     $student->update([
-                        'experience_achieved' => $student->experience_achieved + $applicationFormResponseQuestion->score,
                         'points_store' => $student->points_store + $applicationFormResponseQuestion->points_store,
                     ]);
                 }
@@ -224,6 +252,12 @@ class ApplicationFormResponseController extends Controller
 
             $applicationFormResponse->update([
                 'score' => $totalScore,
+            ]);
+
+            // Actualizar experiencia del estudiante
+            DB::statement('SELECT spu_student_progress_upd(:user_id, :experience)', [
+                'user_id' => $applicationFormResponse->student->user_id,
+                'experience' => $totalScore,
             ]);
 
             DB::commit();

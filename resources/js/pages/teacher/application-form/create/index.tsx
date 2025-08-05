@@ -371,6 +371,7 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
                 {data.score_max} puntos
               </div>
               <p className='text-muted-foreground text-sm'>Puntaje total basado en las preguntas seleccionadas</p>
+              <InputError message={errors.score_max} className='mt-1' />
             </div>
 
             {/* Campo: Estado */}

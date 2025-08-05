@@ -126,6 +126,8 @@ function QuestionDisplay({
           </div>
         )
       }
+      case QUESTION_TYPES.OPEN_ANSWER:
+        return null
 
       default:
         return <div className='mt-3 text-sm text-amber-600'>Tipo de pregunta no soportado: {questionType}</div>
@@ -194,11 +196,7 @@ export default function ApplicationFormShow({ application_form }: ApplicationFor
               <span
                 className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${statusColors[application_form.status as ApplicationFormStatus]}`}
               >
-                {application_form.status === 'draft' && 'Borrador'}
-                {application_form.status === 'scheduled' && 'Programado'}
-                {application_form.status === 'active' && 'Activo'}
-                {application_form.status === 'inactive' && 'Inactivo'}
-                {application_form.status === 'archived' && 'Archivado'}
+                {t(application_form.status)}
               </span>
               <Button asChild variant='outline' size='sm'>
                 <Link href={route('teacher.application-forms.edit', application_form.id)}>Editar</Link>

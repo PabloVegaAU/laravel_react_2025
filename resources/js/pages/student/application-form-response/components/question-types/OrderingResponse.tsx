@@ -24,10 +24,6 @@ export function OrderingResponse({ question, order = [], onOrderChange, disabled
   const questionOptions = useMemo(() => question.application_form_question.question?.options || [], [question])
 
   const orderedOptions = useMemo(() => {
-    if (!order || order.length === 0) {
-      return [...questionOptions].sort((a, b) => a.order - b.order)
-    }
-
     // Filtrar opciones válidas que existen en el orden proporcionado
     const validOptions = order.map((id) => questionOptions.find((opt) => opt.id === id)).filter((opt): opt is QuestionOption => !!opt)
 

@@ -29,7 +29,13 @@ export const QUESTION_TYPES = {
    * Pregunta de verdadero/falso.
    * El usuario debe seleccionar entre verdadero o falso.
    */
-  TRUE_FALSE: 4
+  TRUE_FALSE: 4,
+
+  /**
+   * Pregunta de tipo no soportado.
+   * El usuario debe seleccionar entre verdadero o falso.
+   */
+  OPEN_ANSWER: 5
 }
 
 // Función para obtener el ícono según el ID del tipo de pregunta

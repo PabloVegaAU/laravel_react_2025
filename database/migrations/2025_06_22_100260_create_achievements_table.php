@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('name')->comment('Nombre del logro');
             $table->string('description')->comment('Descripción del logro');
             $table->string('image')->comment('Ruta de la imagen del logro');
+            $table->boolean('activo')->default(true)->comment('Indica si el logro está activo');
 
             // Metadatos
             $table->timestamps();

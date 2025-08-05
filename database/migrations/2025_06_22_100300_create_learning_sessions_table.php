@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id()->comment('Identificador único de la sesión de aprendizaje');
             $table->string('name')
                 ->comment('Nombre de la sesión de aprendizaje');
-            $table->string('purpose_learning')
+            $table->text('purpose_learning')
                 ->comment('Propósito de aprendizaje de la sesión');
             $table->date('application_date')
                 ->comment('Fecha de aplicación de la sesión');
