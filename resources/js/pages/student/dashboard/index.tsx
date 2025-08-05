@@ -11,6 +11,8 @@ import { useEffect } from 'react'
 type PageProps = {
   application_form_responses: ApplicationFormResponse[]
   enrollment: Enrollment
+  avatar: string
+  background: string
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -20,12 +22,14 @@ const breadcrumbs: BreadcrumbItem[] = [
   }
 ]
 
-export default function Dashboard({ application_form_responses, enrollment }: PageProps) {
+export default function Dashboard({ application_form_responses, enrollment, avatar, background }: PageProps) {
   const { t } = useTranslations()
-  const { setCurrentDashboardRole } = useUserStore()
+  const { setCurrentDashboardRole, setAvatar, setBackground } = useUserStore()
 
   useEffect(() => {
     setCurrentDashboardRole('/student/dashboard')
+    setAvatar(avatar)
+    setBackground(background)
   }, [])
 
   return (

@@ -90,8 +90,8 @@ export const validatePrizeImage = (file: File): { valid: boolean; message?: stri
  * Gets the URL for a prize image
  */
 export const getPrizeImageUrl = (imagePath: string | null): string => {
-  if (!imagePath) return '/images/placeholder-prize.png'
-  return imagePath.startsWith('http') ? imagePath : `/storage/${imagePath}`
+  if (!imagePath) return '/storage/images/placeholder-prize.png'
+  return imagePath.startsWith('http') ? imagePath : `${imagePath}`
 }
 
 /**

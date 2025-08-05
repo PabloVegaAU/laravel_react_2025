@@ -51,7 +51,7 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
       const imageUrl =
         initialBackground.image.startsWith('http') || initialBackground.image.startsWith('/')
           ? initialBackground.image
-          : `/storage/${initialBackground.image}`
+          : `${initialBackground.image}`
       setPreviewImage(imageUrl)
     } else {
       setPreviewImage(null)

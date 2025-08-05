@@ -84,7 +84,7 @@ export function EditPrizeModal({ isOpen, onClose, prize: initialPrize, onSuccess
       // Set preview image if there's an existing image
       if (prize.image && typeof prize.image === 'string') {
         // Ensure the image URL is properly formatted
-        const imageUrl = prize.image.startsWith('http') || prize.image.startsWith('/') ? prize.image : `/storage/${prize.image}`
+        const imageUrl = prize.image.startsWith('http') || prize.image.startsWith('/') ? prize.image : `${prize.image}`
         setPreviewImage(imageUrl)
       } else {
         setPreviewImage(null)

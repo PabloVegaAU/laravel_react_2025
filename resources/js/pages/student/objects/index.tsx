@@ -1,6 +1,6 @@
 import AppLayout from '@/layouts/app-layout'
 import { useUserStore } from '@/store/useUserStore'
-import { Head } from '@inertiajs/react'
+import { Head, Link } from '@inertiajs/react'
 import axios from 'axios'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -69,11 +69,10 @@ const breadcrumbs = [
 ]
 
 export default function MyObjects() {
-  const { setCurrentDashboardRole, user } = useUserStore()
+  const { user, setAvatar, setBackground } = useUserStore()
   const [activeTab, setActiveTab] = useState<'todos' | 'avatares' | 'fondos' | 'premios' | 'logros'>('todos')
   const [items, setItems] = useState<Item[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [coins, setCoins] = useState(0)
   const [selectedItem, setSelectedItem] = useState<Item | null>(null)
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
   const [achievements, setAchievements] = useState<any[]>([])
@@ -107,7 +106,7 @@ export default function MyObjects() {
     // 2. Esperar 1 ciclo antes de hacer fetch para que el DOM reaccione
     const delay = setTimeout(() => {
       const fetchData = async () => {
-        const studentId = user?.student_id
+        const studentId = user?.id
         if (!studentId) return
 
         // Fetch student points
@@ -206,7 +205,7 @@ export default function MyObjects() {
 
   const fetchAchievements = async () => {
     try {
-      const studentId = user?.student_id
+      const studentId = user?.id
       if (!studentId) return
       const res = await axios.post('/api/studentachievementslist', {
         p_student_id: Number(studentId)
@@ -267,7 +266,7 @@ export default function MyObjects() {
   }
 
   const handleApplyItem = async (item: Item) => {
-    if (!item || !user?.student_id) {
+    if (!item || !user?.id) {
       toast.error('Error: No se pudo identificar el usuario o el objeto')
       return
     }
@@ -288,14 +287,16 @@ export default function MyObjects() {
       let requestData = new URLSearchParams()
 
       // Always add student_id
-      requestData.append('p_student_id', user.student_id.toString())
+      requestData.append('p_student_id', user.id.toString())
 
       if (item.tipo === 'avatar') {
         endpoint = '/api/studentavatarapply'
         requestData.append('p_avatar_id', itemId.toString())
+        setAvatar(item.image)
       } else if (item.tipo === 'fondo') {
         endpoint = '/api/studentbackgroundapply'
         requestData.append('p_background_id', itemId.toString())
+        setBackground(item.image)
       } else {
         toast.error('Tipo de objeto no soportado')
         return
@@ -410,14 +411,13 @@ export default function MyObjects() {
                 {activeTab === 'todos' ? 'No tienes objetos en tu colección.' : `No tienes ${activeTab} en tu colección.`}
               </p>
               <div className='mt-6'>
-                <button
-                  type='button'
-                  onClick={() => toast.info('Próximamente: Tienda de objetos')}
-                  className='inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
+                <Link
+                  href={route('student.store')}
+                  className='inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
                 >
                   <SparklesIcon className='mr-1.5 -ml-0.5 h-5 w-5' />
                   Visitar la tienda
-                </button>
+                </Link>
               </div>
             </div>
           ) : (
@@ -437,7 +437,7 @@ export default function MyObjects() {
                   <div className='relative mb-3 aspect-square w-full overflow-hidden rounded-lg bg-gray-100'>
                     {item.image ? (
                       <img
-                        src={`/storage/${item.image}`}
+                        src={`${item.image}`}
                         alt={item.name}
                         className='h-full w-full object-cover transition-transform duration-300 group-hover:scale-105'
                         onError={(e) => {
@@ -496,7 +496,7 @@ export default function MyObjects() {
                   <div className='relative mb-6 h-48 w-full overflow-hidden rounded-xl bg-gray-100'>
                     {selectedItem.image ? (
                       <img
-                        src={`/storage/${selectedItem.image}`}
+                        src={`${selectedItem.image}`}
                         alt={selectedItem.name}
                         className='h-full w-full object-cover'
                         onError={(e) => {

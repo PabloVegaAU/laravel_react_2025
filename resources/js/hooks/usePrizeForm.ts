@@ -18,7 +18,7 @@ export function usePrizeForm({ initialData, onSubmit }: UsePrizeFormProps) {
     image: null
   }))
 
-  const [previewImage, setPreviewImage] = useState<string | null>(initialData?.image ? `/storage/${initialData.image}` : null)
+  const [previewImage, setPreviewImage] = useState<string | null>(initialData?.image ? `${initialData.image}` : null)
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string[]>>({})
@@ -157,7 +157,7 @@ export function usePrizeForm({ initialData, onSubmit }: UsePrizeFormProps) {
       try {
         setIsSubmitting(true)
         await onSubmit(formData)
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error submitting form:', err)
         // Handle API validation errors
         if (err.response?.data?.errors) {

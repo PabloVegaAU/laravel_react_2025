@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import AppLayout from '@/layouts/app-layout'
 import { useUserStore } from '@/store/useUserStore'
+import { UserInertia } from '@/types/auth'
 import { BreadcrumbItem } from '@/types/core'
 import { Head, usePage } from '@inertiajs/react'
 import axios from 'axios'
@@ -13,13 +14,6 @@ const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Avatares', href: 'student/store/avatars' }
 ]
 
-type InertiaUser = {
-  id: number
-  name: string
-  email: string
-  student_id: number
-}
-
 type Avatar = {
   avatar_id: number
   name: string
@@ -30,24 +24,22 @@ type Avatar = {
 }
 
 export default function Dashboard() {
-  const { setUser, setCurrentDashboardRole } = useUserStore()
-  const { props } = usePage<{ user: InertiaUser }>()
+  const { setUser } = useUserStore()
+  const { props } = usePage<{ user: UserInertia }>()
   const [avatars, setAvatars] = useState<Avatar[]>([])
   const [puntos, setPuntos] = useState<number | null>(null)
   const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(null)
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
 
   useEffect(() => {
-    setCurrentDashboardRole('/student/store/avatars')
-
     if (props.user) {
       setUser({
         ...props.user,
-        student_id: String(props.user.student_id)
+        id: Number(props.user.id)
       })
 
-      fetchStudentProfile(props.user.student_id)
-      fetchAvatars(props.user.student_id)
+      fetchStudentProfile(props.user.id)
+      fetchAvatars(props.user.id)
     }
   }, [props.user])
 
@@ -85,7 +77,7 @@ export default function Dashboard() {
 
     try {
       const response = await axios.post('/api/avatarpurchase', {
-        p_student_id: props.user.student_id,
+        p_student_id: props.user.id,
         p_avatar_id: avatarId
       })
 
@@ -95,7 +87,7 @@ export default function Dashboard() {
         toast.error(result.mensa)
       } else {
         toast.success(result.mensa)
-        await Promise.all([fetchAvatars(props.user.student_id), fetchStudentProfile(props.user.student_id)])
+        await Promise.all([fetchAvatars(props.user.id), fetchStudentProfile(props.user.id)])
       }
     } catch (error: any) {
       console.error('❌ Error en la compra:', error)
@@ -122,7 +114,7 @@ export default function Dashboard() {
             <div className='relative h-64 w-64 overflow-hidden rounded-full bg-white shadow-md'>
               {selectedAvatar?.image ? (
                 <img
-                  src={selectedAvatar.image.startsWith('http') ? selectedAvatar.image : `/storage/${selectedAvatar.image}`}
+                  src={selectedAvatar.image.startsWith('http') ? selectedAvatar.image : `${selectedAvatar.image}`}
                   alt={selectedAvatar.name}
                   className='h-full w-full object-contain p-4'
                 />
@@ -179,7 +171,7 @@ export default function Dashboard() {
                   {avatar.image ? (
                     <div className='relative h-full w-full'>
                       <img
-                        src={avatar.image.startsWith('http') ? avatar.image : `/storage/${avatar.image}`}
+                        src={avatar.image.startsWith('http') ? avatar.image : `${avatar.image}`}
                         alt={avatar.name}
                         className='h-full w-full object-contain p-4 transition-opacity duration-200 group-hover:opacity-90'
                       />

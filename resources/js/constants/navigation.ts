@@ -123,19 +123,13 @@ export const createNavItems = (permissions: string[] = []) => {
       title: 'Tienda de Puntos',
       href: '/student/store',
       icon: FileQuestion,
-      permission: 'student.store.index'
-    },
-    {
-      title: 'Puntos',
-      href: '/student/store/points',
-      icon: FileQuestion,
-      permission: 'student.store.points.index'
+      permission: 'student.store'
     },
     {
       title: 'Objetos',
-      href: '/teacher/objects',
+      href: '/student/objects',
       icon: FileQuestion,
-      permission: 'teacher.objects.index'
+      permission: 'student.objects'
     }
   ]
 

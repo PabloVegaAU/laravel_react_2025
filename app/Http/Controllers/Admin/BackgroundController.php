@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Teacher;
+namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Background;
@@ -26,7 +26,7 @@ class BackgroundController extends Controller
             ]);
         }
 
-        return Inertia::render('teacher/backgrounds/components/index', [
+        return Inertia::render('admin/backgrounds/components/index', [
             'backgrounds' => $backgrounds,
         ]);
     }
@@ -73,7 +73,7 @@ class BackgroundController extends Controller
                 ], 201);
             }
 
-            return redirect()->route('teacher.backgrounds.index')
+            return redirect()->route('admin.backgrounds.index')
                 ->with('success', 'Fondo creado exitosamente.');
 
         } catch (\Exception $e) {
@@ -104,7 +104,7 @@ class BackgroundController extends Controller
             ]);
         }
 
-        return Inertia::render('teacher/backgrounds/components/show', [
+        return Inertia::render('admin/backgrounds/components/show', [
             'background' => $background,
         ]);
     }
@@ -152,7 +152,7 @@ class BackgroundController extends Controller
 
         $background->update($updateData);
 
-        return redirect()->route('teacher.backgrounds.index')
+        return redirect()->route('admin.backgrounds.index')
             ->with('success', 'Fondo actualizado exitosamente.');
     }
 
@@ -167,7 +167,7 @@ class BackgroundController extends Controller
 
         $background->delete();
 
-        return redirect()->route('teacher.backgrounds.index')
+        return redirect()->route('admin.backgrounds.index')
             ->with('success', 'Fondo eliminado exitosamente.');
     }
 }

@@ -59,53 +59,26 @@ export interface AuthUser {
   hasPermission: (...permissions: string[]) => boolean
 }
 
+export interface UserInertia {
+  id: number
+  name: string
+  email?: string
+}
+
 /**
  * Base user interface
  */
 export interface User extends Timestamps {
-  /**
-   * Unique identifier
-   */
   id: number
-
-  /**
-   * User's full name
-   */
   name: string
-
-  /**
-   * Unique email address
-   */
   email: string
-
-  /**
-   * Email verification timestamp
-   */
   email_verified_at: string | null
 
-  /**
-   * User profile data
-   */
+  /* Relaciones */
   profile?: Profile
-
-  /**
-   * Student data (if user is a student)
-   */
   student?: Student
-
-  /**
-   * Teacher data (if user is a teacher)
-   */
   teacher?: Teacher
-
-  /**
-   * User roles
-   */
   roles?: Role[]
-
-  /**
-   * User permissions
-   */
   permissions?: Permission[]
 }
 
@@ -113,60 +86,13 @@ export interface User extends Timestamps {
  * User profile information
  */
 export interface Profile extends Timestamps {
-  /**
-   * Unique identifier
-   */
   id: number
-
-  /**
-   * Associated user ID
-   */
   user_id: number
-
-  /**
-   * First name
-   */
   first_name: string
-
-  /**
-   * Last name
-   */
   last_name: string
-
-  /**
-   * Second last name (optional)
-   */
   second_last_name?: string | null
-
-  /**
-   * Phone number
-   */
   phone?: string | null
-
-  /**
-   * Date of birth
-   */
   birth_date?: string | null
-
-  /**
-   * Profile picture URL
-   */
-  avatar_url?: string | null
-
-  /**
-   * Associated educational institution ID
-   */
-  educational_institution_id?: number | null
-
-  /**
-   * Associated educational institution
-   */
-  educational_institution?: EducationalInstitution
-
-  /**
-   * Additional metadata (JSON)
-   */
-  metadata?: Record<string, any>
 }
 
 /**

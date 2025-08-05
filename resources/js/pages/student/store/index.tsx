@@ -1,17 +1,10 @@
 import AppLayout from '@/layouts/app-layout'
 import { useUserStore } from '@/store/useUserStore'
+import { UserInertia } from '@/types/auth'
 import { BreadcrumbItem } from '@/types/core'
 import { Head, router, usePage } from '@inertiajs/react'
 import axios from 'axios'
 import { useEffect, useState } from 'react'
-
-// Definimos el tipo que llega desde el backend
-type InertiaUser = {
-  id: number
-  name: string
-  email: string
-  student_id: number
-}
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -21,22 +14,20 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 export default function Dashboard() {
-  const { props } = usePage<{ user: InertiaUser }>()
-  const { setUser, setCurrentDashboardRole } = useUserStore()
+  const { props } = usePage<{ user: UserInertia }>()
+  const { setUser } = useUserStore()
   const [puntos, setPuntos] = useState<number | null>(null)
 
   useEffect(() => {
-    setCurrentDashboardRole('/student/store')
-
     if (props.user) {
       // Convertimos student_id a string al momento de setear en el store
       setUser({
         ...props.user,
-        student_id: String(props.user.student_id)
+        id: Number(props.user.id)
       })
 
       // Lo enviamos como número al backend
-      fetchStudentProfile(props.user.student_id)
+      fetchStudentProfile(props.user.id)
     }
   }, [props.user])
 

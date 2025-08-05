@@ -1,8 +1,11 @@
 <?php
 
+use App\Http\Controllers\Admin\AvatarController as AdminAvatarController;
+use App\Http\Controllers\Admin\BackgroundController as AdminBackgroundController;
 use App\Http\Controllers\Admin\ClassroomController as AdminClassroomController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EnrollmentController as AdminEnrollmentController;
+use App\Http\Controllers\Admin\PrizeController as AdminPrizeController;
 use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 use App\Http\Controllers\Admin\TeacherController as AdminTeacherController;
 use App\Http\Controllers\Student\ApplicationFormResponseController as StudentApplicationFormResponseController;
@@ -13,11 +16,8 @@ use App\Http\Controllers\Student\StoreController as StudentStoreController;
 use App\Http\Controllers\Teacher\AchievementController as TeacherAchievementController;
 use App\Http\Controllers\Teacher\ApplicationFormController as TeacherApplicationFormController;
 use App\Http\Controllers\Teacher\ApplicationFormResponseController as TeacherApplicationFormResponseController;
-use App\Http\Controllers\Teacher\AvatarController as TeacherAvatarController;
-use App\Http\Controllers\Teacher\BackgroundController as TeacherBackgroundController;
 use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
 use App\Http\Controllers\Teacher\LearningSessionController as TeacherLearningSessionController;
-use App\Http\Controllers\Teacher\PrizeController as TeacherPrizeController;
 use App\Http\Controllers\Teacher\QuestionController as TeacherQuestionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -66,18 +66,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Rutas para la gestión de fondos
     // REALIZADO POR CARLOS
-    Route::resource('teacher/backgrounds', TeacherBackgroundController::class)
-        ->names('teacher.backgrounds');
+    Route::resource('admin/backgrounds', AdminBackgroundController::class)
+        ->names('admin.backgrounds');
 
     // Rutas para la gestión de premios
     // REALIZADO POR CARLOS
-    Route::resource('teacher/prizes', TeacherPrizeController::class)
-        ->names('teacher.prizes');
+    Route::resource('admin/prizes', AdminPrizeController::class)
+        ->names('admin.prizes');
 
     // Rutas para la gestión de avatares
     // REALIZADO POR CARLOS
-    Route::resource('teacher/avatars', TeacherAvatarController::class)
-        ->names('teacher.avatars');
+    Route::resource('admin/avatars', AdminAvatarController::class)
+        ->names('admin.avatars');
 
     // routes student
     Route::get('student/dashboard', [StudentDashboardController::class, 'index'])->name('student.dashboard');

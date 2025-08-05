@@ -6,36 +6,17 @@ import { User } from '../user/user'
  * @see app/Models/Profile.php
  */
 export interface Profile {
-  /** Referencia al usuario al que pertenece este perfil (clave primaria) */
   user_id: number
-
-  /** Nombre de pila del usuario */
   first_name: string
-
-  /** Apellido paterno del usuario */
   last_name: string
-
-  /** Segundo apellido del usuario (opcional) */
   second_last_name: string | null
-
-  /** Fecha de nacimiento del usuario */
   birth_date: string | null
-
-  /** Número de teléfono del usuario */
   phone: string | null
-
-  /** Marca de tiempo de creación del registro */
   created_at: string
-
-  /** Marca de tiempo de la última actualización */
   updated_at: string
-
-  /** Marca de tiempo de eliminación lógica (si aplica) */
   deleted_at: string | null
 
   // Relaciones
-
-  /** Usuario al que pertenece este perfil */
   user?: User
 }
 

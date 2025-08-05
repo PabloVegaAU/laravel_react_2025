@@ -109,3 +109,15 @@ export interface LevelHistoryFilters {
   per_page?: number
   page?: number
 }
+
+export type ProgressData = {
+  nivel_actual: number
+  porcentaje_completado: number
+  rango: string
+  posicion_ranking: number
+  total_puntos: number
+  progress_percent: number
+  experience_achieved: number
+  experience_required: number
+  experience_max: number
+}

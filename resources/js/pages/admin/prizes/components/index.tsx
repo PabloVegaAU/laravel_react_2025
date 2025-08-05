@@ -152,7 +152,7 @@ export default function TeacherPrizesPage() {
                   <TableCell>
                     {prize.image ? (
                       <img
-                        src={prize.image.startsWith('http') ? prize.image : `/storage/${prize.image}`}
+                        src={prize.image.startsWith('http') ? prize.image : `${prize.image}`}
                         alt={prize.name}
                         className='h-10 w-10 rounded-full object-cover'
                       />

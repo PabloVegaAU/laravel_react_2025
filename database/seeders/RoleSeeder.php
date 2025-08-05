@@ -74,6 +74,8 @@ class RoleSeeder extends Seeder
         Permission::create(['name' => 'admin.enrollments.edit'])->syncRoles([$admin]);
         Permission::create(['name' => 'admin.enrollments.destroy'])->syncRoles([$admin]);
 
+        // CRUD OBJECTS
+
         // ********************* PERMISOS TEACHER *****************************
         // CRUD LEARNING SESSIONS
         Permission::create(['name' => 'teacher.learning-sessions.index'])->syncRoles([$teacher]);
@@ -105,5 +107,10 @@ class RoleSeeder extends Seeder
         Permission::create(['name' => 'student.application-forms.create'])->syncRoles([$student]);
         Permission::create(['name' => 'student.application-forms.edit'])->syncRoles([$student]);
         Permission::create(['name' => 'student.application-forms.destroy'])->syncRoles([$student]);
+
+        // STORE
+        Permission::create(['name' => 'student.store'])->syncRoles([$student]);
+        Permission::create(['name' => 'student.objects'])->syncRoles([$student]);
+
     }
 }

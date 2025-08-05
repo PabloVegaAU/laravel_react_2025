@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Teacher;
+namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Prize;
@@ -20,7 +20,7 @@ class PrizeController extends Controller
             ]);
         }
 
-        return Inertia::render('teacher/prizes/index', [
+        return Inertia::render('admin/prizes/index', [
             'prizes' => $prizes,
         ]);
     }
@@ -122,7 +122,7 @@ class PrizeController extends Controller
 
         $prize->update($updateData);
 
-        return redirect()->route('teacher.prizes.index')
+        return redirect()->route('admin.prizes.index')
             ->with('success', 'Premio actualizado exitosamente.');
     }
 
@@ -134,7 +134,7 @@ class PrizeController extends Controller
 
         $prize->delete();
 
-        return redirect()->route('teacher.prizes.index')
+        return redirect()->route('admin.prizes.index')
             ->with('success', 'Premio eliminado exitosamente.');
     }
 }

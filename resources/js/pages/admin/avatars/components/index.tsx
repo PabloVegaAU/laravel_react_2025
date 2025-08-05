@@ -160,7 +160,7 @@ export default function AvatarsPage({ auth }: Props) {
                     <TableCell>
                       {avatar.image_url ? (
                         <img
-                          src={avatar.image_url.startsWith('http') ? avatar.image_url : `/storage/${avatar.image_url}`}
+                          src={avatar.image_url.startsWith('http') ? avatar.image_url : `${avatar.image_url}`}
                           alt={avatar.name}
                           className='h-10 w-10 rounded-full object-cover'
                         />

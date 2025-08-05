@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Teacher;
+namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Avatar;
@@ -20,7 +20,7 @@ class AvatarController extends Controller
             ]);
         }
 
-        return Inertia::render('teacher/avatars/index', [
+        return Inertia::render('admin/avatars/index', [
             'avatars' => $avatars,
         ]);
     }
@@ -110,7 +110,7 @@ class AvatarController extends Controller
 
         $avatar->update($updateData);
 
-        return redirect()->route('teacher.avatars.index')
+        return redirect()->route('admin.avatars.index')
             ->with('success', 'Avatar actualizado exitosamente.');
     }
 
@@ -122,7 +122,7 @@ class AvatarController extends Controller
 
         $avatar->delete();
 
-        return redirect()->route('teacher.avatars.index')
+        return redirect()->route('admin.avatars.index')
             ->with('success', 'Avatar eliminado exitosamente.');
     }
 }

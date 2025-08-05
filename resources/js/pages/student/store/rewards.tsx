@@ -1,17 +1,11 @@
 import AppLayout from '@/layouts/app-layout'
 import { useUserStore } from '@/store/useUserStore'
+import { UserInertia } from '@/types/auth'
 import { BreadcrumbItem } from '@/types/core'
 import { Head, usePage } from '@inertiajs/react'
 import axios from 'axios'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-
-type InertiaUser = {
-  id: number
-  name: string
-  email: string
-  student_id: number
-}
 
 type Prize = {
   id: number
@@ -35,24 +29,19 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 export default function Dashboard() {
-  const { setUser, setCurrentDashboardRole } = useUserStore()
-  const { props } = usePage<{ user: InertiaUser }>()
+  const { setUser } = useUserStore()
+  const { props } = usePage<{ user: UserInertia }>()
   const [prizes, setPrizes] = useState<Prize[]>([])
   const [puntos, setPuntos] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'disponible' | 'adquirido'>('disponible')
 
   useEffect(() => {
-    setCurrentDashboardRole('/student/store/rewards')
-
     if (props.user) {
-      setUser({
-        ...props.user,
-        student_id: String(props.user.student_id)
-      })
+      setUser(props.user)
 
-      fetchStudentProfile(props.user.student_id)
-      fetchPrizes(props.user.student_id)
+      fetchStudentProfile(props.user.id)
+      fetchPrizes(props.user.id)
     }
   }, [props.user])
 
@@ -93,7 +82,7 @@ export default function Dashboard() {
 
     try {
       const response = await axios.post('/api/prizepurchase', {
-        p_student_id: props.user.student_id,
+        p_student_id: props.user.id,
         p_prize_id: prizeId
       })
 
@@ -103,7 +92,7 @@ export default function Dashboard() {
         toast.error(result.mensa)
       } else {
         toast.success(result.mensa)
-        await Promise.all([fetchPrizes(props.user.student_id), fetchStudentProfile(props.user.student_id)])
+        await Promise.all([fetchPrizes(props.user.id), fetchStudentProfile(props.user.id)])
       }
     } catch (error: any) {
       console.error('❌ Error en el canje:', error)
@@ -165,7 +154,7 @@ export default function Dashboard() {
                 <div className='h-48 bg-gray-100'>
                   {prize.image ? (
                     <img
-                      src={prize.image.startsWith('http') ? prize.image : `/storage/${prize.image}`}
+                      src={prize.image.startsWith('http') ? prize.image : `${prize.image}`}
                       alt={prize.name}
                       className='h-full w-full object-cover'
                     />

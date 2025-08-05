@@ -57,7 +57,7 @@ export function EditAvatarModal({ isOpen, onClose, avatar: initialAvatar, onSucc
 
       // Set preview image
       if (avatar.image_url) {
-        setPreviewImage(avatar.image_url.startsWith('http') || avatar.image_url.startsWith('/') ? avatar.image_url : `/storage/${avatar.image_url}`)
+        setPreviewImage(avatar.image_url.startsWith('http') || avatar.image_url.startsWith('/') ? avatar.image_url : `${avatar.image_url}`)
       } else {
         setPreviewImage(null)
       }

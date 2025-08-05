@@ -1,5 +1,6 @@
 import AppLayout from '@/layouts/app-layout'
 import { useUserStore } from '@/store/useUserStore'
+import { UserInertia } from '@/types/auth'
 import { BreadcrumbItem } from '@/types/core'
 import { Head, usePage } from '@inertiajs/react'
 import axios from 'axios'
@@ -17,13 +18,6 @@ const breadcrumbs: BreadcrumbItem[] = [
   }
 ]
 
-type InertiaUser = {
-  id: number
-  name: string
-  email: string
-  student_id: number
-}
-
 type Background = {
   background_id: number
   name: string
@@ -34,22 +28,20 @@ type Background = {
 }
 
 export default function Dashboard() {
-  const { setUser, setCurrentDashboardRole } = useUserStore()
-  const { props } = usePage<{ user: InertiaUser }>()
+  const { setUser } = useUserStore()
+  const { props } = usePage<{ user: UserInertia }>()
   const [backgrounds, setBackgrounds] = useState<Background[]>([])
   const [puntos, setPuntos] = useState<number | null>(null)
 
   useEffect(() => {
-    setCurrentDashboardRole('/student/store/backgrounds')
-
     if (props.user) {
       setUser({
         ...props.user,
-        student_id: String(props.user.student_id)
+        id: Number(props.user.id)
       })
 
-      fetchStudentProfile(props.user.student_id)
-      fetchBackgrounds(props.user.student_id)
+      fetchStudentProfile(props.user.id)
+      fetchBackgrounds(props.user.id)
     }
   }, [props.user])
 
@@ -87,7 +79,7 @@ export default function Dashboard() {
 
     try {
       const response = await axios.post('/api/backgroundpurchase', {
-        p_student_id: props.user.student_id,
+        p_student_id: props.user.id,
         p_background_id: backgroundId
       })
 
@@ -97,7 +89,7 @@ export default function Dashboard() {
         toast.error(result.mensa)
       } else {
         toast.success(result.mensa)
-        await Promise.all([fetchBackgrounds(props.user.student_id), fetchStudentProfile(props.user.student_id)])
+        await Promise.all([fetchBackgrounds(props.user.id), fetchStudentProfile(props.user.id)])
       }
     } catch (error: any) {
       console.error('❌ Error en la compra:', error)

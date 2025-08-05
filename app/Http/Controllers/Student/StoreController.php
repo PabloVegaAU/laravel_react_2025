@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
-use App\Models\ApplicationForm;
 use App\Models\Enrollment;
 use Inertia\Inertia;
 
@@ -25,7 +24,6 @@ class StoreController extends Controller
 
         if (! $enrollment) {
             return Inertia::render('student/store/index', [
-                'applicationForms' => [],
                 'error' => 'No estás matriculado en ningún aula este año académico.',
                 'user' => [
                     'id' => $user->id,
@@ -36,21 +34,7 @@ class StoreController extends Controller
             ]);
         }
 
-        $applicationForms = ApplicationForm::whereHas('teacherClassroomCurricularArea', function ($query) use ($enrollment) {
-            $query->where('classroom_id', $enrollment->classroom_id);
-        })
-            ->with([
-                'teacherClassroomCurricularArea.teacher.user',
-                'teacherClassroomCurricularArea.curricularArea',
-            ])
-            ->where('start_date', '<=', now())
-            ->where('end_date', '>=', now())
-            ->where('status', 'active')
-            ->latest()
-            ->paginate(10);
-
         return Inertia::render('student/store/index', [
-            'applicationForms' => $applicationForms,
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
