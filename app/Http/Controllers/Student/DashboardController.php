@@ -47,7 +47,7 @@ class DashboardController extends Controller
             'enrollment' => $enrollment,
             'application_form_responses' => $applicationFormResponses,
             'avatar' => $studentAvatar?->avatar?->image_url ?? null,
-            'background' => $studentBackground?->background?->image_url ?? null,
+            'background' => $studentBackground?->background?->image ?? null,
         ]);
     }
 }

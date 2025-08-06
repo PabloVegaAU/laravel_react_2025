@@ -67,24 +67,13 @@ export default function Dashboard() {
         <p className='mb-4 text-sm font-semibold'>COMPRAR</p>
         <div className='flex justify-center space-x-8'>
           {[
-            { label: 'AVATARES', path: '/student/store/avatars' },
-            { label: 'FONDOS', path: '/student/store/backgrounds' },
-            { label: 'PREMIOS', path: '/student/store/rewards' }
-          ].map(({ label, path }) => (
+            { label: 'AVATARES', path: '/student/store/avatars', image: '/images/avatars/default.png' },
+            { label: 'FONDOS', path: '/student/store/backgrounds', image: '/images/backgrounds/default.png' },
+            { label: 'PREMIOS', path: '/student/store/rewards', image: '/images/rewards/default.png' }
+          ].map(({ label, path, image }) => (
             <div key={label} className='flex flex-col items-center'>
-              <div className='border-sidebar-border/70 relative h-20 w-20 overflow-hidden rounded-xl border'>
-                <svg
-                  className='absolute inset-0 h-full w-full stroke-neutral-900/20'
-                  fill='none'
-                  stroke='currentColor'
-                  strokeWidth='1'
-                  viewBox='0 0 100 100'
-                  xmlns='http://www.w3.org/2000/svg'
-                  aria-hidden='true'
-                >
-                  <rect width='100' height='100' fill='white' />
-                  <path d='M0 0L100 100M100 0L0 100' />
-                </svg>
+              <div className='border-sidebar-border/70 relative size-20 overflow-hidden rounded-xl border md:size-50 lg:size-100'>
+                <img src={image} alt={label} className='h-full w-full object-cover' />
               </div>
               <button onClick={() => router.visit(path)} className='mt-1 w-20 rounded-md bg-blue-300 py-1 text-sm text-black'>
                 {label}
