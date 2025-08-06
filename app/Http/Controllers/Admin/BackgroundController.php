@@ -57,6 +57,7 @@ class BackgroundController extends Controller
 
         try {
             $imagePath = $request->file('image')->store('backgrounds', 'public');
+            $imagePath = Storage::url($imagePath);
 
             $background = Background::create([
                 'name' => $validated['name'],
@@ -148,6 +149,7 @@ class BackgroundController extends Controller
                 Storage::disk('public')->delete($background->image);
             }
             $updateData['image'] = $request->file('image')->store('backgrounds', 'public');
+            $updateData['image'] = Storage::url($updateData['image']);
         }
 
         $background->update($updateData);

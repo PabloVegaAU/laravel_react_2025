@@ -28,6 +28,24 @@ export const createNavItems = (permissions: string[] = []) => {
       href: '/student',
       icon: Home,
       permission: 'student.dashboard'
+    },
+    {
+      title: 'Avatar',
+      href: '/admin/avatars',
+      icon: Home,
+      permission: 'admin.avatars.index'
+    },
+    {
+      title: 'Fondo',
+      href: '/admin/backgrounds',
+      icon: Home,
+      permission: 'admin.backgrounds.index'
+    },
+    {
+      title: 'Premios',
+      href: '/admin/prizes',
+      icon: Home,
+      permission: 'admin.prizes.index'
     }
   ]
 

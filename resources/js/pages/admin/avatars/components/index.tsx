@@ -27,7 +27,7 @@ export default function AvatarsPage({ auth }: Props) {
   const fetchAvatars = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch('/teacher/avatars', {
+      const response = await fetch('/admin/avatars', {
         headers: {
           Accept: 'application/json',
           'X-Requested-With': 'XMLHttpRequest'
@@ -82,7 +82,7 @@ export default function AvatarsPage({ auth }: Props) {
 
     try {
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-      const response = await fetch(`/teacher/avatars/${avatarId}`, {
+      const response = await fetch(`/admin/avatars/${avatarId}`, {
         method: 'POST',
         headers: {
           'X-Requested-With': 'XMLHttpRequest',

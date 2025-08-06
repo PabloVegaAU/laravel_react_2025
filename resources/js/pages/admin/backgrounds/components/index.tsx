@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import AppLayout from '@/layouts/app-layout'
-import { router } from '@inertiajs/react'
+import { Head, router } from '@inertiajs/react'
 import { Edit, Plus, Search, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { CreateBackgroundModal } from './create-background-modal'
@@ -17,7 +17,7 @@ type Background = {
   level_required_name?: string
 }
 
-export default function TeacherBackgroundsPage() {
+export default function BackgroundsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -59,7 +59,7 @@ export default function TeacherBackgroundsPage() {
   const handleDelete = async (id: number) => {
     if (confirm('¿Estás seguro de que deseas eliminar este fondo?')) {
       try {
-        await router.delete(`/teacher/backgrounds/${id}`, {
+        await router.delete(`/admin/backgrounds/${id}`, {
           onSuccess: () => {
             setBackgrounds(backgrounds.filter((bg) => bg.id !== id))
           }
@@ -73,6 +73,8 @@ export default function TeacherBackgroundsPage() {
   return (
     <AppLayout>
       <div className='container mx-auto p-6'>
+        <Head title='Gestión de Fondos' />
+
         <div className='mb-6 flex items-center justify-between'>
           <h1 className='text-2xl font-bold text-gray-800'>Gestión de Fondos</h1>
           <div className='flex items-center space-x-4'>

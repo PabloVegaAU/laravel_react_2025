@@ -44,6 +44,7 @@ class PrizeController extends Controller
 
         try {
             $imagePath = $request->file('image')->store('prizes', 'public');
+            $imagePath = Storage::url($imagePath);
 
             $prize = Prize::create([
                 'name' => $validated['name'],
@@ -118,6 +119,7 @@ class PrizeController extends Controller
                 Storage::disk('public')->delete($prize->image);
             }
             $updateData['image'] = $request->file('image')->store('prizes', 'public');
+            $updateData['image'] = Storage::url($updateData['image']);
         }
 
         $prize->update($updateData);

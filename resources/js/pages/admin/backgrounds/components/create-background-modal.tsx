@@ -94,7 +94,7 @@ export function CreateBackgroundModal({ isOpen, onClose, onSuccess }: CreateBack
         formData.append('image', data.image)
       }
 
-      const response = await fetch('/teacher/backgrounds', {
+      const response = await fetch('/admin/backgrounds', {
         method: 'POST',
         body: formData,
         headers: {

@@ -70,7 +70,7 @@ export function CreatePrizeModal({ isOpen, onClose, onSuccess }: CreatePrizeModa
       }
 
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-      const response = await fetch('/teacher/prizes', {
+      const response = await fetch('/admin/prizes', {
         method: 'POST',
         headers: {
           'X-CSRF-TOKEN': csrfToken,

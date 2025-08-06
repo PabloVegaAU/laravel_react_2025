@@ -68,6 +68,12 @@ class RoleSeeder extends Seeder
         Permission::create(['name' => 'admin.backgrounds.edit'])->syncRoles([$admin]);
         Permission::create(['name' => 'admin.backgrounds.destroy'])->syncRoles([$admin]);
 
+        // CRUD PRIZES
+        Permission::create(['name' => 'admin.prizes.index'])->syncRoles([$admin]);
+        Permission::create(['name' => 'admin.prizes.create'])->syncRoles([$admin]);
+        Permission::create(['name' => 'admin.prizes.edit'])->syncRoles([$admin]);
+        Permission::create(['name' => 'admin.prizes.destroy'])->syncRoles([$admin]);
+
         // CRUD ENROLLMENTS
         Permission::create(['name' => 'admin.enrollments.index'])->syncRoles([$admin]);
         Permission::create(['name' => 'admin.enrollments.create'])->syncRoles([$admin]);

@@ -1,9 +1,12 @@
 import ProgressBar from '@/components/organisms/progress-bar'
+import { Button } from '@/components/ui/button'
+import { useMobileNavigation } from '@/hooks/use-mobile-navigation'
 import AppLayout from '@/layouts/app-layout'
 import { useUserStore } from '@/store/useUserStore'
 import { BreadcrumbItem } from '@/types/core'
-import { Head } from '@inertiajs/react'
+import { Head, Link, router } from '@inertiajs/react'
 import axios from 'axios'
+import { LogOut } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -27,8 +30,8 @@ type StudentProfile = {
 }
 
 export default function Profile() {
-  const { user } = useUserStore()
-  const [isEditing, setIsEditing] = useState(false)
+  const cleanup = useMobileNavigation()
+  const { user, reset } = useUserStore()
   const [isLoading, setIsLoading] = useState(true)
   const [profile, setProfile] = useState<StudentProfile>({
     nombres: '',
@@ -78,6 +81,12 @@ export default function Profile() {
         </div>
       </AppLayout>
     )
+  }
+
+  const handleLogout = () => {
+    cleanup()
+    reset()
+    router.flushAll()
   }
 
   return (
@@ -131,6 +140,14 @@ export default function Profile() {
               ))}
             </div>
           </div>
+
+          {/* LOGOUT */}
+          <Button variant='destructive' asChild>
+            <Link className='block w-full' method='post' href={route('logout')} as='button' onClick={handleLogout}>
+              <LogOut className='mr-2' />
+              Log out
+            </Link>
+          </Button>
         </div>
       </div>
     </AppLayout>

@@ -22,11 +22,11 @@ Este módulo permite a los profesores gestionar los fondos que los estudiantes p
 ## Rutas de la API
 
 - `GET /api/levels`: Obtiene la lista de niveles disponibles
-- `GET /teacher/backgrounds`: Lista todos los fondos (paginados)
-- `POST /teacher/backgrounds`: Crea un nuevo fondo
-- `GET /teacher/backgrounds/{id}`: Muestra los detalles de un fondo
-- `PUT /teacher/backgrounds/{id}`: Actualiza un fondo existente
-- `DELETE /teacher/backgrounds/{id}`: Elimina un fondo
+- `GET /admin/prizes`: Lista todos los premios (paginados)
+- `POST /admin/prizes`: Crea un nuevo premio
+- `GET /admin/prizes/{id}`: Muestra los detalles de un premio
+- `PUT /admin/prizes/{id}`: Actualiza un premio existente
+- `DELETE /admin/prizes/{id}`: Elimina un premio
 
 ## Modelo de Datos
 

@@ -112,7 +112,7 @@ export function EditAvatarModal({ isOpen, onClose, avatar: initialAvatar, onSucc
       }
 
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-      const response = await fetch(`/teacher/avatars/${avatar.id}`, {
+      const response = await fetch(`/admin/avatars/${avatar.id}`, {
         method: 'POST',
         headers: {
           'X-Requested-With': 'XMLHttpRequest',

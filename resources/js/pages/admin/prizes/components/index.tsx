@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import AppLayout from '@/layouts/app-layout'
 
+import { Head } from '@inertiajs/react'
 import { Edit, Plus, Search, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -34,7 +35,7 @@ export default function TeacherPrizesPage() {
   const fetchPrizes = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch('/teacher/prizes?page=1', {
+      const response = await fetch('/admin/prizes?page=1', {
         headers: {
           Accept: 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
@@ -88,7 +89,7 @@ export default function TeacherPrizesPage() {
 
     try {
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-      const response = await fetch(`/teacher/prizes/${prizeId}`, {
+      const response = await fetch(`/admin/prizes/${prizeId}`, {
         method: 'POST',
         headers: {
           'X-Requested-With': 'XMLHttpRequest',
@@ -114,6 +115,8 @@ export default function TeacherPrizesPage() {
   return (
     <AppLayout>
       <div className='container mx-auto p-6'>
+        <Head title='Gestión de Premios' />
+
         <div className='mb-6 flex items-center justify-between'>
           <h1 className='text-2xl font-bold text-gray-800'>Gestión de Premios</h1>
           <div className='flex items-center space-x-4'>

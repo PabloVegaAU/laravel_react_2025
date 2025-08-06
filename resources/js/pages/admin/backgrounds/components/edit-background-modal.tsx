@@ -49,9 +49,7 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
     if (initialBackground.image) {
       // Ensure the image URL is properly formatted
       const imageUrl =
-        initialBackground.image.startsWith('http') || initialBackground.image.startsWith('/')
-          ? initialBackground.image
-          : `${initialBackground.image}`
+        initialBackground.image.startsWith('http') || initialBackground.image.startsWith('/') ? initialBackground.image : `${initialBackground.image}`
       setPreviewImage(imageUrl)
     } else {
       setPreviewImage(null)
@@ -185,7 +183,7 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
         image: typeof formData.image === 'string' ? formData.image : initialBackground.image || ''
       }
 
-      const response = await fetch(`/teacher/backgrounds/${initialBackground.id}`, {
+      const response = await fetch(`/admin/backgrounds/${initialBackground.id}`, {
         method: 'POST',
         body: formDataToSend,
         headers: {

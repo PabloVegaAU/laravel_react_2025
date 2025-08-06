@@ -41,6 +41,7 @@ class AvatarController extends Controller
 
         try {
             $imagePath = $request->file('image_url')->store('avatars', 'public');
+            $imagePath = Storage::url($imagePath);
 
             $avatar = Avatar::create([
                 'name' => $validated['name'],
@@ -105,7 +106,8 @@ class AvatarController extends Controller
             if ($avatar->image_url) {
                 Storage::disk('public')->delete($avatar->image_url);
             }
-            $updateData['image_url'] = $request->file('image_url')->store('avatars', 'public');
+            $path = $request->file('image_url')->store('avatars', 'public');
+            $updateData['image_url'] = Storage::url($path);
         }
 
         $avatar->update($updateData);

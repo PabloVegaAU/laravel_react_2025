@@ -129,7 +129,7 @@ export function EditPrizeModal({ isOpen, onClose, prize: initialPrize, onSuccess
       }
 
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-      const response = await fetch(`/teacher/prizes/${prize.id}`, {
+      const response = await fetch(`/admin/prizes/${prize.id}`, {
         method: 'POST',
         headers: {
           'X-Requested-With': 'XMLHttpRequest',

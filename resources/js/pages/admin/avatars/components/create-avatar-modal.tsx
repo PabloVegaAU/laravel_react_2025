@@ -74,7 +74,7 @@ export function CreateAvatarModal({ isOpen, onClose, onSuccess }: CreateAvatarMo
       }
 
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-      const response = await fetch('/teacher/avatars', {
+      const response = await fetch('/admin/avatars', {
         method: 'POST',
         headers: {
           'X-CSRF-TOKEN': csrfToken,

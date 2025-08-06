@@ -22,11 +22,11 @@ Este módulo permite a los profesores gestionar los fondos que los estudiantes p
 ## Rutas de la API
 
 - `GET /api/levels`: Obtiene la lista de niveles disponibles
-- `GET /teacher/backgrounds`: Lista todos los fondos (paginados)
-- `POST /teacher/backgrounds`: Crea un nuevo fondo
-- `GET /teacher/backgrounds/{id}`: Muestra los detalles de un fondo
-- `PUT /teacher/backgrounds/{id}`: Actualiza un fondo existente
-- `DELETE /teacher/backgrounds/{id}`: Elimina un fondo
+- `GET /admin/backgrounds`: Lista todos los fondos (paginados)
+- `POST /admin/backgrounds`: Crea un nuevo fondo
+- `GET /admin/backgrounds/{id}`: Muestra los detalles de un fondo
+- `PUT /admin/backgrounds/{id}`: Actualiza un fondo existente
+- `DELETE /admin/backgrounds/{id}`: Elimina un fondo
 
 ## Modelo de Datos
 
