@@ -25,17 +25,12 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Dashboard({ application_form_responses, enrollment, avatar, background }: PageProps) {
   const { t } = useTranslations()
-  const { props } = usePage<{ user: UserInertia }>()
   const { setCurrentDashboardRole, setAvatar, setBackground, setUser } = useUserStore()
 
   useEffect(() => {
     setCurrentDashboardRole('/student/dashboard')
     setAvatar(avatar)
     setBackground(background)
-    setUser({
-      ...props.user,
-      id: Number(props.user.id)
-    })
   }, [])
 
   return (
