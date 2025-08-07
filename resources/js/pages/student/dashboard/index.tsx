@@ -4,8 +4,9 @@ import { useTranslations } from '@/lib/translator'
 import { useUserStore } from '@/store/useUserStore'
 import { Enrollment } from '@/types/academic'
 import { ApplicationFormResponse } from '@/types/application-form'
+import { UserInertia } from '@/types/auth'
 import { BreadcrumbItem } from '@/types/core'
-import { Head, Link } from '@inertiajs/react'
+import { Head, Link, usePage } from '@inertiajs/react'
 import { useEffect } from 'react'
 
 type PageProps = {
