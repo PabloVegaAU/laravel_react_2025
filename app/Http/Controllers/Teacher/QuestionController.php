@@ -162,23 +162,29 @@ class QuestionController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $validationRules = [
             'question_type_id' => 'required|exists:question_types,id',
             'capability_id' => 'required|exists:capabilities,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'difficulty' => 'required|in:easy,medium,hard',
-            'options' => 'required|array|min:2',
-            'options.*.value' => 'required|string',
-            'options.*.is_correct' => 'sometimes|boolean',
-            'options.*.order' => 'sometimes|integer|min:0',
-            'options.*.correct_order' => 'sometimes|integer|min:0',
-            'options.*.pair_key' => 'sometimes|string|nullable',
-            'options.*.pair_side' => 'sometimes|in:left,right|nullable',
-            'options.*.score' => 'sometimes|numeric|min:0',
             'explanation_required' => 'sometimes|boolean',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-        ]);
+        ];
+
+        // Tipo pregunta diferente a preguntas abiertas
+        if ($request->question_type_id != '5') {
+            $validationRules['options'] = 'required|array|min:2';
+            $validationRules['options.*.value'] = 'required|string';
+            $validationRules['options.*.is_correct'] = 'sometimes|boolean';
+            $validationRules['options.*.order'] = 'sometimes|integer|min:0';
+            $validationRules['options.*.correct_order'] = 'sometimes|integer|min:0';
+            $validationRules['options.*.pair_key'] = 'sometimes|string|nullable';
+            $validationRules['options.*.pair_side'] = 'sometimes|in:left,right|nullable';
+            $validationRules['options.*.score'] = 'sometimes|numeric|min:0';
+        }
+
+        $validated = $request->validate($validationRules);
 
         DB::beginTransaction();
 
@@ -210,7 +216,9 @@ class QuestionController extends Controller
             }
 
             // Procesar opciones según el tipo de pregunta
-            $this->processQuestionOptions($question, $validated['options'], (int) $validated['question_type_id']);
+            if ($validated['question_type_id'] != '5') {
+                $this->processQuestionOptions($question, $validated['options'], (int) $validated['question_type_id']);
+            }
 
             DB::commit();
 
@@ -249,22 +257,29 @@ class QuestionController extends Controller
 
     public function update(Request $request, int $id)
     {
-        $validated = $request->validate([
+        $validationRules = [
             'question_type_id' => 'required|exists:question_types,id',
             'capability_id' => 'required|exists:capabilities,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'difficulty' => 'required|in:easy,medium,hard',
-            'options' => 'required|array|min:2',
-            'options.*.value' => 'required|string',
-            'options.*.is_correct' => 'sometimes|boolean',
-            'options.*.order' => 'sometimes|integer|min:0',
-            'options.*.correct_order' => 'sometimes|integer|min:0',
-            'options.*.pair_key' => 'sometimes|string|nullable',
-            'options.*.pair_side' => 'sometimes|in:left,right|nullable',
-            'options.*.score' => 'sometimes|numeric|min:0',
             'explanation_required' => 'sometimes|boolean',
-        ]);
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+        ];
+
+        // Tipo pregunta diferente a preguntas abiertas
+        if ($request->question_type_id != '5') {
+            $validationRules['options'] = 'required|array|min:2';
+            $validationRules['options.*.value'] = 'required|string';
+            $validationRules['options.*.is_correct'] = 'sometimes|boolean';
+            $validationRules['options.*.order'] = 'sometimes|integer|min:0';
+            $validationRules['options.*.correct_order'] = 'sometimes|integer|min:0';
+            $validationRules['options.*.pair_key'] = 'sometimes|string|nullable';
+            $validationRules['options.*.pair_side'] = 'sometimes|in:left,right|nullable';
+            $validationRules['options.*.score'] = 'sometimes|numeric|min:0';
+        }
+
+        $validated = $request->validate($validationRules);
 
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
             // Si es imagen validar que mimet type sea imagen
@@ -323,7 +338,9 @@ class QuestionController extends Controller
             $question->options()->delete();
 
             // Procesar opciones según el tipo de pregunta
-            $this->processQuestionOptions($question, $validated['options'], (int) $validated['question_type_id']);
+            if ($validated['question_type_id'] != '5') {
+                $this->processQuestionOptions($question, $validated['options'], (int) $validated['question_type_id']);
+            }
 
             DB::commit();
 

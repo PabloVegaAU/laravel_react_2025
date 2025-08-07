@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('name')
                 ->comment('Nombre descriptivo de la pregunta');
             $table->text('description')
+                ->nullable()
                 ->comment('Enunciado o contenido completo de la pregunta');
             $table->string('image')
                 ->nullable()
