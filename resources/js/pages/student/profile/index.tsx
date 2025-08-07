@@ -3,8 +3,9 @@ import { Button } from '@/components/ui/button'
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation'
 import AppLayout from '@/layouts/app-layout'
 import { useUserStore } from '@/store/useUserStore'
+import { UserInertia } from '@/types/auth'
 import { BreadcrumbItem } from '@/types/core'
-import { Head, Link, router } from '@inertiajs/react'
+import { Head, Link, router, usePage } from '@inertiajs/react'
 import axios from 'axios'
 import { LogOut } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -31,7 +32,8 @@ type StudentProfile = {
 
 export default function Profile() {
   const cleanup = useMobileNavigation()
-  const { user, reset } = useUserStore()
+  const { user: userInertia } = usePage<{ user: UserInertia }>().props
+  const { reset } = useUserStore()
   const [isLoading, setIsLoading] = useState(true)
   const [profile, setProfile] = useState<StudentProfile>({
     nombres: '',
@@ -58,7 +60,7 @@ export default function Profile() {
     try {
       setIsLoading(true)
       const profileRes = await axios.post('/api/studentprofile', {
-        p_student_id: Number(user?.id)
+        p_student_id: Number(userInertia?.id)
       })
 
       if (profileRes.data.success && profileRes.data.data?.length > 0) {

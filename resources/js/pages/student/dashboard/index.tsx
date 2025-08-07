@@ -4,8 +4,9 @@ import { useTranslations } from '@/lib/translator'
 import { useUserStore } from '@/store/useUserStore'
 import { Enrollment } from '@/types/academic'
 import { ApplicationFormResponse } from '@/types/application-form'
+import { UserInertia } from '@/types/auth'
 import { BreadcrumbItem } from '@/types/core'
-import { Head, Link } from '@inertiajs/react'
+import { Head, Link, usePage } from '@inertiajs/react'
 import { useEffect } from 'react'
 
 type PageProps = {
@@ -24,12 +25,17 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Dashboard({ application_form_responses, enrollment, avatar, background }: PageProps) {
   const { t } = useTranslations()
-  const { setCurrentDashboardRole, setAvatar, setBackground } = useUserStore()
+  const { props } = usePage<{ user: UserInertia }>()
+  const { setCurrentDashboardRole, setAvatar, setBackground, setUser } = useUserStore()
 
   useEffect(() => {
     setCurrentDashboardRole('/student/dashboard')
     setAvatar(avatar)
     setBackground(background)
+    setUser({
+      ...props.user,
+      id: Number(props.user.id)
+    })
   }, [])
 
   return (
