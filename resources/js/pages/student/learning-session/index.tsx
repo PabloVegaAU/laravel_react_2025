@@ -28,6 +28,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 export default function LearningSession({ learning_sessions, curricular_areas, filters }: PageProps) {
+  console.log('learning_sessions', learning_sessions)
   const { t } = useTranslations()
 
   const columns: ColumnDef<LearningSession>[] = [
@@ -85,26 +86,27 @@ export default function LearningSession({ learning_sessions, curricular_areas, f
         const now = new Date()
         const startDate = new Date(applicationForms?.start_date || '')
         const endDate = new Date(applicationForms?.end_date || '')
-        const isAvailable = applicationForms && now >= startDate && now <= endDate
+        const isAvailable = (applicationForms?.responses?.length || 0) > 0 && now >= startDate && now <= endDate
         const canTakeTest = !response || response.status === 'pending' || response.status === 'in progress'
 
         return (
           <div className='flex space-x-2'>
-            {isAvailable && canTakeTest ? (
-              <a
-                href={`/student/application-form-responses/${applicationForms?.responses[0].id}/edit`}
-                className='inline-flex items-center rounded-md border border-transparent bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none'
-              >
-                {response ? 'Continuar prueba' : 'Comenzar prueba'}
-              </a>
-            ) : (
-              <a
-                href={`/student/application-form-responses/${applicationForms?.responses[0].id}`}
-                className='inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none'
-              >
-                Ver prueba
-              </a>
-            )}
+            {isAvailable &&
+              (canTakeTest ? (
+                <a
+                  href={`/student/application-form-responses/${applicationForms?.responses[0].id}/edit`}
+                  className='inline-flex items-center rounded-md border border-transparent bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none'
+                >
+                  {response ? 'Continuar prueba' : 'Comenzar prueba'}
+                </a>
+              ) : (
+                <a
+                  href={`/student/application-form-responses/${applicationForms?.responses[0].id}`}
+                  className='inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none'
+                >
+                  Ver prueba
+                </a>
+              ))}
           </div>
         )
       }

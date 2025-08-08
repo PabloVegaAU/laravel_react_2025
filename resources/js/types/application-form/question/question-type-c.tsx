@@ -1,4 +1,6 @@
+import { Badge } from '@/components/ui/badge'
 import { Check, CheckSquare, HelpCircle, Link2, ListOrdered, X } from 'lucide-react'
+import { Question } from '.'
 
 /**
  * Constantes para los tipos de pregunta.
@@ -56,4 +58,13 @@ export const getQuestionTypeIcon = (typeId: number) => {
     default:
       return <HelpCircle className='h-3.5 w-3.5' />
   }
+}
+export const getQuestionTypeBadge = (question: Question | undefined) => {
+  if (!question) return null
+  return (
+    <Badge variant='outline' className='gap-1 text-xs'>
+      {getQuestionTypeIcon(question?.question_type?.id || 0)}
+      {question?.question_type?.name}
+    </Badge>
+  )
 }

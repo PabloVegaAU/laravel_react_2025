@@ -8,7 +8,7 @@ import { useTranslations } from '@/lib/translator'
 import { cn } from '@/lib/utils'
 import { ApplicationFormResponseQuestion } from '@/types/application-form'
 import type { ApplicationFormResponse } from '@/types/application-form/form/response/application-form-response'
-import { getQuestionTypeIcon } from '@/types/application-form/question/question-type-c'
+import { getQuestionTypeBadge } from '@/types/application-form/question/question-type-c'
 import { BreadcrumbItem } from '@/types/core'
 import { Head, useForm } from '@inertiajs/react'
 import { ArrowRight, LoaderCircle } from 'lucide-react'
@@ -86,10 +86,7 @@ export default function ApplicationFormResponseEdit({ application_form_response 
                       <div>
                         <div className='mb-2 flex items-center gap-2'>
                           <span className='text-muted-foreground text-sm font-medium'>Pregunta {index + 1}</span>
-                          <Badge variant='outline' className='gap-1 text-xs'>
-                            {getQuestionTypeIcon(questionTypeId as number)}
-                            {questionType}
-                          </Badge>
+                          {getQuestionTypeBadge(question)}
                         </div>
                         <CardTitle className='text-lg'>{question?.name}</CardTitle>
                         {question?.description && <p className='text-muted-foreground mt-2 text-sm'>{question.description}</p>}

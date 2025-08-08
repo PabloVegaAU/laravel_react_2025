@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error'
 import FlashMessages from '@/components/organisms/flash-messages'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -15,6 +16,7 @@ import { cn, getNestedError } from '@/lib/utils'
 import { TeacherClassroomCurricularAreaCycle } from '@/types/academic/teacher-classroom-curricular-area-cycle'
 import { Question, QuestionWithScore } from '@/types/application-form'
 import { ApplicationFormStatus } from '@/types/application-form/application-form'
+import { getQuestionTypeBadge } from '@/types/application-form/question/question-type-c'
 import { BreadcrumbItem } from '@/types/core'
 import { LearningSession } from '@/types/learning-session'
 import { Head, useForm } from '@inertiajs/react'
@@ -41,6 +43,8 @@ interface CreateApplicationFormProps {
 }
 
 export default function ApplicationsForm({ learning_session, teacher_classroom_curricular_area_cycle, questions }: CreateApplicationFormProps) {
+  console.log(questions)
+
   const { t } = useTranslations()
 
   const today = new Date()
@@ -441,10 +445,33 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
                       />
                     </div>
                     <div className='flex-1 space-y-2'>
-                      <Label htmlFor={`question-${question.id}`} className='text-base'>
-                        {question.name}
-                      </Label>
-                      <p className='text-muted-foreground text-sm'>{question.description}</p>
+                      <div className='flex justify-between'>
+                        <div className='flex flex-col gap-2'>
+                          <Label htmlFor={`question-${question.id}`} className='text-base'>
+                            {question.name}
+                          </Label>
+
+                          <p className='text-muted-foreground text-sm'>{question.description}</p>
+                        </div>
+                        {getQuestionTypeBadge(question)}
+                      </div>
+
+                      {(question.image || question.explanation_required) && (
+                        <div className='flex gap-8'>
+                          {/* TIENE IMAGEN */}
+                          {question.image && (
+                            <Badge variant='outline' className='gap-1 text-xs'>
+                              Tiene imagen
+                            </Badge>
+                          )}
+                          {/* TIENE EXPLICACIÓN REQUERIDA */}
+                          {question.explanation_required && (
+                            <Badge variant='outline' className='gap-1 text-xs'>
+                              Tiene explicación requerida
+                            </Badge>
+                          )}
+                        </div>
+                      )}
 
                       {isChecked && (
                         <div className='mt-2 grid grid-cols-1 gap-4 md:grid-cols-3'>

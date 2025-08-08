@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import AppLayout from '@/layouts/app-layout'
 import { useTranslations } from '@/lib/translator'
 import type { ApplicationFormResponse } from '@/types/application-form/form/response/application-form-response'
-import { getQuestionTypeIcon } from '@/types/application-form/question/question-type-c'
+import { getQuestionTypeBadge } from '@/types/application-form/question/question-type-c'
 import { BreadcrumbItem } from '@/types/core'
 import { Head } from '@inertiajs/react'
 import { ArrowRight } from 'lucide-react'
@@ -61,10 +61,7 @@ export default function ApplicationFormResponseShow({ application_form_response 
                       <div>
                         <div className='mb-2 flex items-center gap-2'>
                           <span className='text-muted-foreground text-sm font-medium'>Pregunta {index + 1}</span>
-                          <Badge variant='outline' className='gap-1 text-xs'>
-                            {getQuestionTypeIcon(questionTypeId)}
-                            {questionType}
-                          </Badge>
+                          {getQuestionTypeBadge(question)}
                         </div>
                         <CardTitle className='text-lg'>{question?.name}</CardTitle>
                         {question?.description && <p className='text-muted-foreground mt-2 text-sm'>{question.description}</p>}

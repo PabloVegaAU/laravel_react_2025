@@ -1,4 +1,5 @@
 import InputError from '@/components/input-error'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -12,7 +13,7 @@ import { useTranslations } from '@/lib/translator'
 import { cn, getNestedError } from '@/lib/utils'
 import { Question, QuestionWithScore } from '@/types/application-form'
 import { ApplicationForm, ApplicationFormStatus } from '@/types/application-form/application-form'
-import { getQuestionTypeIcon } from '@/types/application-form/question/question-type-c'
+import { getQuestionTypeBadge } from '@/types/application-form/question/question-type-c'
 import { BreadcrumbItem } from '@/types/core'
 import { Head, Link, useForm } from '@inertiajs/react'
 import { endOfDay, format, startOfDay } from 'date-fns'
@@ -437,8 +438,25 @@ export default function ApplicationFormEdit({ application_form, questions }: App
 
                           <p className='text-muted-foreground text-sm'>{question.description}</p>
                         </div>
-                        <div>{getQuestionTypeIcon(question.question_type.id)}</div>
+                        {getQuestionTypeBadge(question)}
                       </div>
+
+                      {(question.image || question.explanation_required) && (
+                        <div className='flex gap-8'>
+                          {/* TIENE IMAGEN */}
+                          {question.image && (
+                            <Badge variant='outline' className='gap-1 text-xs'>
+                              Tiene imagen
+                            </Badge>
+                          )}
+                          {/* TIENE EXPLICACIÓN REQUERIDA */}
+                          {question.explanation_required && (
+                            <Badge variant='outline' className='gap-1 text-xs'>
+                              Tiene explicación requerida
+                            </Badge>
+                          )}
+                        </div>
+                      )}
 
                       {isChecked && (
                         <div className='mt-2 grid grid-cols-1 gap-4 md:grid-cols-3'>

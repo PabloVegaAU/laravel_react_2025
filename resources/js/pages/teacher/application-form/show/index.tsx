@@ -4,7 +4,7 @@ import AppLayout from '@/layouts/app-layout'
 import { useTranslations } from '@/lib/translator'
 import { cn } from '@/lib/utils'
 import { ApplicationForm, ApplicationFormStatus } from '@/types/application-form'
-import { getQuestionTypeIcon, QUESTION_TYPES } from '@/types/application-form/question/question-type-c'
+import { getQuestionTypeBadge, QUESTION_TYPES } from '@/types/application-form/question/question-type-c'
 import { BreadcrumbItem } from '@/types/core'
 import { Head, Link } from '@inertiajs/react'
 import { format } from 'date-fns'
@@ -145,12 +145,7 @@ function QuestionDisplay({
           <h4 className='font-medium'>
             {index + 1}. {q.name || 'Pregunta sin nombre'}
           </h4>
-          <div className='flex items-center gap-2'>
-            <span className='inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800'>
-              {q.question_type?.name}
-              {getQuestionTypeIcon(q.question_type?.id)}
-            </span>
-          </div>
+          <div className='flex items-center gap-2'>{getQuestionTypeBadge(q)}</div>
         </div>
 
         {q.description && <p className='text-muted-foreground text-sm'>{q.description}</p>}

@@ -83,12 +83,11 @@ class ApplicationFormController extends Controller
             // Obtener preguntas con relaciones mínimas necesarias
             $capabilityIds = $learningSession->capabilities->pluck('id');
 
-            $questions = Question::select(['questions.id', 'questions.name', 'questions.capability_id', 'questions.difficulty'])
-                ->join('capabilities', 'capabilities.id', '=', 'questions.capability_id')
-                ->with([
-                    'capability:id,competency_id,color',
-                    'capability.competency:id,name',
-                ])
+            $questions = Question::with([
+                'capability:id,competency_id,color',
+                'capability.competency:id,name',
+                'questionType:id,name',
+            ])
                 ->whereIn('capability_id', $capabilityIds)
                 ->where('questions.teacher_id', auth()->id())
                 ->orderBy('questions.created_at', 'desc')
