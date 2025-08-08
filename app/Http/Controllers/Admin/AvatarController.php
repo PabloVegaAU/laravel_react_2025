@@ -32,11 +32,17 @@ class AvatarController extends Controller
 
     public function store(Request $request)
     {
+        $levelId = $request->input('level_required') ?? $request->input('required_level_id');
+        if (! is_null($levelId)) {
+            $request->merge(['level_required' => $levelId]);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'is_active' => 'required|boolean',
             'image_url' => 'required|image|max:2048',
+            'level_required' => 'nullable|integer|exists:levels,id',
         ]);
 
         try {
@@ -48,6 +54,7 @@ class AvatarController extends Controller
                 'price' => $validated['price'],
                 'is_active' => $validated['is_active'],
                 'image_url' => $imagePath,
+                'level_required' => $validated['level_required'] ?? null,
             ]);
 
             return response()->json([
@@ -88,18 +95,24 @@ class AvatarController extends Controller
     public function update(Request $request, string $id)
     {
         $avatar = Avatar::findOrFail($id);
+        $levelId = $request->input('level_required') ?? $request->input('required_level_id');
+        if (! is_null($levelId)) {
+            $request->merge(['level_required' => $levelId]);
+        }
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'is_active' => 'required|boolean',
             'image_url' => 'nullable|image|max:2048',
+            'level_required' => 'nullable|integer|exists:levels,id',
         ]);
 
         $updateData = [
             'name' => $validated['name'],
             'price' => $validated['price'],
             'is_active' => $validated['is_active'],
+            'level_required' => $validated['level_required'],
         ];
 
         if ($request->hasFile('image_url')) {
