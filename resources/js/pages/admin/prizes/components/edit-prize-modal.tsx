@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 type Level = {
   id: number
   name: string
+  level: number
 }
 
 type Prize = {
@@ -22,6 +23,8 @@ type Prize = {
   image: string
   created_at: string
   updated_at: string
+  level_required?: number | null // 👈 por si viene columna
+  required_level?: { id: number; name: string; level: number } | null // 👈 por si viene relación
 }
 
 type EditPrizeModalProps = {
@@ -39,6 +42,7 @@ type PrizeFormData = {
   available_until: string
   is_active: boolean
   image: File | null
+  level_required_id: number | null // 👈 id para el select
   _method: 'PUT'
 }
 
@@ -46,16 +50,14 @@ export function EditPrizeModal({ isOpen, onClose, prize: initialPrize, onSuccess
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [prize, setPrize] = useState<Prize | null>(initialPrize)
+  const [levels, setLevels] = useState<Level[]>([]) // 👈 niveles
 
-  // Resetear el estado cuando cambia el premio inicial
   useEffect(() => {
     setPrize(initialPrize)
   }, [initialPrize])
 
-  // No renderizar si no hay premio o el modal está cerrado
   if (!isOpen || !prize) return null
 
-  // Inicializar el formulario con los datos del premio
   const { data, setData, errors, reset } = useForm<PrizeFormData>({
     name: prize.name || '',
     description: prize.description || '',
@@ -64,10 +66,10 @@ export function EditPrizeModal({ isOpen, onClose, prize: initialPrize, onSuccess
     available_until: prize.available_until || '',
     is_active: prize.is_active ?? true,
     image: null,
+    level_required_id: prize.required_level?.id ?? prize.level_required ?? null, // 👈 inicialización flexible
     _method: 'PUT'
   })
 
-  // Actualizar el formulario cuando cambia el premio
   useEffect(() => {
     if (prize) {
       setData({
@@ -78,12 +80,11 @@ export function EditPrizeModal({ isOpen, onClose, prize: initialPrize, onSuccess
         available_until: prize.available_until || '',
         is_active: prize.is_active,
         image: null,
+        level_required_id: prize.required_level?.id ?? prize.level_required ?? null,
         _method: 'PUT'
       })
 
-      // Set preview image if there's an existing image
       if (prize.image && typeof prize.image === 'string') {
-        // Ensure the image URL is properly formatted
         const imageUrl = prize.image.startsWith('http') || prize.image.startsWith('/') ? prize.image : `${prize.image}`
         setPreviewImage(imageUrl)
       } else {
@@ -91,6 +92,30 @@ export function EditPrizeModal({ isOpen, onClose, prize: initialPrize, onSuccess
       }
     }
   }, [prize, setData])
+
+  // Cargar niveles al abrir
+  useEffect(() => {
+    if (!isOpen) return
+    const fetchLevels = async () => {
+      try {
+        const res = await fetch('/api/levels', {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          credentials: 'include'
+        })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const json = await res.json()
+        setLevels(Array.isArray(json?.levels) ? json.levels : [])
+      } catch (err) {
+        console.error('Error fetching levels:', err)
+        setLevels([])
+      }
+    }
+    fetchLevels()
+  }, [isOpen])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -104,14 +129,11 @@ export function EditPrizeModal({ isOpen, onClose, prize: initialPrize, onSuccess
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    // Double check prize exists before proceeding
     if (!prize) {
       toast.error('No se pudo cargar la información del premio')
       onClose()
       return
     }
-
     setIsLoading(true)
 
     try {
@@ -120,12 +142,24 @@ export function EditPrizeModal({ isOpen, onClose, prize: initialPrize, onSuccess
       formData.append('description', data.description)
       formData.append('points_cost', data.points_cost)
       formData.append('stock', data.stock)
-      formData.append('available_until', data.available_until)
+      if (data.available_until) {
+        formData.append('available_until', data.available_until)
+      }
       formData.append('is_active', data.is_active ? '1' : '0')
       formData.append('_method', 'PUT')
 
       if (data.image) {
         formData.append('image', data.image)
+      }
+
+      // 👇 enviar nivel
+      if (data.level_required_id) {
+        formData.append('level_required', String(data.level_required_id))
+        formData.append('required_level_id', String(data.level_required_id)) // opcional
+      } else {
+        // si quieres "limpiar" nivel:
+        formData.append('level_required', '')
+        formData.append('required_level_id', '')
       }
 
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
@@ -139,61 +173,48 @@ export function EditPrizeModal({ isOpen, onClose, prize: initialPrize, onSuccess
         body: formData
       })
 
-      let responseData
+      let responseData: any = {}
       try {
         responseData = await response.json()
-      } catch (e) {
-        console.error('Error parsing JSON response:', e)
-        throw new Error('Error al procesar la respuesta del servidor')
+      } catch {
+        responseData = {}
       }
 
       if (!response.ok) {
         if (responseData.errors) {
-          // Mostrar errores de validación como toast
           Object.values(responseData.errors)
             .flat()
-            .forEach((errorMsg) => {
-              toast.error(String(errorMsg))
-            })
+            .forEach((errorMsg: any) => toast.error(String(errorMsg)))
           return
         }
         throw new Error(responseData.message || 'Error al actualizar el premio')
       }
 
-      // El backend devuelve los datos del premio directamente en la respuesta
-      // o dentro de una propiedad 'prize' según el controlador
-      const prizeData = responseData.prize || responseData
-
-      if (!prizeData) {
-        console.error('Datos de premio no encontrados en la respuesta:', responseData)
-        throw new Error('No se recibieron datos del premio actualizado')
-      }
+      const prizeData = responseData.data ?? responseData.prize ?? responseData
+      if (!prizeData) throw new Error('No se recibieron datos del premio actualizado')
 
       toast.success('Premio actualizado exitosamente')
 
-      // Construir el objeto de premio actualizado con los datos del servidor
-      // Asegurando que todos los campos requeridos estén presentes
       const updatedPrize: Prize = {
-        id: prizeData.id || prize?.id || 0,
-        name: prizeData.name || '',
-        description: prizeData.description || '',
-        points_cost: prizeData.points_cost || 0,
-        stock: prizeData.stock || 0,
-        available_until: prizeData.available_until || null,
-        is_active: prizeData.is_active ?? true,
-        // Si hay una nueva imagen en la respuesta, usarla, de lo contrario mantener la existente
-        image: prizeData.image || prize?.image || '',
-        created_at: prizeData.created_at || new Date().toISOString(),
-        updated_at: prizeData.updated_at || new Date().toISOString()
+        id: prizeData.id || prize.id,
+        name: prizeData.name || prize.name,
+        description: prizeData.description || prize.description,
+        points_cost: prizeData.points_cost ?? prize.points_cost,
+        stock: prizeData.stock ?? prize.stock,
+        available_until: prizeData.available_until ?? prize.available_until ?? null,
+        is_active: prizeData.is_active ?? prize.is_active,
+        image: prizeData.image || prize.image || '',
+        created_at: prizeData.created_at || prize.created_at,
+        updated_at: prizeData.updated_at || new Date().toISOString(),
+        level_required: prizeData.level_required ?? prize.level_required ?? null,
+        required_level: prizeData.required_level ?? prize.required_level ?? null
       }
 
       onSuccess(updatedPrize)
       onClose()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating prize:', error)
-      if (error instanceof Error && !error.message.includes('validation')) {
-        toast.error(error.message || 'Error al actualizar el premio')
-      }
+      toast.error(error?.message || 'Error al actualizar el premio')
     } finally {
       setIsLoading(false)
     }
@@ -238,6 +259,25 @@ export function EditPrizeModal({ isOpen, onClose, prize: initialPrize, onSuccess
               <Input id='stock' type='number' min='0' value={data.stock} onChange={(e) => setData('stock', e.target.value)} required />
               {errors.stock && <p className='text-sm text-red-500'>{errors.stock}</p>}
             </div>
+          </div>
+
+          {/* 👇 Level Required */}
+          <div className='space-y-2'>
+            <Label htmlFor='level_required_id'>Nivel requerido</Label>
+            <select
+              id='level_required_id'
+              value={data.level_required_id ?? ''}
+              onChange={(e) => setData('level_required_id', e.target.value ? parseInt(e.target.value) : null)}
+              className='border-input bg-background ring-offset-background flex h-10 w-full rounded-md border px-3 py-2 text-sm'
+            >
+              <option value=''>Ninguno (Disponible para todos)</option>
+              {levels.map((level) => (
+                <option key={level.id} value={level.id}>
+                  Nivel {level.level} - {level.name}
+                </option>
+              ))}
+            </select>
+            {(errors as any).level_required && <p className='text-sm text-red-500'>{(errors as any).level_required}</p>}
           </div>
 
           <div className='space-y-2' style={{ display: 'none' }}>

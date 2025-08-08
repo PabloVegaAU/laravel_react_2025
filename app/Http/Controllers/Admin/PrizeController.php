@@ -32,6 +32,10 @@ class PrizeController extends Controller
 
     public function store(Request $request)
     {
+        $levelId = $request->input('level_required') ?? $request->input('required_level_id');
+        if (! is_null($levelId)) {
+            $request->merge(['level_required' => $levelId]);
+        }
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -40,6 +44,7 @@ class PrizeController extends Controller
             'available_until' => 'nullable|date',
             'is_active' => 'required|boolean',
             'image' => 'required|image|max:2048',
+            'level_required' => 'nullable|integer|exists:levels,id',
         ]);
 
         try {
@@ -51,9 +56,10 @@ class PrizeController extends Controller
                 'description' => $validated['description'] ?? null,
                 'points_cost' => $validated['points_cost'],
                 'stock' => $validated['stock'],
-                'available_until' => $validated['available_until'],
+                'available_until' => $validated['available_until'] ?? null,
                 'is_active' => $validated['is_active'],
                 'image' => $imagePath,
+                'level_required' => $validated['level_required'] ?? null,
             ]);
 
             return response()->json([
@@ -94,6 +100,10 @@ class PrizeController extends Controller
     public function update(Request $request, string $id)
     {
         $prize = Prize::findOrFail($id);
+        $levelId = $request->input('level_required') ?? $request->input('required_level_id');
+        if (! is_null($levelId)) {
+            $request->merge(['level_required' => $levelId]);
+        }
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -103,6 +113,7 @@ class PrizeController extends Controller
             'available_until' => 'nullable|date',
             'is_active' => 'required|boolean',
             'image' => 'nullable|image|max:2048',
+            'level_required' => 'nullable|integer|exists:levels,id',
         ]);
 
         $updateData = [
@@ -110,8 +121,9 @@ class PrizeController extends Controller
             'description' => $validated['description'] ?? null,
             'points_cost' => $validated['points_cost'],
             'stock' => $validated['stock'],
-            'available_until' => $validated['available_until'],
+            'available_until' => $validated['available_until'] ?? null,
             'is_active' => $validated['is_active'],
+            'level_required' => $validated['level_required'] ?? null,
         ];
 
         if ($request->hasFile('image')) {

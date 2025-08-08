@@ -7,6 +7,12 @@ import { useForm } from '@inertiajs/react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
+type Level = {
+  id: number
+  name: string
+  level: number
+}
+
 type EditAvatarModalProps = {
   isOpen: boolean
   onClose: () => void
@@ -16,34 +22,31 @@ type EditAvatarModalProps = {
 
 interface EditAvatarFormData extends AvatarFormData {
   _method: 'PUT'
-  [key: string]: any // Index signature to satisfy Inertia's useForm
+  required_level_id: number | null
+  [key: string]: any
 }
 
 export function EditAvatarModal({ isOpen, onClose, avatar: initialAvatar, onSuccess }: EditAvatarModalProps) {
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [avatar, setAvatar] = useState<Avatar | null>(initialAvatar)
-  const [levels, setLevels] = useState<{ id: number; level: number }[]>([])
+  const [levels, setLevels] = useState<Level[]>([])
 
-  // Reset state when initial avatar changes
   useEffect(() => {
     setAvatar(initialAvatar)
   }, [initialAvatar])
 
-  // Don't render if no avatar or modal is closed
   if (!isOpen || !avatar) return null
 
-  // Initialize form with avatar data
   const { data, setData, errors, reset } = useForm<EditAvatarFormData>({
     name: avatar.name || '',
     price: typeof avatar.price === 'string' ? parseFloat(avatar.price) : avatar.price || 0,
     is_active: avatar.is_active ?? true,
     image_url: null,
-    required_level_id: avatar.required_level?.id || null,
+    required_level_id: avatar.required_level?.id ?? (avatar as any).level_required ?? null,
     _method: 'PUT'
   })
 
-  // Update form when avatar changes
   useEffect(() => {
     if (avatar) {
       setData({
@@ -51,27 +54,35 @@ export function EditAvatarModal({ isOpen, onClose, avatar: initialAvatar, onSucc
         price: typeof avatar.price === 'string' ? parseFloat(avatar.price) : avatar.price || 0,
         is_active: avatar.is_active ?? true,
         image_url: null,
-        required_level_id: avatar.required_level?.id || null,
+        required_level_id: avatar.required_level?.id ?? (avatar as any).level_required ?? null,
         _method: 'PUT'
       })
-
-      // Set preview image
-      if (avatar.image_url) {
-        setPreviewImage(avatar.image_url.startsWith('http') || avatar.image_url.startsWith('/') ? avatar.image_url : `${avatar.image_url}`)
-      } else {
-        setPreviewImage(null)
-      }
+      setPreviewImage(avatar.image_url ? avatar.image_url : null)
     }
   }, [avatar, setData])
 
-  // Fetch levels for the dropdown
+  // Fetch levels
   useEffect(() => {
-    if (isOpen) {
-      fetch('/api/levels')
-        .then((res) => res.json())
-        .then((data) => setLevels(data.data || []))
-        .catch(console.error)
+    if (!isOpen) return
+    const fetchLevels = async () => {
+      try {
+        const res = await fetch('/api/levels', {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          credentials: 'include'
+        })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const json = await res.json()
+        setLevels(Array.isArray(json?.levels) ? json.levels : [])
+      } catch (err) {
+        console.error('Error fetching levels:', err)
+        setLevels([])
+      }
     }
+    fetchLevels()
   }, [isOpen])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,14 +97,11 @@ export function EditAvatarModal({ isOpen, onClose, avatar: initialAvatar, onSucc
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    // Double check avatar exists before proceeding
     if (!avatar) {
       toast.error('Error cargando información del avatar')
       onClose()
       return
     }
-
     setIsLoading(true)
 
     try {
@@ -103,8 +111,13 @@ export function EditAvatarModal({ isOpen, onClose, avatar: initialAvatar, onSucc
       formData.append('is_active', data.is_active ? '1' : '0')
       formData.append('_method', 'PUT')
 
+      // ⚠️ Estándar: usa level_required. Mantengo ambos por compatibilidad.
       if (data.required_level_id) {
+        formData.append('level_required', data.required_level_id.toString())
         formData.append('required_level_id', data.required_level_id.toString())
+      } else {
+        formData.append('level_required', '')
+        formData.append('required_level_id', '')
       }
 
       if (data.image_url instanceof File) {
@@ -122,58 +135,37 @@ export function EditAvatarModal({ isOpen, onClose, avatar: initialAvatar, onSucc
         body: formData
       })
 
-      let responseData
-      try {
-        responseData = await response.json()
-      } catch (e) {
-        console.error('Error procesando respuesta del servidor:', e)
-        throw new Error('Error procesando respuesta del servidor')
-      }
+      const responseData = await response.json().catch(() => ({}))
 
       if (!response.ok) {
-        if (responseData.errors) {
-          // Show validation errors as toast
+        if (responseData?.errors) {
           Object.values(responseData.errors)
             .flat()
-            .forEach((errorMsg) => {
-              toast.error(String(errorMsg))
-            })
+            .forEach((msg: any) => toast.error(String(msg)))
           return
         }
-        throw new Error(responseData.message || 'Error actualizando avatar')
+        throw new Error(responseData?.message || 'Error actualizando avatar')
       }
 
-      // The backend returns the avatar data directly in the response
-      // or inside an 'avatar' property depending on the controller
       const avatarData = responseData.avatar || responseData
-
-      if (!avatarData) {
-        console.error('Avatar data not found in response:', responseData)
-        throw new Error('No data received for updated avatar')
-      }
-
       toast.success('Avatar actualizado correctamente')
 
-      // Build the updated avatar object with server data
-      // Ensuring all required fields are present
       const updatedAvatar: Avatar = {
         ...avatar,
-        id: avatarData.id || avatar.id,
-        name: avatarData.name || avatar.name,
-        price: avatarData.price || avatar.price,
+        id: avatarData.id ?? avatar.id,
+        name: avatarData.name ?? avatar.name,
+        price: avatarData.price ?? avatar.price,
         is_active: avatarData.is_active ?? avatar.is_active ?? true,
-        image_url: avatarData.image_url || avatar.image_url,
-        required_level: avatarData.required_level || avatar.required_level,
+        image_url: avatarData.image_url ?? avatar.image_url,
+        required_level: avatarData.required_level ?? avatar.required_level,
         updated_at: avatarData.updated_at || new Date().toISOString()
       }
 
       onSuccess(updatedAvatar)
       onClose()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error actualizando avatar:', error)
-      if (error instanceof Error && !error.message.includes('validation')) {
-        toast.error(error.message || 'Error actualizando avatar')
-      }
+      toast.error(error?.message || 'Error actualizando avatar')
     } finally {
       setIsLoading(false)
     }
@@ -210,22 +202,25 @@ export function EditAvatarModal({ isOpen, onClose, avatar: initialAvatar, onSucc
             {errors.price && <p className='text-sm text-red-500'>{errors.price}</p>}
           </div>
 
-          <div className='space-y-2' style={{ display: 'none' }}>
+          {/* Si NO quieres ocultarlo, quita style={{ display: 'none' }} */}
+          <div className='space-y-2' /* style={{ display: 'none' }} */>
             <Label htmlFor='required_level_id'>Nivel requerido</Label>
             <select
               id='required_level_id'
-              value={data.required_level_id || ''}
+              value={data.required_level_id ?? ''}
               onChange={(e) => setData('required_level_id', e.target.value ? parseInt(e.target.value) : null)}
               className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50'
             >
               <option value=''>Ninguno (Disponible para todos los niveles)</option>
               {levels.map((level) => (
                 <option key={level.id} value={level.id}>
-                  Nivel {level.level}
+                  Nivel {level.level} - {level.name}
                 </option>
               ))}
             </select>
-            {errors.required_level_id && <p className='text-sm text-red-500'>{errors.required_level_id}</p>}
+            {(errors.required_level_id || errors.level_required) && (
+              <p className='text-sm text-red-500'>{errors.required_level_id || errors.level_required}</p>
+            )}
           </div>
 
           <div className='flex items-center space-x-2'>

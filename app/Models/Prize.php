@@ -18,6 +18,7 @@ class Prize extends Model
         'name',
         'description',
         'image',
+        'level_required',
         'stock',
         'points_cost',
         'is_active',
@@ -47,4 +48,9 @@ class Prize extends Model
         'updated_at',
         'deleted_at',
     ];
+
+    public function requiredLevel(): BelongsTo
+    {
+        return $this->belongsTo(Level::class, 'level_required');
+    }
 }

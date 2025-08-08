@@ -6,6 +6,12 @@ import { useForm } from '@inertiajs/react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
+type Level = {
+  id: number
+  name: string
+  level: number
+}
+
 type CreatePrizeModalProps = {
   isOpen: boolean
   onClose: () => void
@@ -20,11 +26,13 @@ type PrizeFormData = {
   available_until: string
   is_active: boolean
   image: File | null
+  level_required: number | null // 👈 agregado
 }
 
 export function CreatePrizeModal({ isOpen, onClose, onSuccess }: CreatePrizeModalProps) {
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [levels, setLevels] = useState<Level[]>([]) // 👈 agregado
 
   const { data, setData, errors, reset } = useForm<PrizeFormData>({
     name: '',
@@ -33,15 +41,35 @@ export function CreatePrizeModal({ isOpen, onClose, onSuccess }: CreatePrizeModa
     stock: '1',
     available_until: '',
     is_active: true,
-    image: null
+    image: null,
+    level_required: null
   })
 
+  // Cargar niveles cuando se abre
   useEffect(() => {
-    if (isOpen) {
-      reset()
-      setPreviewImage(null)
+    if (!isOpen) return
+    const fetchLevels = async () => {
+      try {
+        const res = await fetch('/api/levels', {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          credentials: 'include'
+        })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const json = await res.json()
+        setLevels(Array.isArray(json?.levels) ? json.levels : [])
+      } catch (err) {
+        console.error('Error fetching levels:', err)
+        setLevels([])
+      }
     }
-  }, [isOpen])
+    fetchLevels()
+    reset()
+    setPreviewImage(null)
+  }, [isOpen, reset])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -63,10 +91,18 @@ export function CreatePrizeModal({ isOpen, onClose, onSuccess }: CreatePrizeModa
       formData.append('description', data.description)
       formData.append('points_cost', data.points_cost)
       formData.append('stock', data.stock)
-      formData.append('available_until', data.available_until)
+      if (data.available_until) {
+        formData.append('available_until', data.available_until)
+      }
       formData.append('is_active', data.is_active ? '1' : '0')
       if (data.image) {
         formData.append('image', data.image)
+      }
+
+      // 👇 enviar level_required (y opcionalmente el alias por compatibilidad)
+      if (data.level_required) {
+        formData.append('level_required', String(data.level_required))
+        formData.append('required_level_id', String(data.level_required)) // opcional
       }
 
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
@@ -80,23 +116,25 @@ export function CreatePrizeModal({ isOpen, onClose, onSuccess }: CreatePrizeModa
         body: formData
       })
 
-      const responseData = await response.json()
+      let responseData: any = {}
+      try {
+        responseData = await response.json()
+      } catch {
+        responseData = {}
+      }
 
       if (!response.ok) {
         if (responseData.errors) {
-          // Show validation errors as toast
           Object.values(responseData.errors)
             .flat()
-            .forEach((errorMsg) => {
-              toast.error(String(errorMsg))
-            })
+            .forEach((err: any) => toast.error(String(err)))
           return
         }
         throw new Error(responseData.message || 'Error al crear el premio')
       }
 
       toast.success('Premio creado exitosamente')
-      onSuccess(responseData.data)
+      onSuccess(responseData.data ?? responseData.prize ?? responseData)
       onClose()
     } catch (error) {
       console.error('Error creating prize:', error)
@@ -147,6 +185,25 @@ export function CreatePrizeModal({ isOpen, onClose, onSuccess }: CreatePrizeModa
               <Input id='stock' type='number' min='0' value={data.stock} onChange={(e) => setData('stock', e.target.value)} required />
               {errors.stock && <p className='text-sm text-red-500'>{errors.stock}</p>}
             </div>
+          </div>
+
+          {/* 👇 Level Required */}
+          <div className='space-y-2'>
+            <Label htmlFor='level_required'>Nivel requerido</Label>
+            <select
+              id='level_required'
+              value={data.level_required ?? ''}
+              onChange={(e) => setData('level_required', e.target.value ? parseInt(e.target.value) : null)}
+              className='border-input bg-background ring-offset-background flex h-10 w-full rounded-md border px-3 py-2 text-sm'
+            >
+              <option value=''>Ninguno (Disponible para todos)</option>
+              {levels.map((level) => (
+                <option key={level.id} value={level.id}>
+                  Nivel {level.level} - {level.name}
+                </option>
+              ))}
+            </select>
+            {errors.level_required && <p className='text-sm text-red-500'>{errors.level_required}</p>}
           </div>
 
           <div className='space-y-2' style={{ display: 'none' }}>

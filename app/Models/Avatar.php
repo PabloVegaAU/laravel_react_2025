@@ -20,6 +20,7 @@ class Avatar extends Model
     protected $fillable = [
         'name',
         'image_url',
+        'level_required',
         'price',
         'is_active',
     ];

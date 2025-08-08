@@ -7,13 +7,19 @@ import { useForm } from '@inertiajs/react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
+type Level = {
+  id: number
+  name: string
+  level: number
+}
+
 type CreateAvatarFormData = {
   name: string
   price: number | string
   is_active: boolean
   image_url: File | string | null
-  required_level_id: number | null
-  [key: string]: any // Index signature to satisfy Inertia's useForm
+  level_required: number | null
+  [key: string]: any
 }
 
 type CreateAvatarModalProps = {
@@ -25,27 +31,43 @@ type CreateAvatarModalProps = {
 export function CreateAvatarModal({ isOpen, onClose, onSuccess }: CreateAvatarModalProps) {
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [levels, setLevels] = useState<{ id: number; level: number }[]>([])
+  const [levels, setLevels] = useState<Level[]>([])
 
   const { data, setData, errors, reset } = useForm<CreateAvatarFormData>({
     name: '',
     price: 0,
     is_active: true,
     image_url: null,
-    required_level_id: null
+    level_required: null
   })
 
   useEffect(() => {
+    const fetchLevels = async () => {
+      try {
+        const res = await fetch('/api/levels', {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          credentials: 'include'
+        })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const json = await res.json()
+        // 👇 tu API trae { levels: [...] }
+        setLevels(Array.isArray(json?.levels) ? json.levels : [])
+      } catch (err) {
+        console.error('Error fetching levels:', err)
+        setLevels([])
+      }
+    }
+
     if (isOpen) {
+      fetchLevels()
       reset()
       setPreviewImage(null)
-      // Fetch levels for the dropdown
-      fetch('/api/levels')
-        .then((res) => res.json())
-        .then((data) => setLevels(data.data || []))
-        .catch(console.error)
     }
-  }, [isOpen])
+  }, [isOpen, reset])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -66,8 +88,8 @@ export function CreateAvatarModal({ isOpen, onClose, onSuccess }: CreateAvatarMo
       formData.append('name', data.name)
       formData.append('price', data.price.toString())
       formData.append('is_active', data.is_active ? '1' : '0')
-      if (data.required_level_id) {
-        formData.append('required_level_id', data.required_level_id.toString())
+      if (data.level_required) {
+        formData.append('level_required', data.level_required.toString())
       }
       if (data.image_url instanceof File) {
         formData.append('image_url', data.image_url)
@@ -88,12 +110,9 @@ export function CreateAvatarModal({ isOpen, onClose, onSuccess }: CreateAvatarMo
 
       if (!response.ok) {
         if (responseData.errors) {
-          // Show validation errors as toast
           Object.values(responseData.errors)
             .flat()
-            .forEach((errorMsg) => {
-              toast.error(String(errorMsg))
-            })
+            .forEach((msg: any) => toast.error(String(msg)))
           return
         }
         throw new Error(responseData.message || 'Error creando avatar')
@@ -102,10 +121,10 @@ export function CreateAvatarModal({ isOpen, onClose, onSuccess }: CreateAvatarMo
       toast.success('Avatar creado correctamente')
       onSuccess(responseData.data || responseData.avatar)
       onClose()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creando avatar:', error)
-      if (error instanceof Error && !error.message.includes('validation')) {
-        toast.error(error.message || 'Error creando avatar')
+      if (!String(error?.message || '').includes('validation')) {
+        toast.error(error?.message || 'Error creando avatar')
       }
     } finally {
       setIsLoading(false)
@@ -143,22 +162,22 @@ export function CreateAvatarModal({ isOpen, onClose, onSuccess }: CreateAvatarMo
             {errors.price && <p className='text-sm text-red-500'>{errors.price}</p>}
           </div>
 
-          <div className='space-y-2' style={{ display: 'none' }}>
-            <Label htmlFor='required_level_id'>Nivel requerido</Label>
+          <div className='space-y-2'>
+            <Label htmlFor='level_required'>Nivel requerido</Label>
             <select
-              id='required_level_id'
-              value={data.required_level_id || ''}
-              onChange={(e) => setData('required_level_id', e.target.value ? parseInt(e.target.value) : null)}
+              id='level_required'
+              value={data.level_required ?? ''}
+              onChange={(e) => setData('level_required', e.target.value ? parseInt(e.target.value) : null)}
               className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50'
             >
-              <option value=''>None (Available to all levels)</option>
+              <option value=''>Disponible para todos</option>
               {levels.map((level) => (
                 <option key={level.id} value={level.id}>
-                  Level {level.level}
+                  Nivel {level.level} - {level.name}
                 </option>
               ))}
             </select>
-            {errors.required_level_id && <p className='text-sm text-red-500'>{errors.required_level_id}</p>}
+            {errors.level_required && <p className='text-sm text-red-500'>{errors.level_required}</p>}
           </div>
 
           <div className='flex items-center space-x-2'>
