@@ -51,31 +51,44 @@ export default function Dashboard() {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title='Tienda de Puntos' />
-      <header className='mb-2 flex items-center justify-between p-5'>
-        <strong className='text-base font-bold'>TIENDA DE PUNTOS</strong>
-        <div className='text-base'>Tus puntos: {puntos !== null ? `${puntos} pts` : '...'}</div>
+      <header className='mb-4 flex flex-col items-start justify-between gap-4 p-6 sm:flex-row sm:items-center sm:gap-0 lg:p-8'>
+        <div className='border-border dark:bg-muted mb-8 rounded-lg border bg-white p-6'>
+          <strong className='text-foreground text-2xl font-bold sm:text-3xl lg:text-4xl xl:text-5xl'>TIENDA DE PUNTOS</strong>
+        </div>
+        <div className='rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3 sm:px-6 sm:py-4 dark:border-yellow-800 dark:bg-yellow-950'>
+          <span className='text-lg font-medium text-yellow-900 sm:text-xl lg:text-2xl xl:text-3xl dark:text-yellow-100'>
+            Tus puntos: <span className='font-bold text-yellow-700 dark:text-yellow-300'>{puntos !== null ? `${puntos} pts` : '...'}</span>
+          </span>
+        </div>
       </header>
-      <div className='mb-2 flex justify-end px-5'>
+      <div className='mb-6 flex justify-center px-6 sm:justify-end lg:px-8'>
         <button
           onClick={() => router.visit('/student/objects')}
-          className='flex items-center space-x-2 rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600'
+          className='border-border dark:bg-muted mb-8 flex items-center space-x-2 rounded-lg border bg-white p-6 text-base font-medium transition-colors sm:px-8 sm:py-4 sm:text-lg lg:text-xl'
         >
           <span>MIS OBJETOS</span>
         </button>
       </div>
-      <main className='p-5 text-center'>
-        <p className='mb-4 text-sm font-semibold'>COMPRAR</p>
-        <div className='flex justify-center space-x-8'>
+      <main className='p-6 text-center lg:p-8'>
+        <div className='flex items-center justify-center'>
+          <div className='border-border dark:bg-muted mb-8 rounded-lg border bg-white p-6'>
+            <p className='text-foreground text-lg font-semibold sm:text-xl lg:text-2xl xl:text-3xl'>COMPRAR</p>
+          </div>
+        </div>
+        <div className='flex flex-col items-center justify-center space-y-8 sm:flex-row sm:space-y-0 sm:space-x-12 lg:space-x-16'>
           {[
             { label: 'AVATARES', path: '/student/store/avatars', image: '/images/avatars/default.png' },
             { label: 'FONDOS', path: '/student/store/backgrounds', image: '/images/backgrounds/default.png' },
             { label: 'PREMIOS', path: '/student/store/rewards', image: '/images/rewards/default.png' }
           ].map(({ label, path, image }) => (
             <div key={label} className='flex flex-col items-center'>
-              <div className='border-sidebar-border/70 relative size-20 overflow-hidden rounded-xl border md:size-50 lg:size-100'>
+              <div className='border-border bg-muted relative size-24 overflow-hidden rounded-xl border sm:size-32 md:size-40 lg:size-48 xl:size-56'>
                 <img src={image} alt={label} className='h-full w-full object-cover' />
               </div>
-              <button onClick={() => router.visit(path)} className='mt-1 w-20 rounded-md bg-blue-300 py-1 text-sm text-black'>
+              <button
+                onClick={() => router.visit(path)}
+                className='bg-secondary text-secondary-foreground hover:bg-secondary/80 mt-4 w-24 rounded-lg px-4 py-2 text-sm font-medium transition-colors sm:w-32 sm:text-base md:w-40 md:px-6 md:py-3 lg:text-lg xl:text-xl'
+              >
                 {label}
               </button>
             </div>

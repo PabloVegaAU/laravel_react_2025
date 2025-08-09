@@ -137,7 +137,7 @@ export default function MyObjects() {
               premios: `/api/studentprizeshistory`
             }
 
-            let allItems: Item[] = []
+            const allItems: Item[] = []
 
             if (activeTab === 'todos' || activeTab === 'avatares') {
               const { data } = await axios.post(endpoints.avatares, { p_student_id: Number(studentId) })
@@ -284,7 +284,7 @@ export default function MyObjects() {
     try {
       setIsApplying(true)
       let endpoint = ''
-      let requestData = new URLSearchParams()
+      const requestData = new URLSearchParams()
 
       // Always add student_id
       requestData.append('p_student_id', user.id.toString())
@@ -359,24 +359,25 @@ export default function MyObjects() {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title='Mis Objetos' />
-      <div className='w-full space-y-8 px-4 py-6 sm:px-6 lg:px-8'>
+
+      <div className='p-4w-full flex h-full flex-1 flex-col gap-4 space-y-8 overflow-x-auto rounded-xl px-4 py-6 sm:px-6 lg:px-8'>
         <div className='mx-auto w-full max-w-7xl space-y-8'>
           {/* Header Section */}
           <div className='mb-8 flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0'>
-            <div>
-              <h2 className='text-2xl font-bold text-gray-800'>Mis Objetos</h2>
-              <p className='text-sm text-gray-500'>Gestiona tus avatares, fondos y premios</p>
+            <div className='bg-background rounded-lg border p-6 shadow-sm'>
+              <h2 className='text-foreground text-2xl font-bold'>Mis Objetos</h2>
+              <p className='text-muted-foreground text-sm'>Gestiona tus avatares, fondos y premios</p>
             </div>
             <div className='flex items-center space-x-4'>
-              <div className='rounded-lg bg-yellow-100 px-4 py-2'>
-                <span className='font-medium'>Tus puntos: </span>
-                <span className='font-bold text-yellow-700'>{puntos !== null ? `${puntos} pts` : '...'}</span>
+              <div className='rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-2 dark:border-yellow-800 dark:bg-yellow-950'>
+                <span className='font-medium text-yellow-900 dark:text-yellow-100'>Tus puntos: </span>
+                <span className='font-bold text-yellow-700 dark:text-yellow-300'>{puntos !== null ? `${puntos} pts` : '...'}</span>
               </div>
             </div>
           </div>
 
           {/* Categories */}
-          <div className='mb-6 flex space-x-2 overflow-x-auto pb-2'>
+          <div className='bg-background mb-6 flex space-x-2 overflow-x-auto rounded-lg border p-6 shadow-sm'>
             {['todos', 'avatares', 'fondos', 'premios', 'logros'].map((tab) => {
               const isActive = activeTab === tab
               return (
@@ -384,7 +385,7 @@ export default function MyObjects() {
                   key={tab}
                   onClick={() => setActiveTab(tab as any)}
                   className={`flex items-center space-x-2 rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
-                    isActive ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'
+                    isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   }`}
                 >
                   {tab === 'todos' && <SparklesIcon className='h-4 w-4' />}
@@ -401,19 +402,19 @@ export default function MyObjects() {
           {/* Items Grid */}
           {isLoading ? (
             <div className='flex h-64 items-center justify-center'>
-              <div className='h-8 w-8 animate-spin rounded-full border-b-2 border-blue-500'></div>
+              <div className='border-primary h-8 w-8 animate-spin rounded-full border-b-2'></div>
             </div>
           ) : getFilteredItems().length === 0 ? (
-            <div className='flex h-64 flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-6 text-center'>
-              <SparklesIcon className='mx-auto h-12 w-12 text-gray-400' />
-              <h3 className='mt-2 text-sm font-medium text-gray-900'>No hay objetos</h3>
-              <p className='mt-1 text-sm text-gray-500'>
+            <div className='border-border flex h-64 flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 text-center'>
+              <SparklesIcon className='text-muted-foreground mx-auto h-12 w-12' />
+              <h3 className='text-foreground mt-2 text-sm font-medium'>No hay objetos</h3>
+              <p className='text-muted-foreground mt-1 text-sm'>
                 {activeTab === 'todos' ? 'No tienes objetos en tu colección.' : `No tienes ${activeTab} en tu colección.`}
               </p>
               <div className='mt-6'>
                 <Link
                   href={route('student.store')}
-                  className='inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
+                  className='bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:outline-primary inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2'
                 >
                   <SparklesIcon className='mr-1.5 -ml-0.5 h-5 w-5' />
                   Visitar la tienda
@@ -426,15 +427,15 @@ export default function MyObjects() {
                 <div
                   key={`${item.tipo}-${item.id || Math.random().toString(36).substr(2, 9)}`}
                   onClick={() => handleItemClick(item)}
-                  className='group relative cursor-pointer overflow-hidden rounded-xl bg-white p-3 shadow-sm transition-all hover:shadow-md hover:ring-2 hover:ring-blue-500'
+                  className='group bg-card hover:ring-primary/50 relative cursor-pointer overflow-hidden rounded-xl border p-3 shadow-sm transition-all hover:shadow-md hover:ring-2'
                 >
                   {/* Item Type Badge */}
-                  <div className='absolute top-2 right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-blue-700'>
+                  <div className='bg-primary/10 text-primary absolute top-2 right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full'>
                     {getTypeIcon(item.tipo)}
                   </div>
 
                   {/* Item Image */}
-                  <div className='relative mb-3 aspect-square w-full overflow-hidden rounded-lg bg-gray-100'>
+                  <div className='bg-muted relative mb-3 aspect-square w-full overflow-hidden rounded-lg'>
                     {item.image ? (
                       <img
                         src={`${item.image}`}
@@ -448,7 +449,7 @@ export default function MyObjects() {
                         }}
                       />
                     ) : (
-                      <div className='flex h-full items-center justify-center text-gray-400'>
+                      <div className='text-muted-foreground flex h-full items-center justify-center'>
                         <PhotoIcon className='h-12 w-12' />
                       </div>
                     )}
@@ -456,21 +457,21 @@ export default function MyObjects() {
 
                   {/* Item Details */}
                   <div className='text-center'>
-                    <h3 className='truncate text-sm font-medium text-gray-900'>{item.name}</h3>
-                    <p className='mt-1 text-xs text-gray-500'>{getItemTypeLabel(item.tipo)}</p>
+                    <h3 className='text-foreground truncate text-sm font-medium'>{item.name}</h3>
+                    <p className='text-muted-foreground mt-1 text-xs'>{getItemTypeLabel(item.tipo)}</p>
                     {/* Additional Info */}
                     <div className='mt-2 flex items-center justify-center space-x-2'>
                       {item.precio !== undefined && item.precio > 0 && (
-                        <span className='flex items-center text-xs font-medium text-yellow-600'>
+                        <span className='flex items-center text-xs font-medium text-yellow-600 dark:text-yellow-400'>
                           {item.precio.toLocaleString()} <span className='ml-0.5'>🪙</span>
                         </span>
                       )}
 
                       {item.nivel_desbloqueo && item.nivel_desbloqueo > 0 && (
-                        <span className='text-xs text-gray-500'>Nv. {item.nivel_desbloqueo}</span>
+                        <span className='text-muted-foreground text-xs'>Nv. {item.nivel_desbloqueo}</span>
                       )}
 
-                      {item.fecha_obtencion && <span className='text-xs text-green-600'>Obtenido</span>}
+                      {item.fecha_obtencion && <span className='text-xs text-green-600 dark:text-green-400'>Obtenido</span>}
                     </div>
                   </div>
                 </div>
@@ -480,11 +481,11 @@ export default function MyObjects() {
 
           {/* Item Preview Modal */}
           {isPreviewOpen && selectedItem && (
-            <div className='bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black p-4' style={{ backgroundColor: '#00000080' }}>
-              <div className='relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl'>
+            <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4'>
+              <div className='bg-background relative w-full max-w-lg rounded-2xl border p-6 shadow-xl'>
                 <button
                   onClick={handleClosePreview}
-                  className='absolute top-4 right-4 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-500'
+                  className='text-muted-foreground hover:bg-muted hover:text-foreground absolute top-4 right-4 rounded-full p-1'
                 >
                   <svg className='h-6 w-6' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
@@ -493,7 +494,7 @@ export default function MyObjects() {
 
                 <div className='flex flex-col items-center'>
                   {/* Item Image */}
-                  <div className='relative mb-6 h-48 w-full overflow-hidden rounded-xl bg-gray-100'>
+                  <div className='bg-muted relative mb-6 h-48 w-full overflow-hidden rounded-xl'>
                     {selectedItem.image ? (
                       <img
                         src={`${selectedItem.image}`}
@@ -506,7 +507,7 @@ export default function MyObjects() {
                         }}
                       />
                     ) : (
-                      <div className='flex h-full items-center justify-center text-gray-400'>
+                      <div className='text-muted-foreground flex h-full items-center justify-center'>
                         <PhotoIcon />
                       </div>
                     )}
@@ -515,19 +516,19 @@ export default function MyObjects() {
                   {/* Item Details */}
                   <div className='w-full text-center'>
                     <div className='mb-1 flex items-center justify-center'>
-                      <span className='text-xl font-bold text-gray-900'>{selectedItem.name}</span>
-                      <span className='ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800'>
+                      <span className='text-foreground text-xl font-bold'>{selectedItem.name}</span>
+                      <span className='bg-primary/10 text-primary ml-2 rounded-full px-2 py-0.5 text-xs font-medium'>
                         {getItemTypeLabel(selectedItem.tipo)}
                       </span>
                     </div>
 
-                    {selectedItem.description && <p className='mb-4 text-sm text-gray-600'>{selectedItem.description}</p>}
+                    {selectedItem.description && <p className='text-muted-foreground mb-4 text-sm'>{selectedItem.description}</p>}
 
-                    <div className='mt-4 grid grid-cols-2 gap-4 border-t border-gray-100 pt-4'>
+                    <div className='border-border mt-4 grid grid-cols-2 gap-4 border-t pt-4'>
                       {selectedItem.precio !== undefined && (
                         <div>
-                          <p className='text-sm font-medium text-gray-500'>Precio</p>
-                          <p className='mt-1 flex items-center justify-center text-lg font-bold text-yellow-600'>
+                          <p className='text-muted-foreground text-sm font-medium'>Precio</p>
+                          <p className='mt-1 flex items-center justify-center text-lg font-bold text-yellow-600 dark:text-yellow-400'>
                             {selectedItem.precio.toLocaleString()}
                             <span className='ml-1'>🪙</span>
                           </p>
@@ -536,15 +537,15 @@ export default function MyObjects() {
 
                       {selectedItem.nivel_desbloqueo && selectedItem.nivel_desbloqueo > 0 && (
                         <div>
-                          <p className='text-sm font-medium text-gray-500'>Nivel Requerido</p>
-                          <p className='mt-1 text-lg font-bold text-gray-900'>Nv. {selectedItem.nivel_desbloqueo}</p>
+                          <p className='text-muted-foreground text-sm font-medium'>Nivel Requerido</p>
+                          <p className='text-foreground mt-1 text-lg font-bold'>Nv. {selectedItem.nivel_desbloqueo}</p>
                         </div>
                       )}
 
                       {selectedItem.fecha_obtencion && (
                         <div>
-                          <p className='text-sm font-medium text-gray-500'>Fecha de Obtención</p>
-                          <p className='mt-1 text-sm text-gray-600'>
+                          <p className='text-muted-foreground text-sm font-medium'>Fecha de Obtención</p>
+                          <p className='text-muted-foreground mt-1 text-sm'>
                             {new Date(selectedItem.fecha_obtencion).toLocaleDateString('es-ES', {
                               year: 'numeric',
                               month: 'long',
@@ -556,8 +557,8 @@ export default function MyObjects() {
 
                       {selectedItem.es_premiun && (
                         <div>
-                          <p className='text-sm font-medium text-gray-500'>Tipo</p>
-                          <p className='mt-1 text-sm font-medium text-purple-600'>Premium</p>
+                          <p className='text-muted-foreground text-sm font-medium'>Tipo</p>
+                          <p className='mt-1 text-sm font-medium text-purple-600 dark:text-purple-400'>Premium</p>
                         </div>
                       )}
                     </div>
@@ -566,7 +567,7 @@ export default function MyObjects() {
                       <button
                         type='button'
                         onClick={handleClosePreview}
-                        className='flex-1 rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none'
+                        className='bg-muted text-muted-foreground hover:bg-muted/80 focus:ring-primary flex-1 rounded-md px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-offset-2 focus:outline-none'
                       >
                         Cerrar
                       </button>
@@ -575,7 +576,7 @@ export default function MyObjects() {
                           type='button'
                           onClick={() => handleApplyItem(selectedItem)}
                           disabled={isApplying}
-                          className='flex-1 rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50'
+                          className='bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-primary flex-1 rounded-md px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:opacity-50'
                         >
                           {isApplying ? 'Aplicando...' : `Usar este ${selectedItem.tipo}`}
                         </button>

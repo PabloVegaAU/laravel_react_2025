@@ -2,8 +2,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import AppLayout from '@/layouts/app-layout'
-import { Head, router } from '@inertiajs/react'
-import { Edit, Plus, Search, Trash2 } from 'lucide-react'
+import { Head } from '@inertiajs/react'
+import { Edit, Plus, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { CreateBackgroundModal } from './create-background-modal'
 import { EditBackgroundModal } from './edit-background-modal'
@@ -56,7 +56,7 @@ export default function BackgroundsPage() {
       background.level_required_name?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const handleDelete = async (id: number) => {
+  /* const handleDelete = async (id: number) => {
     if (confirm('¿Estás seguro de que deseas eliminar este fondo?')) {
       try {
         await router.delete(`/admin/backgrounds/${id}`, {
@@ -68,7 +68,7 @@ export default function BackgroundsPage() {
         console.error('Error deleting background:', error)
       }
     }
-  }
+  } */
 
   return (
     <AppLayout>
@@ -76,10 +76,10 @@ export default function BackgroundsPage() {
         <Head title='Gestión de Fondos' />
 
         <div className='mb-6 flex items-center justify-between'>
-          <h1 className='text-2xl font-bold text-gray-800'>Gestión de Fondos</h1>
+          <h1 className='text-2xl font-bold text-gray-900 dark:text-gray-100'>Gestión de Fondos</h1>
           <div className='flex items-center space-x-4'>
             <div className='relative w-64'>
-              <Search className='absolute top-2.5 left-2.5 h-4 w-4 text-gray-500' />
+              <Search className='absolute top-2.5 left-2.5 h-4 w-4 text-gray-500 dark:text-gray-400' />
               <Input
                 type='search'
                 placeholder='Buscar fondo...'
@@ -95,7 +95,7 @@ export default function BackgroundsPage() {
           </div>
         </div>
 
-        <div className='rounded-lg border bg-white'>
+        <div className='dark:border-sidebar-border dark:bg-sidebar rounded-lg border border-gray-200 bg-white'>
           <Table>
             <TableHeader>
               <TableRow>
@@ -110,13 +110,15 @@ export default function BackgroundsPage() {
             <TableBody>
               {filteredBackgrounds.map((background, index) => (
                 <TableRow key={background.id}>
-                  <TableCell>{index + 1}</TableCell>
+                  <TableCell className='dark:text-sidebar-foreground/70 text-gray-700'>{index + 1}</TableCell>
                   <TableCell className='font-medium'>{background.name}</TableCell>
                   <TableCell>
-                    <span className='rounded-full bg-green-100 px-2 py-1 text-xs text-green-800'>Activo</span>
+                    <span className='rounded-full bg-green-100 px-2 py-1 text-xs text-green-800 dark:bg-green-900/30 dark:text-green-400'>
+                      Activo
+                    </span>
                   </TableCell>
-                  <TableCell>Nivel {background.level_required}</TableCell>
-                  <TableCell>{background.points_store} pts</TableCell>
+                  <TableCell className='dark:text-sidebar-foreground/70 text-gray-700'>Nivel {background.level_required}</TableCell>
+                  <TableCell className='dark:text-sidebar-foreground/70 text-gray-700'>{background.points_store} pts</TableCell>
                   <TableCell className='flex justify-center space-x-2'>
                     <Button
                       variant='ghost'
@@ -128,9 +130,14 @@ export default function BackgroundsPage() {
                     >
                       <Edit className='h-4 w-4' />
                     </Button>
-                    <Button variant='ghost' size='icon' className='text-red-600 hover:text-red-800' onClick={() => handleDelete(background.id)}>
+                    {/* <Button
+                      variant='ghost'
+                      size='icon'
+                      className='text-destructive hover:text-destructive'
+                      onClick={() => handleDelete(background.id)}
+                    >
                       <Trash2 className='h-4 w-4' />
-                    </Button>
+                    </Button> */}
                   </TableCell>
                 </TableRow>
               ))}

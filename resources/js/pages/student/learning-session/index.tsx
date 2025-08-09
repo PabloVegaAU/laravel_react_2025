@@ -157,7 +157,7 @@ export default function LearningSession({ learning_sessions, curricular_areas, f
             })()}
 
           {/* SELECT DE AREAS CURRICULARES */}
-          <div className='w-full sm:w-64'>
+          <div className='dark:bg-sidebar-border w-full rounded bg-white sm:w-64'>
             <Select value={localFilters.curricular_area_id} onValueChange={(value) => handleFilterChange('curricular_area_id', value)}>
               <SelectTrigger className='w-full'>
                 <SelectValue placeholder='Seleccionar área curricular' />
@@ -179,7 +179,9 @@ export default function LearningSession({ learning_sessions, curricular_areas, f
           </div>
         </div>
 
-        <DataTable columns={columns} data={learning_sessions} />
+        <div className='dark:bg-sidebar-border rounded-xl bg-white p-4'>
+          <DataTable columns={columns} data={learning_sessions} />
+        </div>
       </div>
     </AppLayout>
   )

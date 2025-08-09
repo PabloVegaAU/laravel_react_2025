@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/app-layout'
 
 import { Head } from '@inertiajs/react'
-import { Edit, Plus, Search, Trash2 } from 'lucide-react'
+import { Edit, Plus, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { CreatePrizeModal } from './create-prize-modal'
@@ -82,7 +82,7 @@ export default function TeacherPrizesPage() {
       prize.stock.toString().includes(searchTerm)
   )
 
-  const handleDelete = async (prizeId: number) => {
+  /* const handleDelete = async (prizeId: number) => {
     if (!confirm('¿Estás seguro de que deseas eliminar este premio?')) {
       return
     }
@@ -110,7 +110,7 @@ export default function TeacherPrizesPage() {
       console.error('Error deleting prize:', error)
       toast.error(error instanceof Error ? error.message : 'Error al eliminar el premio')
     }
-  }
+  } */
 
   return (
     <AppLayout>
@@ -118,10 +118,10 @@ export default function TeacherPrizesPage() {
         <Head title='Gestión de Premios' />
 
         <div className='mb-6 flex items-center justify-between'>
-          <h1 className='text-2xl font-bold text-gray-800'>Gestión de Premios</h1>
+          <h1 className='text-2xl font-bold text-gray-900 dark:text-gray-100'>Gestión de Premios</h1>
           <div className='flex items-center space-x-4'>
             <div className='relative w-64'>
-              <Search className='absolute top-2.5 left-2.5 h-4 w-4 text-gray-500' />
+              <Search className='absolute top-2.5 left-2.5 h-4 w-4 text-gray-500 dark:text-gray-400' />
               <Input
                 type='search'
                 placeholder='Buscar premio...'
@@ -137,7 +137,7 @@ export default function TeacherPrizesPage() {
           </div>
         </div>
 
-        <div className='rounded-lg border bg-white'>
+        <div className='dark:border-sidebar-border dark:bg-sidebar rounded-lg border border-gray-200 bg-white'>
           <Table>
             <TableHeader>
               <TableRow>
@@ -150,59 +150,75 @@ export default function TeacherPrizesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredPrizes.map((prize) => (
-                <TableRow key={prize.id}>
-                  <TableCell>
-                    {prize.image ? (
-                      <img
-                        src={prize.image.startsWith('http') ? prize.image : `${prize.image}`}
-                        alt={prize.name}
-                        className='h-10 w-10 rounded-full object-cover'
-                      />
-                    ) : (
-                      <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gray-200'>
-                        <span className='text-xs text-gray-500'>Sin imagen</span>
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className='font-medium'>{prize.name}</TableCell>
-                  <TableCell>{prize.points_cost} pts</TableCell>
-                  <TableCell>{prize.stock} unidades</TableCell>
-                  <TableCell>
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        prize.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}
-                    >
-                      {prize.is_active ? 'Activo' : 'Inactivo'}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className='flex space-x-2'>
-                      <Button
-                        variant='ghost'
-                        size='icon'
-                        onClick={() => {
-                          setSelectedPrize(prize)
-                          setIsEditModalOpen(true)
-                        }}
-                        title='Editar premio'
-                      >
-                        <Edit className='h-4 w-4' />
-                      </Button>
-                      <Button
-                        variant='ghost'
-                        size='icon'
-                        onClick={() => handleDelete(prize.id)}
-                        className='text-red-600 hover:text-red-800'
-                        title='Eliminar premio'
-                      >
-                        <Trash2 className='h-4 w-4' />
-                      </Button>
-                    </div>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className='dark:text-sidebar-foreground/60 py-4 text-center text-gray-600'>
+                    Cargando premios...
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : filteredPrizes.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className='dark:text-sidebar-foreground/60 py-4 text-center text-gray-600'>
+                    No se encontraron premios
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredPrizes.map((prize) => (
+                  <TableRow key={prize.id}>
+                    <TableCell>
+                      {prize.image ? (
+                        <img
+                          src={prize.image.startsWith('http') ? prize.image : `${prize.image}`}
+                          alt={prize.name}
+                          className='h-10 w-10 rounded-full object-cover'
+                        />
+                      ) : (
+                        <div className='dark:bg-sidebar-border flex h-10 w-10 items-center justify-center rounded-full bg-gray-200'>
+                          <span className='dark:text-sidebar-foreground/60 text-xs text-gray-500'>Sin imagen</span>
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className='font-medium'>{prize.name}</TableCell>
+                    <TableCell className='dark:text-sidebar-foreground/70 text-gray-700'>{prize.points_cost} pts</TableCell>
+                    <TableCell className='dark:text-sidebar-foreground/70 text-gray-700'>{prize.stock} unidades</TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          prize.is_active
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                        }`}
+                      >
+                        {prize.is_active ? 'Activo' : 'Inactivo'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className='flex space-x-2'>
+                        <Button
+                          variant='ghost'
+                          size='icon'
+                          onClick={() => {
+                            setSelectedPrize(prize)
+                            setIsEditModalOpen(true)
+                          }}
+                          title='Editar premio'
+                        >
+                          <Edit className='h-4 w-4' />
+                        </Button>
+                        {/* <Button
+                          variant='ghost'
+                          size='icon'
+                          onClick={() => handleDelete(prize.id)}
+                          className='text-destructive hover:text-destructive'
+                          title='Eliminar premio'
+                        >
+                          <Trash2 className='h-4 w-4' />
+                        </Button> */}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>

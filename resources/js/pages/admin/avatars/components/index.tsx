@@ -5,7 +5,7 @@ import AppLayout from '@/layouts/app-layout'
 import { PageProps } from '@/types'
 import type { Avatar } from '@/types/avatar'
 import { Head } from '@inertiajs/react'
-import { Edit, Plus, Search, Trash2 } from 'lucide-react'
+import { Edit, Plus, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { CreateAvatarModal } from './create-avatar-modal'
@@ -75,7 +75,7 @@ export default function AvatarsPage({ auth }: Props) {
   )
 
   // Handle avatar deletion
-  const handleDelete = async (avatarId: number) => {
+  /* const handleDelete = async (avatarId: number) => {
     if (!confirm('¿Estás seguro de eliminar este avatar?')) {
       return
     }
@@ -103,7 +103,7 @@ export default function AvatarsPage({ auth }: Props) {
       console.error('Error eliminando avatar:', error)
       toast.error(error instanceof Error ? error.message : 'Error eliminando avatar')
     }
-  }
+  } */
 
   return (
     <AppLayout user={auth.user}>
@@ -111,10 +111,10 @@ export default function AvatarsPage({ auth }: Props) {
         <Head title='Gestión de Avatar' />
 
         <div className='mb-6 flex items-center justify-between'>
-          <h1 className='text-2xl font-bold text-gray-800'>Gestión de Avatar</h1>
+          <h1 className='text-2xl font-bold text-gray-900 dark:text-gray-100'>Gestión de Avatar</h1>
           <div className='flex items-center space-x-4'>
             <div className='relative w-64'>
-              <Search className='absolute top-2.5 left-2.5 h-4 w-4 text-gray-500' />
+              <Search className='absolute top-2.5 left-2.5 h-4 w-4 text-gray-500 dark:text-gray-400' />
               <Input
                 type='search'
                 placeholder='Buscar avatar...'
@@ -130,7 +130,7 @@ export default function AvatarsPage({ auth }: Props) {
           </div>
         </div>
 
-        <div className='rounded-lg border bg-white'>
+        <div className='dark:border-sidebar-border dark:bg-sidebar rounded-lg border border-gray-200 bg-white'>
           <Table>
             <TableHeader>
               <TableRow>
@@ -144,13 +144,13 @@ export default function AvatarsPage({ auth }: Props) {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className='py-4 text-center'>
+                  <TableCell colSpan={6} className='dark:text-sidebar-foreground/60 py-4 text-center text-gray-600'>
                     Cargando avatars...
                   </TableCell>
                 </TableRow>
               ) : filteredAvatars.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className='py-4 text-center'>
+                  <TableCell colSpan={6} className='dark:text-sidebar-foreground/60 py-4 text-center text-gray-600'>
                     No se encontraron avatares
                   </TableCell>
                 </TableRow>
@@ -165,17 +165,19 @@ export default function AvatarsPage({ auth }: Props) {
                           className='h-10 w-10 rounded-full object-cover'
                         />
                       ) : (
-                        <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gray-200'>
-                          <span className='text-xs text-gray-500'>No image</span>
+                        <div className='dark:bg-sidebar-border flex h-10 w-10 items-center justify-center rounded-full bg-gray-200'>
+                          <span className='dark:text-sidebar-foreground/60 text-xs text-gray-500'>No image</span>
                         </div>
                       )}
                     </TableCell>
                     <TableCell className='font-medium'>{avatar.name}</TableCell>
-                    <TableCell>{avatar.price}</TableCell>
+                    <TableCell className='dark:text-sidebar-foreground/70 text-gray-700'>{avatar.price}</TableCell>
                     <TableCell>
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          avatar.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          avatar.is_active
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
                         }`}
                       >
                         {avatar.is_active ? 'Activo' : 'Inactivo'}
@@ -194,15 +196,15 @@ export default function AvatarsPage({ auth }: Props) {
                         >
                           <Edit className='h-4 w-4' />
                         </Button>
-                        <Button
+                        {/* <Button
                           variant='ghost'
                           size='icon'
                           onClick={() => handleDelete(avatar.id)}
-                          className='text-red-600 hover:text-red-800'
+                          className='text-destructive hover:text-destructive'
                           title='Eliminar avatar'
                         >
                           <Trash2 className='h-4 w-4' />
-                        </Button>
+                        </Button> */}
                       </div>
                     </TableCell>
                   </TableRow>

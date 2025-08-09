@@ -74,7 +74,6 @@ export default function ApplicationFormResponseEdit({ application_form_response 
               if (!hasValidQuestionData(responseQuestion)) return null
 
               const question = responseQuestion.question
-              const questionType = question?.question_type?.name || 'Desconocido'
               const questionTypeId = question?.question_type?.id
               const selectedOptions = responseQuestion.selected_options || []
               const isCorrect = data.response_questions.find((q) => q.id === responseQuestion.id)?.is_correct || false
