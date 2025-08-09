@@ -21,6 +21,12 @@
   "9th": "9no",
   "10th": "10no",
 
+  "admin": "administrador",
+  "teacher": "docente",
+  "student": "estudiante",
+
+  "dashboard": "tablero",
+
   "draft": "Borrador",
   "scheduled": "Programado",
   "active": "Activo",
