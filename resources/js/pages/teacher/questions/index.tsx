@@ -27,6 +27,10 @@ type PageProps = Omit<ResourcePageProps<Question>, 'data'> & {
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
+    title: 'Inicio',
+    href: '/teacher/dashboard'
+  },
+  {
     title: 'Preguntas',
     href: 'teacher/question'
   }

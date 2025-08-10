@@ -15,8 +15,12 @@ type PageProps = Omit<ResourcePageProps<ApplicationForm>, 'data'> & {
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
+    title: 'Inicio',
+    href: '/teacher/dashboard'
+  },
+  {
     title: 'Fichas de Aplicación',
-    href: 'teacher/application-forms'
+    href: '/teacher/application-forms'
   }
 ]
 

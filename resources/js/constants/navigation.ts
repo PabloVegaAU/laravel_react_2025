@@ -99,12 +99,6 @@ export const createNavItems = (permissions: string[] = []) => {
 
   const applicationFormsNavItems: NavItem[] = [
     {
-      title: 'Gestión de Logros',
-      href: '/teacher/achievements',
-      icon: Trophy,
-      permission: 'teacher.achievements.index'
-    },
-    {
       title: 'Sesiones de aprendizaje',
       href: '/teacher/learning-sessions',
       icon: GraduationCap,

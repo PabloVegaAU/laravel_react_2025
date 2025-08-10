@@ -8,6 +8,8 @@ import { useEffect, useState } from 'react'
 import { AssignAchievementModal } from './AssignAchievementModal'
 import { StudentSearchModal } from './student-search-modal'
 import { StudentAchievementsModal } from './StudentAchievementsModal'
+import { Head } from '@inertiajs/react'
+import { BreadcrumbItem } from '@/types/core'
 
 type Achievement = {
   id: number
@@ -21,6 +23,18 @@ type Student = {
   name: string
   email: string
 }
+
+const breadcrumbs: BreadcrumbItem[] = [
+  {
+    title: 'Inicio',
+    href: '/teacher/dashboard'
+  },
+  {
+    title: 'Logros',
+    href: '/teacher/achievements'
+  }
+]
+
 
 export default function AchievementsListPage() {
   const [achievements, setAchievements] = useState<Achievement[]>([])
@@ -54,7 +68,8 @@ export default function AchievementsListPage() {
   )
 
   return (
-    <AppLayout>
+    <AppLayout breadcrumbs={breadcrumbs}>
+      <Head title='Listado de Logros' />
       <div className='container mx-auto p-6'>
         <div className='mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between'>
           <h1 className='text-2xl font-bold text-gray-800'>Listado de Logros</h1>
