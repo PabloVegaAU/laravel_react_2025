@@ -1,0 +1,428 @@
+{
+  "node_modules/laravel-vite-plugin/inertia-helpers/index.js": [],
+  "resources/js/components/app-content.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/components/app-logo-icon.tsx": [
+    "/build/assets/app-logo-icon-ZHVQJC4L.js"
+  ],
+  "resources/js/components/app-logo.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/components/app-shell.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/components/app-sidebar-header.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/components/app-sidebar.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/components/appearance-tabs.tsx": [
+    "/build/assets/appearance-CDaq0J8o.js"
+  ],
+  "resources/js/components/breadcrumbs.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/components/delete-user.tsx": [
+    "/build/assets/profile-BEamy7IC.js"
+  ],
+  "resources/js/components/heading-small.tsx": [
+    "/build/assets/layout-Ct0XNYyO.js"
+  ],
+  "resources/js/components/heading.tsx": [
+    "/build/assets/layout-Ct0XNYyO.js"
+  ],
+  "resources/js/components/icon.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/components/input-error.tsx": [
+    "/build/assets/input-error-BCtMt8Ki.js"
+  ],
+  "resources/js/components/nav-footer.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/components/nav-main.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/components/nav-user.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/components/organisms/data-table.tsx": [
+    "/build/assets/data-table-769qkqBW.js"
+  ],
+  "resources/js/components/organisms/flash-messages.tsx": [
+    "/build/assets/flash-messages-Brq5Zd2U.js"
+  ],
+  "resources/js/components/organisms/multi-select.tsx": [
+    "/build/assets/switch-BG6mV6_k.js"
+  ],
+  "resources/js/components/organisms/progress-bar.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/components/organisms/searchable-select.tsx": [
+    "/build/assets/form-create-B8qMwzeK.js"
+  ],
+  "resources/js/components/text-link.tsx": [
+    "/build/assets/text-link-CXuWDYp6.js"
+  ],
+  "resources/js/components/ui/avatar.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/components/ui/background.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/components/ui/badge.tsx": [
+    "/build/assets/badge-DIxTRnmV.js"
+  ],
+  "resources/js/components/ui/breadcrumb.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/components/ui/button.tsx": [
+    "/build/assets/button-BqjjxT-O.js"
+  ],
+  "resources/js/components/ui/calendar.tsx": [
+    "/build/assets/popover-DVAkeKRI.js"
+  ],
+  "resources/js/components/ui/card.tsx": [
+    "/build/assets/card-BgnygZAf.js"
+  ],
+  "resources/js/components/ui/checkbox.tsx": [
+    "/build/assets/checkbox-B_r2H9BE.js"
+  ],
+  "resources/js/components/ui/dialog.tsx": [
+    "/build/assets/dialog-CITBOAxv.js"
+  ],
+  "resources/js/components/ui/dropdown-menu.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/components/ui/image.tsx": [
+    "/build/assets/image-Bmp5thdH.js"
+  ],
+  "resources/js/components/ui/input.tsx": [
+    "/build/assets/input-B1uJ3yMO.js"
+  ],
+  "resources/js/components/ui/label.tsx": [
+    "/build/assets/label-CC7KirIj.js"
+  ],
+  "resources/js/components/ui/placeholder-pattern.tsx": [
+    "/build/assets/index-CsA8jj9f.js"
+  ],
+  "resources/js/components/ui/popover.tsx": [
+    "/build/assets/popover-DVAkeKRI.js"
+  ],
+  "resources/js/components/ui/radio-group.tsx": [
+    "/build/assets/TrueFalseOptions-CY2DJnPC.js"
+  ],
+  "resources/js/components/ui/select.tsx": [
+    "/build/assets/select-qcG6mW7O.js"
+  ],
+  "resources/js/components/ui/separator.tsx": [
+    "/build/assets/layout-Ct0XNYyO.js"
+  ],
+  "resources/js/components/ui/sheet.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/components/ui/sidebar.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/components/ui/switch.tsx": [
+    "/build/assets/switch-BG6mV6_k.js"
+  ],
+  "resources/js/components/ui/table.tsx": [
+    "/build/assets/table-CRcIHZD9.js"
+  ],
+  "resources/js/components/ui/textarea.tsx": [
+    "/build/assets/textarea-DQiokWve.js"
+  ],
+  "resources/js/components/ui/tooltip.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/components/user-info.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/components/user-menu-content.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/constants/navigation.ts": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/hooks/use-appearance.tsx": [
+    "/build/assets/appearance-CDaq0J8o.js"
+  ],
+  "resources/js/hooks/use-initials.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/hooks/use-mobile-navigation.ts": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/hooks/use-mobile.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/layouts/app-layout.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/layouts/app/app-sidebar-layout.tsx": [
+    "/build/assets/app-layout-BsERFbVR.js"
+  ],
+  "resources/js/layouts/auth-layout.tsx": [
+    "/build/assets/auth-layout-BBZafgUd.js"
+  ],
+  "resources/js/layouts/auth/auth-simple-layout.tsx": [
+    "/build/assets/auth-layout-BBZafgUd.js"
+  ],
+  "resources/js/layouts/settings/layout.tsx": [
+    "/build/assets/layout-Ct0XNYyO.js"
+  ],
+  "resources/js/lib/date.ts": [
+    "/build/assets/index-Dm6qFsRj.js"
+  ],
+  "resources/js/lib/formats.ts": [
+    "/build/assets/formats-CLP1uR7X.js"
+  ],
+  "resources/js/lib/translator.ts": [
+    "/build/assets/translator-csgEc0di.js"
+  ],
+  "resources/js/lib/ui/variants/index.ts": [
+    "/build/assets/index-BEHmXjzJ.js"
+  ],
+  "resources/js/lib/utils.ts": [
+    "/build/assets/utils-qggO9Hcn.js"
+  ],
+  "resources/js/pages/admin/avatars/components/create-avatar-modal.tsx": [
+    "/build/assets/create-avatar-modal-bh7rOqgn.js"
+  ],
+  "resources/js/pages/admin/avatars/components/edit-avatar-modal.tsx": [
+    "/build/assets/edit-avatar-modal-vWQabX_J.js"
+  ],
+  "resources/js/pages/admin/avatars/components/index.tsx": [
+    "/build/assets/index-CbX4Ani_.js"
+  ],
+  "resources/js/pages/admin/avatars/index.tsx": [
+    "/build/assets/index-Hyi5oJgl.js"
+  ],
+  "resources/js/pages/admin/backgrounds/components/create-background-modal.tsx": [
+    "/build/assets/create-background-modal-C5us7_YP.js"
+  ],
+  "resources/js/pages/admin/backgrounds/components/edit-background-modal.tsx": [
+    "/build/assets/edit-background-modal-D-j9uieQ.js"
+  ],
+  "resources/js/pages/admin/backgrounds/components/index.tsx": [
+    "/build/assets/index-BY0d3wO9.js"
+  ],
+  "resources/js/pages/admin/backgrounds/index.tsx": [
+    "/build/assets/index-B1IM57Ac.js"
+  ],
+  "resources/js/pages/admin/dashboard/index.tsx": [
+    "/build/assets/index-CsA8jj9f.js"
+  ],
+  "resources/js/pages/admin/enrollments/components/classrooms.tsx": [
+    "/build/assets/classrooms-CXgVdyEN.js"
+  ],
+  "resources/js/pages/admin/enrollments/components/form-create.tsx": [
+    "/build/assets/form-create-B8qMwzeK.js"
+  ],
+  "resources/js/pages/admin/enrollments/index.tsx": [
+    "/build/assets/index-BXyMKKUo.js"
+  ],
+  "resources/js/pages/admin/prizes/components/create-prize-modal.tsx": [
+    "/build/assets/create-prize-modal-9hqIfQeh.js"
+  ],
+  "resources/js/pages/admin/prizes/components/edit-prize-modal.tsx": [
+    "/build/assets/edit-prize-modal-DRcNoOkX.js"
+  ],
+  "resources/js/pages/admin/prizes/components/index.tsx": [
+    "/build/assets/index-LXPmMEkv.js"
+  ],
+  "resources/js/pages/admin/prizes/index.tsx": [
+    "/build/assets/index-CYS7KoGP.js"
+  ],
+  "resources/js/pages/admin/students/components/form-create.tsx": [
+    "/build/assets/form-create-Be9zxVsg.js"
+  ],
+  "resources/js/pages/admin/students/components/form-edit.tsx": [
+    "/build/assets/form-edit-CT4yGkdV.js"
+  ],
+  "resources/js/pages/admin/students/index.tsx": [
+    "/build/assets/index-DzpZGLYe.js"
+  ],
+  "resources/js/pages/admin/teachers/components/classroom-curricular-areas.tsx": [
+    "/build/assets/classroom-curricular-areas-DgPI6Alr.js"
+  ],
+  "resources/js/pages/admin/teachers/components/form-create.tsx": [
+    "/build/assets/form-create-DrvgKBbf.js"
+  ],
+  "resources/js/pages/admin/teachers/components/form-edit.tsx": [
+    "/build/assets/form-edit-B2KrFOpU.js"
+  ],
+  "resources/js/pages/admin/teachers/index.tsx": [
+    "/build/assets/index-CC42AKib.js"
+  ],
+  "resources/js/pages/auth/confirm-password.tsx": [
+    "/build/assets/confirm-password-DuUXlByh.js"
+  ],
+  "resources/js/pages/auth/forgot-password.tsx": [
+    "/build/assets/forgot-password-BZav2sRn.js"
+  ],
+  "resources/js/pages/auth/login.tsx": [
+    "/build/assets/login-INZdaGNe.js"
+  ],
+  "resources/js/pages/auth/register.tsx": [
+    "/build/assets/register-BDN6YjJ6.js"
+  ],
+  "resources/js/pages/auth/reset-password.tsx": [
+    "/build/assets/reset-password-CiluH5wR.js"
+  ],
+  "resources/js/pages/auth/verify-email.tsx": [
+    "/build/assets/verify-email-BEC9GeHV.js"
+  ],
+  "resources/js/pages/settings/appearance.tsx": [
+    "/build/assets/appearance-CDaq0J8o.js"
+  ],
+  "resources/js/pages/settings/password.tsx": [
+    "/build/assets/password-npjr5HDc.js"
+  ],
+  "resources/js/pages/settings/profile.tsx": [
+    "/build/assets/profile-BEamy7IC.js"
+  ],
+  "resources/js/pages/student/application-form-response/components/QuestionResponse.tsx": [
+    "/build/assets/QuestionResponse-DANEXV-o.js"
+  ],
+  "resources/js/pages/student/application-form-response/components/question-types/BaseQuestionResponse.tsx": [
+    "/build/assets/BaseQuestionResponse-CqaGw6lD.js"
+  ],
+  "resources/js/pages/student/application-form-response/components/question-types/MatchingResponse.tsx": [
+    "/build/assets/MatchingResponse-CvSLhhHI.js"
+  ],
+  "resources/js/pages/student/application-form-response/components/question-types/OrderingResponse.tsx": [
+    "/build/assets/OrderingResponse-Bp_CNo0z.js"
+  ],
+  "resources/js/pages/student/application-form-response/components/question-types/SingleChoiceResponse.tsx": [
+    "/build/assets/SingleChoiceResponse-CRhMaAMV.js"
+  ],
+  "resources/js/pages/student/application-form-response/components/question-types/TrueFalseResponse.tsx": [
+    "/build/assets/TrueFalseResponse-CV_Af6gm.js"
+  ],
+  "resources/js/pages/student/application-form-response/edit/index.tsx": [
+    "/build/assets/index-Bjuh8w7Z.js"
+  ],
+  "resources/js/pages/student/application-form-response/show.tsx": [
+    "/build/assets/show-DJRZnGb-.js"
+  ],
+  "resources/js/pages/student/application-form/index.tsx": [
+    "/build/assets/index-DahwJJKi.js"
+  ],
+  "resources/js/pages/student/dashboard/index.tsx": [
+    "/build/assets/index-CQm58eci.js"
+  ],
+  "resources/js/pages/student/learning-session/index.tsx": [
+    "/build/assets/index-CGS5dvGY.js"
+  ],
+  "resources/js/pages/student/objects/index.tsx": [
+    "/build/assets/index-3FyULzTw.js"
+  ],
+  "resources/js/pages/student/profile/index.tsx": [
+    "/build/assets/index-D2yUl1MR.js"
+  ],
+  "resources/js/pages/student/store/avatars.tsx": [
+    "/build/assets/avatars-Bgrj22-a.js"
+  ],
+  "resources/js/pages/student/store/backgrounds.tsx": [
+    "/build/assets/backgrounds-DXYxL3b_.js"
+  ],
+  "resources/js/pages/student/store/index.tsx": [
+    "/build/assets/index-CKsA5C0Y.js"
+  ],
+  "resources/js/pages/student/store/rewards.tsx": [
+    "/build/assets/rewards-C5GxIk-q.js"
+  ],
+  "resources/js/pages/teacher/achievements/components/AssignAchievementModal.tsx": [
+    "/build/assets/AssignAchievementModal-D1PFT3LX.js"
+  ],
+  "resources/js/pages/teacher/achievements/components/StudentAchievementsModal.tsx": [
+    "/build/assets/StudentAchievementsModal-iPX-9_gE.js"
+  ],
+  "resources/js/pages/teacher/achievements/components/assign-achievement-modal.tsx": [
+    "/build/assets/assign-achievement-modal-DYatiBK3.js"
+  ],
+  "resources/js/pages/teacher/achievements/components/index.tsx": [
+    "/build/assets/index-Bq5GIkEa.js"
+  ],
+  "resources/js/pages/teacher/achievements/components/student-search-modal.tsx": [
+    "/build/assets/student-search-modal-BNFCX_o9.js"
+  ],
+  "resources/js/pages/teacher/achievements/components/view-student-achievements-modal.tsx": [
+    "/build/assets/view-student-achievements-modal-Bu_Y1pHg.js"
+  ],
+  "resources/js/pages/teacher/application-form-responses/edit/index.tsx": [
+    "/build/assets/index-CI9OBcsY.js"
+  ],
+  "resources/js/pages/teacher/application-form-responses/index.tsx": [
+    "/build/assets/index-B15wvkQN.js"
+  ],
+  "resources/js/pages/teacher/application-form-responses/show/index.tsx": [
+    "/build/assets/index-CX5yILNj.js"
+  ],
+  "resources/js/pages/teacher/application-form/create/index.tsx": [
+    "/build/assets/index-Dm6qFsRj.js"
+  ],
+  "resources/js/pages/teacher/application-form/edit/index.tsx": [
+    "/build/assets/index-l_jcyquz.js"
+  ],
+  "resources/js/pages/teacher/application-form/index.tsx": [
+    "/build/assets/index-CslPX1kg.js"
+  ],
+  "resources/js/pages/teacher/application-form/show/index.tsx": [
+    "/build/assets/index-dIT047CE.js"
+  ],
+  "resources/js/pages/teacher/dashboard/index.tsx": [
+    "/build/assets/index-BEHmXjzJ.js"
+  ],
+  "resources/js/pages/teacher/learning-session/create/index.tsx": [
+    "/build/assets/index-CUWowrBY.js"
+  ],
+  "resources/js/pages/teacher/learning-session/edit/index.tsx": [
+    "/build/assets/index-BW3E6kry.js"
+  ],
+  "resources/js/pages/teacher/learning-session/index.tsx": [
+    "/build/assets/index-BJmCOPE6.js"
+  ],
+  "resources/js/pages/teacher/questions/components/form-create.tsx": [
+    "/build/assets/form-create-B5a7U_Xt.js"
+  ],
+  "resources/js/pages/teacher/questions/components/form-edit.tsx": [
+    "/build/assets/form-edit-BW4TdIdH.js"
+  ],
+  "resources/js/pages/teacher/questions/components/question-types/BaseQuestionType.tsx": [
+    "/build/assets/BaseQuestionType-vuBW0I6d.js"
+  ],
+  "resources/js/pages/teacher/questions/components/question-types/MatchingOptions.tsx": [
+    "/build/assets/MatchingOptions-D4dRcsQ7.js"
+  ],
+  "resources/js/pages/teacher/questions/components/question-types/OrderingOptions.tsx": [
+    "/build/assets/OrderingOptions-CzBeIvT6.js"
+  ],
+  "resources/js/pages/teacher/questions/components/question-types/SingleChoiceOptions.tsx": [
+    "/build/assets/SingleChoiceOptions-D8MJii43.js"
+  ],
+  "resources/js/pages/teacher/questions/components/question-types/TrueFalseOptions.tsx": [
+    "/build/assets/TrueFalseOptions-CY2DJnPC.js"
+  ],
+  "resources/js/pages/teacher/questions/components/question-types/types.ts": [
+    "/build/assets/index-dIT047CE.js"
+  ],
+  "resources/js/pages/teacher/questions/index.tsx": [
+    "/build/assets/index-CpkN6Jx7.js"
+  ],
+  "resources/js/pages/welcome.tsx": [
+    "/build/assets/welcome-Btou1Q-N.js"
+  ],
+  "resources/js/ssr.tsx": [],
+  "resources/js/store/useUserStore.ts": [
+    "/build/assets/useUserStore-Db9ma-Ts.js"
+  ],
+  "resources/js/types/application-form/question/question-type-c.tsx": [
+    "/build/assets/question-type-c-CHH3NqXw.js"
+  ],
+  "vendor/tightenco/ziggy/dist/index.js": []
+}
