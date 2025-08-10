@@ -52,13 +52,14 @@ export default function Dashboard() {
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title='Tienda de Puntos' />
       <header className='mb-4 flex flex-col items-start justify-between gap-4 p-6 sm:flex-row sm:items-center sm:gap-0 lg:p-8'>
-        <div className='border-border dark:bg-muted mb-8 rounded-lg border bg-white p-6'>
-          <strong className='text-foreground text-2xl font-bold sm:text-3xl lg:text-4xl xl:text-5xl'>TIENDA DE PUNTOS</strong>
+        <div className='bg-background rounded-lg border p-6 shadow-sm'>
+          <h2 className='text-foreground text-2xl font-bold'>Tienda de Objetos</h2>
         </div>
-        <div className='rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3 sm:px-6 sm:py-4 dark:border-yellow-800 dark:bg-yellow-950'>
-          <span className='text-lg font-medium text-yellow-900 sm:text-xl lg:text-2xl xl:text-3xl dark:text-yellow-100'>
-            Tus puntos: <span className='font-bold text-yellow-700 dark:text-yellow-300'>{puntos !== null ? `${puntos} pts` : '...'}</span>
-          </span>
+        <div className='flex items-center space-x-4'>
+          <div className='rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-2 dark:border-yellow-800 dark:bg-yellow-950'>
+            <span className='font-medium text-yellow-900 dark:text-yellow-100'>Tus puntos: </span>
+            <span className='font-bold text-yellow-700 dark:text-yellow-300'>{puntos !== null ? `${puntos} pts` : '...'}</span>
+          </div>
         </div>
       </header>
       <div className='mb-6 flex justify-center px-6 sm:justify-end lg:px-8'>

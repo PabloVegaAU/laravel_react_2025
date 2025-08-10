@@ -328,7 +328,7 @@ class ApplicationFormResponseController extends Controller
                 }
 
                 return redirect()
-                    ->route('student.application-form-responses.edit', $response->id)
+                    ->route('student.application-form-responses.show', $response->id)
                     ->with('success', 'Respuestas guardadas correctamente');
             });
         } catch (\Exception $e) {

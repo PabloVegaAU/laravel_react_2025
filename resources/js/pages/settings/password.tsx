@@ -1,7 +1,7 @@
-import { useTranslations } from '@/lib/translator'
 import InputError from '@/components/input-error'
 import AppLayout from '@/layouts/app-layout'
 import SettingsLayout from '@/layouts/settings/layout'
+import { useTranslations } from '@/lib/translator'
 import { type BreadcrumbItem } from '@/types/core'
 import { Transition } from '@headlessui/react'
 import { Head, useForm } from '@inertiajs/react'
@@ -56,10 +56,7 @@ export default function Password() {
 
       <SettingsLayout>
         <div className='space-y-6'>
-          <HeadingSmall 
-            title={t('Update password')} 
-            description={t('Ensure your account is using a long, random password to stay secure')} 
-          />
+          <HeadingSmall title={t('Update password')} description={t('Ensure your account is using a long, random password to stay secure')} />
 
           <form onSubmit={updatePassword} className='space-y-6'>
             <div className='grid gap-2'>
@@ -113,9 +110,7 @@ export default function Password() {
             </div>
 
             <div className='flex items-center gap-4'>
-              <Button disabled={processing}>
-                {t('Save password')}
-              </Button>
+              <Button disabled={processing}>{t('Save password')}</Button>
 
               <Transition
                 show={recentlySuccessful}

@@ -13,8 +13,6 @@ import { Label } from '@/components/ui/label'
 import AppLayout from '@/layouts/app-layout'
 import SettingsLayout from '@/layouts/settings/layout'
 
-
-
 type ProfileForm = {
   name: string
   email: string
@@ -23,7 +21,7 @@ type ProfileForm = {
 export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status?: string }) {
   const { t } = useTranslations()
   const { auth } = usePage<SharedData>().props
-  
+
   const breadcrumbs: BreadcrumbItem[] = [
     {
       title: t('Profile settings'),
@@ -50,10 +48,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
 
       <SettingsLayout>
         <div className='space-y-6'>
-          <HeadingSmall 
-            title={t('Profile information')} 
-            description={t('Update your name and email address')} 
-          />
+          <HeadingSmall title={t('Profile information')} description={t('Update your name and email address')} />
 
           <form onSubmit={submit} className='space-y-6'>
             <div className='grid gap-2'>
@@ -104,17 +99,13 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                 </p>
 
                 {status === 'verification-link-sent' && (
-                  <div className='mt-2 text-sm font-medium text-green-600'>
-                    {t('A new verification link has been sent to your email address.')}
-                  </div>
+                  <div className='mt-2 text-sm font-medium text-green-600'>{t('A new verification link has been sent to your email address.')}</div>
                 )}
               </div>
             )}
 
             <div className='flex items-center gap-4'>
-              <Button disabled={processing}>
-                {t('Save')}
-              </Button>
+              <Button disabled={processing}>{t('Save')}</Button>
 
               <Transition
                 show={recentlySuccessful}

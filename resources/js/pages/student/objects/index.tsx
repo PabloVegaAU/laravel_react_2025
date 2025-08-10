@@ -1,16 +1,17 @@
 import AppLayout from '@/layouts/app-layout'
 import { useUserStore } from '@/store/useUserStore'
-import { Head, Link } from '@inertiajs/react'
+import { SharedData } from '@/types/core'
+import { Head, Link, usePage } from '@inertiajs/react'
 import axios from 'axios'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
-// Define interface for icon props
+// Props para los iconos
 interface IconProps {
   className?: string
 }
 
-// Icons from Heroicons (using CDN)
+// Componentes de iconos
 const PhotoIcon: React.FC<IconProps> = ({ className = 'h-5 w-5' }) => (
   <svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' strokeWidth={1.5} stroke='currentColor' className={className}>
     <path
@@ -69,7 +70,8 @@ const breadcrumbs = [
 ]
 
 export default function MyObjects() {
-  const { user, setAvatar, setBackground } = useUserStore()
+  const { auth } = usePage<SharedData>().props
+  const { setAvatar, setBackground } = useUserStore()
   const [activeTab, setActiveTab] = useState<'todos' | 'avatares' | 'fondos' | 'premios' | 'logros'>('todos')
   const [items, setItems] = useState<Item[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -80,6 +82,9 @@ export default function MyObjects() {
   const [puntos, setPuntos] = useState<number | null>(null)
   const [isApplying, setIsApplying] = useState(false)
 
+  const studentId = auth.user?.id
+
+  // Obtiene el perfil del estudiante para mostrar sus puntos
   const fetchStudentProfile = async (studentId: number) => {
     try {
       const response = await axios.post('/api/studentprofile', {
@@ -89,146 +94,115 @@ export default function MyObjects() {
         setPuntos(response.data.data[0].puntos)
       }
     } catch (error) {
-      console.error('Error al cargar el perfil del estudiante:', error)
       toast.error('Error al cargar los puntos del estudiante')
     }
   }
 
+  // Efecto para cargar los objetos según la pestaña activa
   useEffect(() => {
     setRenderKey((prev) => prev + 1)
     let cancelRequest = false
 
-    // 1. Limpiar primero visualmente
-    setItems([])
-    setAchievements([])
-    setIsLoading(true)
+    const resetState = () => {
+      setItems([])
+      setAchievements([])
+      setIsLoading(true)
+    }
 
-    // 2. Esperar 1 ciclo antes de hacer fetch para que el DOM reaccione
-    const delay = setTimeout(() => {
-      const fetchData = async () => {
-        const studentId = user?.id
-        if (!studentId) return
+    const fetchData = async () => {
+      if (!studentId) return
 
-        // Fetch student points
-        await fetchStudentProfile(Number(studentId))
+      resetState()
+      await fetchStudentProfile(Number(studentId))
 
-        try {
-          if (activeTab === 'logros') {
-            const res = await axios.post('/api/studentachievementslist', {
-              p_student_id: Number(studentId)
-            })
-
-            if (res.data.success && !cancelRequest) {
-              const achievementItems = res.data.data.map((achievement: any) => ({
-                id: achievement.id,
-                name: achievement.name,
-                description: achievement.description,
-                image: achievement.image || '/images/default-achievement.png',
-                tipo: 'logro' as const,
-                fecha_obtencion: achievement.assigned_at,
-                es_premiun: false
-              }))
-              setAchievements(achievementItems)
-            }
-          } else {
-            const endpoints = {
-              avatares: `/api/studentavatarslist`,
-              fondos: `/api/studentbackgroundslist`,
-              premios: `/api/studentprizeshistory`
-            }
-
-            const allItems: Item[] = []
-
-            if (activeTab === 'todos' || activeTab === 'avatares') {
-              const { data } = await axios.post(endpoints.avatares, { p_student_id: Number(studentId) })
-              if (data.success) {
-                allItems.push(
-                  ...data.data.map((item: any) => ({
-                    id: item.avatar_id,
-                    name: item.name,
-                    image: item.image,
-                    tipo: 'avatar' as const,
-                    fecha_obtencion: item.fecha_obtencion || null
-                  }))
-                )
-              }
-            }
-
-            if (activeTab === 'todos' || activeTab === 'fondos') {
-              const { data } = await axios.post(endpoints.fondos, { p_student_id: Number(studentId) })
-              if (data.success) {
-                allItems.push(
-                  ...data.data.map((item: any) => ({
-                    ...item,
-                    tipo: 'fondo' as const,
-                    fecha_obtencion: item.fecha_obtencion || null
-                  }))
-                )
-              }
-            }
-
-            if (activeTab === 'todos' || activeTab === 'premios') {
-              const { data } = await axios.post(endpoints.premios, { p_student_id: Number(studentId) })
-              if (data.success) {
-                allItems.push(
-                  ...data.data.map((item: any) => ({
-                    ...item,
-                    tipo: 'premio' as const,
-                    fecha_obtencion: item.fecha_obtencion || null
-                  }))
-                )
-              }
-            }
-
-            if (!cancelRequest) {
-              setItems(allItems)
-            }
-          }
-        } catch (error) {
-          toast.error('Error al cargar los objetos')
-          console.error(error)
-        } finally {
-          if (!cancelRequest) {
-            setIsLoading(false)
-          }
+      try {
+        if (activeTab === 'logros') {
+          await fetchAchievements()
+        } else {
+          await fetchItems()
+        }
+      } catch (error) {
+        toast.error('Error al cargar los objetos')
+      } finally {
+        if (!cancelRequest) {
+          setIsLoading(false)
         }
       }
-
-      fetchData()
-    }, 100) // Espera breve de 100ms para permitir re-render
-
-    return () => {
-      clearTimeout(delay)
-      cancelRequest = true
     }
-  }, [activeTab])
 
-  const fetchAchievements = async () => {
-    try {
-      const studentId = user?.id
-      if (!studentId) return
+    const fetchAchievements = async () => {
       const res = await axios.post('/api/studentachievementslist', {
         p_student_id: Number(studentId)
       })
-      if (res.data.success) {
-        // Map achievements to the Item type
+
+      if (res.data.success && !cancelRequest) {
         const achievementItems = res.data.data.map((achievement: any) => ({
           id: achievement.id,
           name: achievement.name,
           description: achievement.description,
-          image: achievement.image || '/images/default-achievement.png', // Add a default image path
+          image: achievement.image || '/images/default-achievement.png',
           tipo: 'logro' as const,
           fecha_obtencion: achievement.assigned_at,
           es_premiun: false
         }))
-
         setAchievements(achievementItems)
       }
-    } catch (error) {
-      console.error('Error fetching achievements:', error)
-      toast.error('Error al cargar los logros')
     }
-  }
+
+    const fetchItems = async () => {
+      const endpoints = {
+        avatares: activeTab === 'todos' || activeTab === 'avatares' ? '/api/studentavatarslist' : null,
+        fondos: activeTab === 'todos' || activeTab === 'fondos' ? '/api/studentbackgroundslist' : null,
+        premios: activeTab === 'todos' || activeTab === 'premios' ? '/api/studentprizeshistory' : null
+      }
+
+      const requests = []
+
+      if (endpoints.avatares) {
+        requests.push(axios.post(endpoints.avatares, { p_student_id: Number(studentId) }))
+      }
+      if (endpoints.fondos) {
+        requests.push(axios.post(endpoints.fondos, { p_student_id: Number(studentId) }))
+      }
+      if (endpoints.premios) {
+        requests.push(axios.post(endpoints.premios, { p_student_id: Number(studentId) }))
+      }
+
+      const responses = await Promise.all(requests)
+      const allItems: Item[] = []
+
+      responses.forEach(({ data }, index) => {
+        if (!data.success || cancelRequest) return
+
+        const items = data.data.map((item: any) => {
+          const baseItem = {
+            ...item,
+            fecha_obtencion: item.fecha_obtencion || null
+          }
+
+          if (index === 0 && endpoints.avatares) {
+            return { ...baseItem, tipo: 'avatar' as const, id: item.avatar_id }
+          } else if ((index === 0 && !endpoints.avatares && endpoints.fondos) || (index === 1 && endpoints.avatares)) {
+            return { ...baseItem, tipo: 'fondo' as const }
+          } else {
+            return { ...baseItem, tipo: 'premio' as const }
+          }
+        })
+
+        allItems.push(...items)
+      })
+
+      if (!cancelRequest) {
+        setItems(allItems)
+      }
+    }
+
+    const timer = setTimeout(fetchData, 100)
+    return () => {
+      clearTimeout(timer)
+      cancelRequest = true
+    }
+  }, [activeTab, studentId])
 
   const getItemTypeLabel = (type: string) => {
     switch (type) {
@@ -265,61 +239,46 @@ export default function MyObjects() {
     setIsPreviewOpen(true)
   }
 
+  // Aplica un objeto (avatar o fondo) al perfil del usuario
   const handleApplyItem = async (item: Item) => {
-    if (!item || !user?.id) {
+    if (!item || !studentId) {
       toast.error('Error: No se pudo identificar el usuario o el objeto')
       return
     }
 
-    // Get the correct ID based on item type
     const itemId = item.tipo === 'fondo' ? (item as any).background_id : item.id
-
-    // Check if item has a valid ID
     if (itemId === undefined || itemId === null) {
-      console.error('Item has no valid ID:', item)
       toast.error(`Error: No se pudo identificar el ID del ${item.tipo}`)
       return
     }
 
     try {
       setIsApplying(true)
-      let endpoint = ''
-      const requestData = new URLSearchParams()
+      const endpoint = item.tipo === 'avatar' ? '/api/studentavatarapply' : '/api/studentbackgroundapply'
 
-      // Always add student_id
-      requestData.append('p_student_id', user.id.toString())
-
-      if (item.tipo === 'avatar') {
-        endpoint = '/api/studentavatarapply'
-        requestData.append('p_avatar_id', itemId.toString())
-        setAvatar(item.image)
-      } else if (item.tipo === 'fondo') {
-        endpoint = '/api/studentbackgroundapply'
-        requestData.append('p_background_id', itemId.toString())
-        setBackground(item.image)
-      } else {
-        toast.error('Tipo de objeto no soportado')
-        return
-      }
-
-      console.log('Sending request to:', endpoint)
-      console.log('Item:', item)
-      console.log('Request data:', Object.fromEntries(requestData.entries()))
-
-      const response = await axios.post(endpoint, requestData, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
+      const requestData = new URLSearchParams({
+        p_student_id: studentId.toString(),
+        [item.tipo === 'avatar' ? 'p_avatar_id' : 'p_background_id']: itemId.toString()
       })
 
-      // Handle the response format: { data: [{ mensa: "...", error: 0, numid: 12 }], success: true }
+      // Actualizar la UI inmediatamente para mejor experiencia de usuario
+      if (item.tipo === 'avatar') {
+        setAvatar(item.image)
+      } else {
+        setBackground(item.image)
+      }
+
+      const response = await axios.post(endpoint, requestData, {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      })
+
       const result = response.data?.data?.[0] || response.data?.[0]
 
       if (result?.error === 0 && result?.mensa) {
         toast.success(result.mensa)
-        // Update the user's avatar or background in the store
+        // Actualizar el store con los cambios
         useUserStore.getState().setUser({
-          ...user,
+          ...auth.user,
           [item.tipo]: item.image
         })
         setIsPreviewOpen(false)
@@ -327,7 +286,6 @@ export default function MyObjects() {
         throw new Error(result?.mensa || 'Error al aplicar el objeto')
       }
     } catch (error: any) {
-      console.error(`Error applying ${item.tipo}:`, error)
       const errorMessage = error.response?.data?.data?.[0]?.mensa || error.response?.data?.[0]?.mensa || `Error al aplicar el ${item.tipo}`
       toast.error(errorMessage)
     } finally {
@@ -340,20 +298,18 @@ export default function MyObjects() {
     setTimeout(() => setSelectedItem(null), 200)
   }
 
+  // Filtra los ítems según la pestaña activa
   const getFilteredItems = () => {
-    // If we're in the 'logros' tab, only return achievements
-    if (activeTab === 'logros') {
-      return [...achievements]
+    if (activeTab === 'logros') return [...achievements]
+
+    const filterMap = {
+      todos: (item: Item) => item.tipo !== 'logro',
+      avatares: (item: Item) => item.tipo === 'avatar',
+      fondos: (item: Item) => item.tipo === 'fondo',
+      premios: (item: Item) => item.tipo === 'premio'
     }
 
-    // For other tabs, filter the regular items (excluding any logros)
-    return items.filter((item) => {
-      if (activeTab === 'todos') return item.tipo !== 'logro'
-      if (activeTab === 'avatares') return item.tipo === 'avatar'
-      if (activeTab === 'fondos') return item.tipo === 'fondo'
-      if (activeTab === 'premios') return item.tipo === 'premio'
-      return false
-    })
+    return items.filter(filterMap[activeTab as keyof typeof filterMap] || (() => false))
   }
 
   return (
@@ -405,7 +361,7 @@ export default function MyObjects() {
               <div className='border-primary h-8 w-8 animate-spin rounded-full border-b-2'></div>
             </div>
           ) : getFilteredItems().length === 0 ? (
-            <div className='border-border flex h-64 flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 text-center'>
+            <div className='flex h-64 flex-col items-center justify-center rounded-lg bg-white p-6 text-center'>
               <SparklesIcon className='text-muted-foreground mx-auto h-12 w-12' />
               <h3 className='text-foreground mt-2 text-sm font-medium'>No hay objetos</h3>
               <p className='text-muted-foreground mt-1 text-sm'>
@@ -445,7 +401,6 @@ export default function MyObjects() {
                           const target = e.target as HTMLImageElement
                           target.onerror = null
                           target.src = '/images/placeholder-item.png'
-                          console.log('Error cargando imagen avatar:', item.image)
                         }}
                       />
                     ) : (

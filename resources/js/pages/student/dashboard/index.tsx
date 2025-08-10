@@ -1,6 +1,7 @@
 import { Label } from '@/components/ui/label'
 import AppLayout from '@/layouts/app-layout'
 import { useTranslations } from '@/lib/translator'
+import { cn } from '@/lib/utils'
 import { useUserStore } from '@/store/useUserStore'
 import { Enrollment } from '@/types/academic'
 import { ApplicationFormResponse } from '@/types/application-form'
@@ -38,12 +39,20 @@ export default function Dashboard({ application_form_responses, enrollment, avat
       <div className='relative flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4 pb-96'>
         {/* Application Forms| */}
         <div className='flex flex-col gap-4'>
-          <h2 className='text-xl font-semibold'>{t('Pending Application Forms')}</h2>
+          <div className='bg-white dark:bg-sidebar p-2 rounded-xl'>
+            <h2 className='text-xl font-semibold'>{t('Pending Application Forms')}</h2>
+          </div>
+
           <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
             {application_form_responses.map((application_form_response) => (
               <Link
                 key={application_form_response.id}
-                className='border-sidebar-border/70 dark:border-sidebar-border hover:bg-sidebar-border/10 dark:hover:bg-sidebar-border overflow-hidden rounded-xl border p-2'
+                className={cn(
+                  'border-sidebar-border/70 dark:border-sidebar-border',
+                  'overflow-hidden rounded-xl border p-2',
+                  'bg-white dark:bg-sidebar',
+                  'hover:bg-sidebar-border dark:hover:bg-sidebar-border'
+                )}
                 href={`/student/application-form-responses/${application_form_response.id}/edit`}
               >
                 <h3 className='flex flex-col gap-1'>

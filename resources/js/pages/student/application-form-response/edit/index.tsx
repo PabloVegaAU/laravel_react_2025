@@ -1,5 +1,15 @@
 import InputError from '@/components/input-error'
 import FlashMessages from '@/components/organisms/flash-messages'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,6 +23,7 @@ import { ApplicationFormResponse, ResponseAnswer } from '@/types/application-for
 import { getQuestionTypeBadge } from '@/types/application-form/question/question-type-c'
 import { BreadcrumbItem } from '@/types/core'
 import { Head, useForm } from '@inertiajs/react'
+import * as React from 'react'
 import { QuestionResponse } from '../components/QuestionResponse'
 
 type PageProps = {
@@ -231,6 +242,11 @@ export default function ApplicationFormResponseEdit({ application_form_response 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    setShowSubmitDialog(true)
+  }
+
+  const handleConfirmSubmit = () => {
+    setIsSubmitting(true)
 
     // Asegurar que todas las preguntas de ordenamiento tengan su array de orden correctamente establecido
     const updatedResponses = { ...data.responses }
@@ -266,10 +282,15 @@ export default function ApplicationFormResponseEdit({ application_form_response 
 
     // Enviar el formulario
     put(route('student.application-form-responses.update', application_form_response.id), {
-      preserveScroll: true
+      preserveScroll: true,
+      onFinish: () => {
+        setIsSubmitting(false)
+      }
     })
   }
 
+  const [showSubmitDialog, setShowSubmitDialog] = React.useState(false)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
   const disabled = application_form_response.status !== 'pending'
   const isGraded = application_form_response.status === 'graded'
 
@@ -302,6 +323,31 @@ export default function ApplicationFormResponseEdit({ application_form_response 
                 )}
               </div>
             </div>
+
+            {/* Alert Dialog for Submission Confirmation */}
+            <AlertDialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>¿Estás seguro de enviar tus respuestas?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Una vez que envíes el formulario, no podrás realizar cambios. Asegúrate de haber revisado todas tus respuestas antes de continuar.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={isSubmitting}>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={(e) => {
+                      e.preventDefault()
+                      handleConfirmSubmit()
+                    }}
+                    disabled={isSubmitting}
+                    className='bg-primary hover:bg-primary/90'
+                  >
+                    {isSubmitting ? 'Enviando...' : 'Sí, enviar respuestas'}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
 
             <div className='space-y-8'>
               {application_form_response.response_questions.map((responseQuestion, index) => {
