@@ -180,7 +180,7 @@ function QuestionDisplay({
 
         <div className='flex flex-col-reverse flex-wrap items-center justify-between gap-2 pt-1 md:flex-row'>
           {renderOptions()}
-          <Image src={q.image ?? ''} alt={q.name} className='w-64' />
+          {q.image && <Image src={q.image} alt={q.name} className='w-64' />}
         </div>
       </div>
     </div>
