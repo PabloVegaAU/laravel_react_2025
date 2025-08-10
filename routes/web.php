@@ -59,8 +59,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/list/achievements', [TeacherAchievementController::class, 'getAchievements'])->name('list.achievements');
     });
 
-    Route::resource('teacher/learning-sessions', TeacherLearningSessionController::class)->names(names: 'teacher.learning-sessions');
-    Route::put('teacher/learning-sessions/{id}/change-status', [TeacherLearningSessionController::class, 'changeStatus'])->name(name: 'teacher.learning-sessions.edit');
+    Route::resource('teacher/learning-sessions', TeacherLearningSessionController::class)->names('teacher.learning-sessions');
+    Route::put('teacher/learning-sessions/{id}/change-status', [TeacherLearningSessionController::class, 'changeStatus'])->name('teacher.learning-sessions.change-status');
 
     Route::resource('teacher/application-forms', TeacherApplicationFormController::class)->names('teacher.application-forms');
     Route::prefix('teacher/questions')->name('teacher.questions.')->group(function () {

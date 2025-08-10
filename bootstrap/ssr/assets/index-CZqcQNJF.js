@@ -1,0 +1,409 @@
+import { jsxs, jsx } from "react/jsx-runtime";
+import { I as InputError } from "./input-error-CyRLkAox.js";
+import { F as FlashMessages } from "./flash-messages-Brq5Zd2U.js";
+import { B as Badge } from "./badge-65mno7eO.js";
+import { B as Button } from "./button-B8Z_lz_J.js";
+import { P as Popover, a as PopoverTrigger, b as PopoverContent, C as Calendar$1 } from "./popover-5aXgFmPv.js";
+import { C as Checkbox } from "./checkbox-kbYJu5q1.js";
+import { I as Input } from "./input-Dr5dPtfm.js";
+import { L as Label } from "./label-GjpnCFkz.js";
+import { S as Select, a as SelectTrigger, b as SelectValue, d as SelectContent, c as SelectItem } from "./select-DMPk8oWi.js";
+import { T as Textarea } from "./textarea-ClDEq31t.js";
+import { A as AppLayout } from "./app-layout-Dq465f56.js";
+import { t as toUTCDateString, p as parseDateString } from "./date-CZHtfuZD.js";
+import { u as useTranslations } from "./translator-csgEc0di.js";
+import { n as normalizeString, c as cn, g as getNestedError } from "./utils-CpIjqAVa.js";
+import { g as getQuestionTypeBadge } from "./question-type-c-DbkR_Yi5.js";
+import { useForm, Head } from "@inertiajs/react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { Calendar } from "lucide-react";
+import { useState, useEffect } from "react";
+import "sonner";
+import "@radix-ui/react-slot";
+import "class-variance-authority";
+import "react-day-picker";
+import "@radix-ui/react-popover";
+import "@radix-ui/react-checkbox";
+import "@radix-ui/react-label";
+import "@radix-ui/react-select";
+import "@radix-ui/react-dialog";
+import "./use-mobile-navigation-cG7zaCET.js";
+import "@radix-ui/react-tooltip";
+import "zustand";
+import "zustand/middleware";
+import "./app-logo-icon-Dnok8BqH.js";
+import "./image-Bmp5thdH.js";
+import "@radix-ui/react-dropdown-menu";
+import "@radix-ui/react-avatar";
+import "@tanstack/react-query";
+import "clsx";
+import "tailwind-merge";
+function ApplicationsForm({ learning_session, teacher_classroom_curricular_area_cycle, questions }) {
+  var _a, _b, _c, _d, _e, _f, _g;
+  const { t } = useTranslations();
+  const [searchQuestion, setSearchQuestion] = useState("");
+  const [questionsFiltered, setQuestionsFiltered] = useState(questions);
+  const today = /* @__PURE__ */ new Date();
+  const startDate = today;
+  const endDate = (() => {
+    const inOneWeek = new Date(today);
+    inOneWeek.setDate(inOneWeek.getDate() + 8);
+    return inOneWeek;
+  })();
+  useEffect(() => {
+    const filteredQuestions = questions.filter(
+      (question) => normalizeString((question == null ? void 0 : question.name) || "").includes(normalizeString(searchQuestion)) || normalizeString((question == null ? void 0 : question.description) || "").includes(normalizeString(searchQuestion))
+    );
+    setQuestionsFiltered(filteredQuestions);
+  }, [searchQuestion]);
+  const dateLocale = es;
+  const { data, setData, post, processing, errors, reset } = useForm({
+    learning_session_id: learning_session.id,
+    teacher_classroom_curricular_area_cycle_id: teacher_classroom_curricular_area_cycle.id,
+    competency_id: learning_session.competency_id,
+    name: "",
+    description: "",
+    start_date: toUTCDateString(startDate),
+    end_date: toUTCDateString(endDate),
+    status: "draft",
+    score_max: 0,
+    questions: []
+  });
+  useEffect(() => {
+    const totalScore = data.questions.reduce((sum, q) => sum + (q.score || 0), 0);
+    setData("score_max", totalScore);
+  }, [data.questions]);
+  const handleQuestionToggle = (questionId, isChecked) => {
+    var _a2;
+    const currentQuestions = [...data.questions || []];
+    if (isChecked) {
+      const question = questions.find((q) => q.id === questionId);
+      if (!question) return;
+      const existingQuestionIndex = currentQuestions.findIndex((q) => q.id === questionId);
+      if (existingQuestionIndex >= 0) {
+        const updatedQuestions = [...currentQuestions];
+        updatedQuestions[existingQuestionIndex] = {
+          ...updatedQuestions[existingQuestionIndex],
+          score: 1
+        };
+        setData("questions", updatedQuestions);
+      } else {
+        const newQuestion = {
+          id: questionId,
+          name: question.name || "Pregunta sin nombre",
+          description: question.description || "",
+          question_type_id: question.question_type_id || 1,
+          // Valor por defecto para tipo de pregunta
+          capability_id: question.capability_id,
+          difficulty: question.difficulty || "medium",
+          // Valor por defecto
+          level: question.level || "primary",
+          // Valor por defecto
+          score: 1,
+          points_store: 0,
+          order: currentQuestions.length + 1,
+          options: ((_a2 = question.options) == null ? void 0 : _a2.map((opt) => ({
+            id: opt.id,
+            value: opt.value,
+            is_correct: opt.is_correct
+          }))) || []
+          // Asegurar que siempre haya un array de opciones
+        };
+        setData("questions", [...currentQuestions, newQuestion]);
+      }
+    } else {
+      const filteredQuestions = currentQuestions.filter((q) => q.id !== questionId).map((q, index) => ({ ...q, order: index }));
+      setData("questions", filteredQuestions);
+    }
+  };
+  const handleOrderChange = (questionId, newOrder) => {
+    if (isNaN(newOrder) || newOrder < 0) return;
+    const currentQuestions = [...data.questions || []];
+    const questionIndex = currentQuestions.findIndex((q) => q.id === questionId);
+    if (questionIndex === -1) return;
+    const reorderedQuestions = [...currentQuestions];
+    const [movedQuestion] = reorderedQuestions.splice(questionIndex, 1);
+    movedQuestion.order = Math.max(0, newOrder);
+    reorderedQuestions.forEach((q) => {
+      if (q.order >= newOrder && q.id !== questionId) {
+        q.order++;
+      }
+    });
+    reorderedQuestions.splice(newOrder, 0, movedQuestion);
+    reorderedQuestions.sort((a, b) => a.order - b.order);
+    const orderedQuestions = reorderedQuestions.map((q, index) => ({
+      ...q,
+      order: index
+    }));
+    setData("questions", orderedQuestions);
+    const currentQuestion = data.questions.find((q) => q.id === questionId);
+    if (!currentQuestion) return;
+    const otherQuestions = data.questions.filter((q) => q.id !== questionId);
+    const sortedQuestions = [...otherQuestions].sort((a, b) => a.order - b.order);
+    const insertIndex = Math.min(newOrder - 1, sortedQuestions.length);
+    sortedQuestions.splice(insertIndex, 0, {
+      ...currentQuestion,
+      order: newOrder
+    });
+    const updatedQuestions = sortedQuestions.map((q, index) => ({
+      ...q,
+      order: index + 1
+    }));
+    setData("questions", updatedQuestions);
+  };
+  const handleScoreChange = (question, value) => {
+    const scoreValue = parseFloat(value) || 0;
+    const multiplier = {
+      easy: 2,
+      medium: 3,
+      hard: 5
+    }[question.difficulty] || 0;
+    const pointsStoreValue = scoreValue * multiplier;
+    setData(
+      "questions",
+      data.questions.map((q) => q.id === question.id ? { ...q, score: scoreValue, points_store: pointsStoreValue } : q)
+    );
+  };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    post(route("teacher.application-forms.store"), {
+      onSuccess: () => {
+        reset();
+      }
+    });
+  };
+  const breadcrumbs = [
+    {
+      title: t("Application Forms"),
+      href: "/teacher/application-forms"
+    },
+    {
+      title: t("Create Application Form"),
+      href: "/teacher/application-forms/create"
+    }
+  ];
+  return /* @__PURE__ */ jsxs(AppLayout, { breadcrumbs, children: [
+    /* @__PURE__ */ jsx(Head, { title: t("Create Application Form") }),
+    /* @__PURE__ */ jsx(FlashMessages, {}),
+    /* @__PURE__ */ jsx("div", { className: "flex flex-col gap-6 overflow-x-auto rounded-xl p-6", children: /* @__PURE__ */ jsxs("form", { onSubmit: handleSubmit, className: "space-y-6", children: [
+      /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-1 gap-6 md:grid-cols-2", children: [
+        /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ jsx(Label, { htmlFor: "teacher_classroom_curricular_area_id", children: t("Curricular Area") }),
+          /* @__PURE__ */ jsx(
+            Input,
+            {
+              defaultValue: t((_a = teacher_classroom_curricular_area_cycle.classroom) == null ? void 0 : _a.level) + " " + t((_b = teacher_classroom_curricular_area_cycle.classroom) == null ? void 0 : _b.grade) + " " + ((_c = teacher_classroom_curricular_area_cycle.classroom) == null ? void 0 : _c.section) + " - " + ((_e = (_d = teacher_classroom_curricular_area_cycle.curricular_area_cycle) == null ? void 0 : _d.curricular_area) == null ? void 0 : _e.name),
+              readOnly: true
+            }
+          )
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ jsx(Label, { htmlFor: "competency_id", children: t("Competency") }),
+          /* @__PURE__ */ jsx(Input, { defaultValue: (_f = learning_session == null ? void 0 : learning_session.competency) == null ? void 0 : _f.name, readOnly: true }),
+          /* @__PURE__ */ jsx(InputError, { message: errors.competency_id, className: "mt-1" })
+        ] })
+      ] }),
+      /* @__PURE__ */ jsx("h2", { className: "text-xl font-bold", children: t("Application Form") }),
+      /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-1 gap-6 md:grid-cols-2", children: [
+        /* @__PURE__ */ jsxs("div", { className: "col-span-2 space-y-2", children: [
+          /* @__PURE__ */ jsx(Label, { htmlFor: "name", children: t("Title") }),
+          /* @__PURE__ */ jsx(Input, { id: "name", value: data.name, onChange: (e) => setData("name", e.target.value), placeholder: t("Enter the form title") }),
+          /* @__PURE__ */ jsx(InputError, { message: errors.name, className: "mt-1" })
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ jsx(Label, { children: "Fecha de Inicio" }),
+          /* @__PURE__ */ jsxs(Popover, { children: [
+            /* @__PURE__ */ jsx(PopoverTrigger, { asChild: true, children: /* @__PURE__ */ jsxs(Button, { variant: "outline", className: cn("w-full justify-start text-left font-normal", !data.start_date && "text-muted-foreground"), children: [
+              /* @__PURE__ */ jsx(Calendar, { className: "mr-2 h-4 w-4" }),
+              data.start_date ? format(parseDateString(data.start_date), "PPP", { locale: dateLocale }) : /* @__PURE__ */ jsx("span", { children: "Selecciona una fecha de inicio" })
+            ] }) }),
+            /* @__PURE__ */ jsx(PopoverContent, { className: "w-auto p-0", align: "start", children: /* @__PURE__ */ jsx(
+              Calendar$1,
+              {
+                mode: "single",
+                selected: data.start_date ? parseDateString(data.start_date) : void 0,
+                onSelect: (date) => setData("start_date", (date == null ? void 0 : date.toISOString()) || ""),
+                autoFocus: true,
+                locale: dateLocale,
+                disabled: (date) => date < /* @__PURE__ */ new Date() || date < /* @__PURE__ */ new Date("1900-01-01"),
+                startMonth: learning_session.application_date ? parseDateString(learning_session.application_date) : void 0
+              }
+            ) })
+          ] }),
+          /* @__PURE__ */ jsx(InputError, { message: errors.start_date, className: "mt-1" })
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ jsx(Label, { children: "Fecha de Fin" }),
+          /* @__PURE__ */ jsxs(Popover, { children: [
+            /* @__PURE__ */ jsx(PopoverTrigger, { asChild: true, children: /* @__PURE__ */ jsxs(Button, { variant: "outline", className: cn("w-full justify-start text-left font-normal", !data.end_date && "text-muted-foreground"), children: [
+              /* @__PURE__ */ jsx(Calendar, { className: "mr-2 h-4 w-4" }),
+              data.end_date ? format(parseDateString(data.end_date), "PPP", { locale: dateLocale }) : /* @__PURE__ */ jsx("span", { children: "Selecciona una fecha de fin" })
+            ] }) }),
+            /* @__PURE__ */ jsx(PopoverContent, { className: "w-auto p-0", align: "start", children: /* @__PURE__ */ jsx(
+              Calendar$1,
+              {
+                mode: "single",
+                selected: data.end_date ? parseDateString(data.end_date) : void 0,
+                onSelect: (date) => setData("end_date", (date == null ? void 0 : date.toISOString()) || ""),
+                autoFocus: true,
+                locale: dateLocale,
+                disabled: (date) => {
+                  const start = data.start_date ? parseDateString(data.start_date) : /* @__PURE__ */ new Date();
+                  return date < start || date < /* @__PURE__ */ new Date("1900-01-01");
+                }
+              }
+            ) })
+          ] }),
+          /* @__PURE__ */ jsx(InputError, { message: errors.end_date, className: "mt-1" })
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ jsx(Label, { htmlFor: "score_max", children: "Puntaje Máximo" }),
+          /* @__PURE__ */ jsxs("div", { className: "border-input bg-background ring-offset-background flex h-10 w-full rounded-md border px-3 py-2 text-sm", children: [
+            data.score_max,
+            " puntos"
+          ] }),
+          /* @__PURE__ */ jsx("p", { className: "text-muted-foreground text-sm", children: "Puntaje total basado en las preguntas seleccionadas" }),
+          /* @__PURE__ */ jsx(InputError, { message: errors.score_max, className: "mt-1" })
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ jsx(Label, { htmlFor: "status", children: "Estado" }),
+          /* @__PURE__ */ jsxs(Select, { value: data.status, onValueChange: (value) => setData("status", value), children: [
+            /* @__PURE__ */ jsx(SelectTrigger, { children: /* @__PURE__ */ jsx(SelectValue, { placeholder: "Selecciona un estado" }) }),
+            /* @__PURE__ */ jsxs(SelectContent, { children: [
+              /* @__PURE__ */ jsx(SelectItem, { value: "draft", children: "Borrador" }),
+              /* @__PURE__ */ jsx(SelectItem, { value: "active", children: "Activo" })
+            ] })
+          ] }),
+          /* @__PURE__ */ jsx(InputError, { message: errors.status, className: "mt-1" })
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+        /* @__PURE__ */ jsx(Label, { htmlFor: "description", children: "Descripción" }),
+        /* @__PURE__ */ jsx(
+          Textarea,
+          {
+            id: "description",
+            value: data.description,
+            onChange: (e) => setData("description", e.target.value),
+            placeholder: "Describe el propósito y contenido de esta ficha de aplicación...",
+            className: "min-h-[120px]"
+          }
+        ),
+        /* @__PURE__ */ jsx(InputError, { message: errors.description, className: "mt-1" })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "space-y-4", children: [
+        /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx(Label, { className: "text-xl font-bold", children: "Capacidades" }) }),
+        /* @__PURE__ */ jsx("div", { className: "space-y-4", children: (_g = learning_session == null ? void 0 : learning_session.capabilities) == null ? void 0 : _g.map((capability) => /* @__PURE__ */ jsx("div", { className: cn("rounded-lg p-2", "bg-" + capability.color + "-500"), children: /* @__PURE__ */ jsx("span", { className: "text-white", children: capability.name }) }, capability.id)) })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "space-y-4", children: [
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between", children: [
+          /* @__PURE__ */ jsx("h2", { className: "text-xl font-bold", children: "Preguntas" }),
+          /* @__PURE__ */ jsx("div", { children: /* @__PURE__ */ jsx(Input, { value: searchQuestion, onChange: (e) => setSearchQuestion(e.target.value), placeholder: "Buscar pregunta" }) })
+        ] }),
+        /* @__PURE__ */ jsx("div", { className: "grid grid-cols-1 gap-4 lg:grid-cols-2", children: questionsFiltered.map((question, index) => {
+          const questionInForm = data.questions.find((q) => q.id === question.id);
+          const isChecked = !!questionInForm;
+          return /* @__PURE__ */ jsxs(
+            "div",
+            {
+              style: {
+                borderLeft: `4px solid ${question.capability.color}`
+              },
+              className: `dark:bg-opacity-20 hover:dark:bg-opacity-30 flex items-start gap-4 rounded-lg border border-gray-200 p-4 transition-all duration-200 ease-in-out hover:shadow-md dark:border-gray-700`,
+              children: [
+                /* @__PURE__ */ jsx("div", { className: "flex-shrink-0 pt-1", children: /* @__PURE__ */ jsx(
+                  Checkbox,
+                  {
+                    id: `question-${question.id}`,
+                    checked: isChecked,
+                    onCheckedChange: (checked) => handleQuestionToggle(question.id, checked)
+                  }
+                ) }),
+                /* @__PURE__ */ jsxs("div", { className: "flex-1 space-y-2", children: [
+                  /* @__PURE__ */ jsxs("div", { className: "flex justify-between", children: [
+                    /* @__PURE__ */ jsxs("div", { className: "flex flex-col gap-2", children: [
+                      /* @__PURE__ */ jsx(Label, { htmlFor: `question-${question.id}`, className: "text-base", children: question.name }),
+                      /* @__PURE__ */ jsx("p", { className: "text-muted-foreground text-sm", children: question.description })
+                    ] }),
+                    getQuestionTypeBadge(question)
+                  ] }),
+                  (question.image || question.explanation_required) && /* @__PURE__ */ jsxs("div", { className: "flex gap-8", children: [
+                    question.image && /* @__PURE__ */ jsx(Badge, { variant: "outline", className: "gap-1 text-xs", children: "Tiene imagen" }),
+                    question.explanation_required && /* @__PURE__ */ jsx(Badge, { variant: "outline", className: "gap-1 text-xs", children: "Tiene explicación requerida" }),
+                    question.difficulty && /* @__PURE__ */ jsx(Badge, { variant: "outline", className: "gap-1 text-xs", children: t(question.difficulty) })
+                  ] }),
+                  isChecked && /* @__PURE__ */ jsxs("div", { className: "mt-2 grid grid-cols-1 gap-4 md:grid-cols-3", children: [
+                    /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+                      /* @__PURE__ */ jsx(Label, { htmlFor: `order-${question.id}`, children: "Orden" }),
+                      /* @__PURE__ */ jsx(
+                        Input,
+                        {
+                          id: `order-${question.id}`,
+                          type: "number",
+                          min: "1",
+                          value: (questionInForm == null ? void 0 : questionInForm.order) || "",
+                          onChange: (e) => {
+                            const newOrder = parseInt(e.target.value) || 1;
+                            handleOrderChange(question.id, newOrder);
+                          },
+                          className: "w-20"
+                        }
+                      ),
+                      /* @__PURE__ */ jsx(InputError, { message: getNestedError(errors, `questions.${index}.order`), className: "mt-1" })
+                    ] }),
+                    /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+                      /* @__PURE__ */ jsx(Label, { htmlFor: `score-${question.id}`, children: "Puntaje" }),
+                      /* @__PURE__ */ jsx(
+                        Input,
+                        {
+                          id: `score-${question.id}`,
+                          type: "number",
+                          min: "0",
+                          step: "0.25",
+                          value: (questionInForm == null ? void 0 : questionInForm.score) || 1,
+                          onChange: (e) => handleScoreChange(question, e.target.value),
+                          className: "w-24"
+                        }
+                      ),
+                      /* @__PURE__ */ jsx(InputError, { message: getNestedError(errors, `questions.${index}.score`), className: "mt-1" })
+                    ] }),
+                    /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+                      /* @__PURE__ */ jsx(Label, { htmlFor: `points-${question.id}`, children: "P. tienda" }),
+                      /* @__PURE__ */ jsx(
+                        Input,
+                        {
+                          id: `points-${question.id}`,
+                          type: "number",
+                          min: "0",
+                          step: "0.25",
+                          value: (questionInForm == null ? void 0 : questionInForm.points_store) || 0,
+                          className: "w-24"
+                        }
+                      ),
+                      /* @__PURE__ */ jsx(InputError, { message: getNestedError(errors, `questions.${index}.points_store`), className: "mt-1" }),
+                      " "
+                    ] })
+                  ] })
+                ] })
+              ]
+            },
+            question.id
+          );
+        }) })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between", children: [
+        /* @__PURE__ */ jsxs("div", { className: "text-muted-foreground text-sm", children: [
+          "Puntaje total: ",
+          data.questions.reduce((sum, q) => sum + (q.score || 0), 0).toFixed(2),
+          " / ",
+          data.score_max
+        ] }),
+        /* @__PURE__ */ jsx(Button, { type: "submit", disabled: processing, children: processing ? "Guardando..." : "Guardar Ficha de Aplicación" })
+      ] })
+    ] }) })
+  ] });
+}
+export {
+  ApplicationsForm as default
+};
