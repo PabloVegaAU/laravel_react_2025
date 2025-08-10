@@ -259,9 +259,12 @@ class LearningSessionController extends Controller
 
             DB::beginTransaction();
 
-            if ($validated['status'] === 'active'
-            && $learningSession->status !== 'active'
-            && $learningSession->applicationForm->status === 'active') {
+            
+            // Validar y manejar la activación de la sesión
+            if ($validated['status'] === 'active') {
+                if (!$learningSession->applicationForm || $learningSession->applicationForm->status !== 'active') {
+                    throw new \Exception('La ficha de aplicación debe estar activo para poder activar la sesión de aprendizaje.');
+                }
                 $this->generateApplicationFormResponses($learningSession);
             }
 
@@ -283,7 +286,7 @@ class LearningSessionController extends Controller
 
             return back()
                 ->withInput()
-                ->with('error', 'Ocurrió un error inesperado al actualizar el estado de la sesión. Intenta nuevamente.');
+                ->with('error', $e->getMessage());
         }
     }
 
