@@ -60,8 +60,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('teacher/learning-sessions/{id}/change-status', [TeacherLearningSessionController::class, 'changeStatus'])->name(name: 'teacher.learning-sessions.edit');
 
     Route::resource('teacher/application-forms', TeacherApplicationFormController::class)->names('teacher.application-forms');
-    Route::resource('teacher/questions', TeacherQuestionController::class)->names('teacher.questions');
-    Route::post('teacher/questions/{id}/update', [TeacherQuestionController::class, 'update'])->name('teacher.questions.update');
+    Route::prefix('teacher/questions')->name('teacher.questions.')->group(function () {
+        Route::get('/', [TeacherQuestionController::class, 'index'])->name('index');
+        Route::post('/', [TeacherQuestionController::class, 'store'])->name('store');
+        Route::get('/{id}', [TeacherQuestionController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [TeacherQuestionController::class, 'edit'])->name('edit');
+        Route::post('/{id}/update', [TeacherQuestionController::class, 'update'])->name('update');
+        Route::delete('/{id}', [TeacherQuestionController::class, 'destroy'])->name('destroy');
+    });
     Route::resource('teacher/application-form-responses', TeacherApplicationFormResponseController::class)->names('teacher.application-form-responses');
 
     // Rutas para la gestión de fondos
