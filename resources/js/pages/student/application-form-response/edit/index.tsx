@@ -313,7 +313,7 @@ export default function ApplicationFormResponseEdit({ application_form_response 
                   <Card key={responseQuestion.id}>
                     <CardHeader className='p-4'>
                       <div className='mb-2 flex items-center gap-2'>
-                        <span className='text-muted-foreground text-sm font-medium'>Pregunta {index + 1}</span>
+                        <span className='text-muted-foreground text-sm font-medium'>{t('Question') + ' ' + (index + 1)}</span>
                         {getQuestionTypeBadge(responseQuestion.application_form_question.question)}
                       </div>
                       <CardTitle className='text-lg'>{responseQuestion.application_form_question.question.name}</CardTitle>

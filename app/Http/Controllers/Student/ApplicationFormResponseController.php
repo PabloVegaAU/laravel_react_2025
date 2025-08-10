@@ -40,51 +40,52 @@ class ApplicationFormResponseController extends Controller
      */
     public function show(int $id)
     {
-        // Primero obtenemos la respuesta del formulario con las relaciones básicas
-        $applicationFormResponse = ApplicationFormResponse::with([
-            'applicationForm',
-            'responseQuestions.applicationFormQuestion',
-            'responseQuestions.selectedOptions.questionOption',
-        ])
-            ->where('id', $id)
-            ->where('student_id', auth()->id())
-            ->firstOrFail();
-
-        // Cargamos las preguntas con sus relaciones y las ordenamos
-        $applicationFormResponse->load([
-            'responseQuestions' => function ($query) {
-                $query->select('application_form_response_questions.*')
-                    ->join('application_form_questions as afq', 'afq.id', '=', 'application_form_response_questions.application_form_question_id')
-                    ->orderBy('afq.order', 'asc')
-                    ->with([
+        // Cargar la respuesta del formulario con todas las relaciones necesarias en una sola consulta
+        $applicationFormResponse = ApplicationFormResponse::query()
+            ->with([
+                'applicationForm',
+                'responseQuestions' => function ($query) {
+                    $query->with([
                         'applicationFormQuestion' => function ($query) {
                             $query->with([
                                 'question' => function ($query) {
                                     $query->with([
                                         'questionType',
-                                        'options',
+                                        'options' => function ($query) {
+                                            $query->orderBy('order');
+                                        },
                                     ]);
                                 },
-                            ]);
+                            ])
+                                ->orderBy('order');
                         },
-                        'selectedOptions.questionOption',
+                        'selectedOptions' => function ($query) {
+                            $query->with('questionOption');
+                        },
                     ]);
-            },
-        ]);
+                },
+            ])
+            ->where('id', $id)
+            ->where('student_id', auth()->id())
+            ->firstOrFail();
 
-        // Transformar la respuesta para que coincida con las expectativas del frontend
+        // Ordenar las preguntas por el orden definido en el formulario
         $formattedResponse = $applicationFormResponse->toArray();
-        $formattedResponse['response_questions'] = $applicationFormResponse->responseQuestions->map(function ($question) {
-            return array_merge($question->toArray(), [
-                'question' => $question->applicationFormQuestion->question ?? null,
-                'selected_options' => $question->selectedOptions->map(function ($option) {
-                    return array_merge($option->toArray(), [
-                        'question_option' => $option->questionOption,
-                        'is_correct' => $option->is_correct,
-                    ]);
-                }),
-                'score' => $question->score]);
-        });
+        $formattedResponse['response_questions'] = $applicationFormResponse->responseQuestions
+            ->sortBy('applicationFormQuestion.order')
+            ->values()
+            ->map(function ($question) {
+                return array_merge($question->toArray(), [
+                    'question' => $question->applicationFormQuestion->question ?? null,
+                    'selected_options' => $question->selectedOptions->map(function ($option) {
+                        return array_merge($option->toArray(), [
+                            'question_option' => $option->questionOption,
+                            'is_correct' => $option->is_correct,
+                        ]);
+                    })->sortBy('selected_order')->values(),
+                    'score' => $question->score,
+                ]);
+            });
 
         return Inertia::render('student/application-form-response/show', [
             'application_form_response' => $formattedResponse,
@@ -96,60 +97,73 @@ class ApplicationFormResponseController extends Controller
      */
     public function edit(int $id)
     {
-        // Primero obtenemos la respuesta del formulario con las relaciones básicas
-        $applicationFormResponse = ApplicationFormResponse::with([
-            'applicationForm',
-            'applicationForm.learningSession',
-            'responseQuestions.applicationFormQuestion',
-            'responseQuestions.selectedOptions.questionOption',
-        ])
-            ->where('id', $id)
-            ->where('student_id', auth()->id())
-            ->firstOrFail();
-
-        // Cargamos las preguntas con sus relaciones y las ordenamos
-        $applicationFormResponse->load([
-            'responseQuestions' => function ($query) {
-                $query->select('application_form_response_questions.*')
-                    ->join('application_form_questions as afq', 'afq.id', '=', 'application_form_response_questions.application_form_question_id')
-                    ->orderBy('afq.order', 'asc')
-                    ->with([
+        // Cargar la respuesta del formulario con todas las relaciones necesarias en una sola consulta
+        $applicationFormResponse = ApplicationFormResponse::query()
+            ->with([
+                'applicationForm.learningSession',
+                'responseQuestions' => function ($query) {
+                    $query->with([
                         'applicationFormQuestion' => function ($query) {
                             $query->with([
                                 'question' => function ($query) {
                                     $query->with([
                                         'questionType',
-                                        'options',
+                                        'options' => function ($query) {
+                                            $query->orderBy('order');
+                                        },
                                     ]);
                                 },
-                            ]);
+                            ])
+                                ->orderBy('order');
                         },
                         'selectedOptions.questionOption',
                     ]);
-            },
-        ]);
+                },
+            ])
+            ->where('id', $id)
+            ->where('student_id', auth()->id())
+            ->firstOrFail();
 
         // Si el formulario no ha sido enviado, aleatorizar opciones de ordenamiento y emparejamiento
         if ($applicationFormResponse->status === 'pending') {
             $applicationFormResponse->responseQuestions->each(function ($responseQuestion) {
-                $questionTypeId = $responseQuestion->applicationFormQuestion->question->questionType->id;
-                $options = $responseQuestion->applicationFormQuestion->question->options;
+                $question = $responseQuestion->applicationFormQuestion->question;
+                $questionTypeId = $question->questionType->id;
 
                 // Solo aleatorizar si no hay opciones seleccionadas
-                if ($responseQuestion->selectedOptions->isEmpty()) {
-                    if (in_array($questionTypeId, [2, 3])) {
-                        // Aleatorizar el orden de las opciones
-                        $shuffledOptions = $options->shuffle();
+                if ($responseQuestion->selectedOptions->isEmpty() && in_array($questionTypeId, [2, 3])) {
+                    // Crear una colección mutable para las opciones
+                    $options = $question->options;
 
-                        // Reemplazar la colección de opciones con la versión aleatorizada
-                        $responseQuestion->applicationFormQuestion->question->setRelation('options', $shuffledOptions);
-                    }
+                    // Aleatorizar el orden de las opciones
+                    $shuffledOptions = $options->shuffle();
+
+                    // Reemplazar la colección de opciones con la versión aleatorizada
+                    $question->setRelation('options', $shuffledOptions);
                 }
             });
         }
 
+        // Transformar los datos para el frontend
+        $formattedResponse = $applicationFormResponse->toArray();
+        $formattedResponse['response_questions'] = $applicationFormResponse->responseQuestions
+            ->sortBy('applicationFormQuestion.order')
+            ->values()
+            ->map(function ($question) {
+                return array_merge($question->toArray(), [
+                    'question' => $question->applicationFormQuestion->question ?? null,
+                    'selected_options' => $question->selectedOptions->map(function ($option) {
+                        return array_merge($option->toArray(), [
+                            'question_option' => $option->questionOption,
+                            'is_correct' => $option->is_correct,
+                        ]);
+                    })->sortBy('selected_order')->values(),
+                    'score' => $question->score,
+                ]);
+            });
+
         return Inertia::render('student/application-form-response/edit/index', [
-            'application_form_response' => $applicationFormResponse,
+            'application_form_response' => $formattedResponse,
         ]);
     }
 

@@ -43,9 +43,9 @@ export default function ApplicationFormResponseShow({ application_form_response 
 
             <div className='flex items-center gap-4'>
               <Badge variant='secondary' className='text-base'>
-                {t('Score')}: 
+                {t('Score')}:
                 <span className='font-semibold'>
-                {application_form_response.application_form?.score_max || 0} / {application_form_response.score || 0}
+                  {application_form_response.application_form?.score_max || 0} / {application_form_response.score || 0}
                 </span>
               </Badge>
             </div>
@@ -75,7 +75,7 @@ export default function ApplicationFormResponseShow({ application_form_response 
                       {/* Explicación */}
                       {responseQuestion.application_form_question.question.explanation_required && (
                         <div className='space-y-2'>
-                          <Label>Explicación</Label>
+                          <Label>{t('Your') + ' ' + t('Explanation')}: </Label>
                           <Input
                             type='text'
                             name={`responses.${responseQuestion.application_form_question_id}.explanation`}
@@ -89,7 +89,7 @@ export default function ApplicationFormResponseShow({ application_form_response 
                       {/* Opciones */}
                       {selectedOptions.length > 0 ? (
                         <div className='space-y-2'>
-                          <Label>Tu respuesta:</Label>
+                          <Label>{t('Your') + ' ' + t('Answer')}: </Label>
                           <div className='space-y-3'>
                             {questionTypeId === 3 ? (
                               // Preguntas de emparejamiento - Mejorado para móvil
