@@ -23,6 +23,7 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
   type FormDataState = {
     name: string
     level_required: string
+    activo: boolean
     points_store: string
     image: string | File | null
   }
@@ -30,6 +31,7 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
   const [formData, setFormData] = useState<FormDataState>({
     name: initialBackground.name,
     level_required: initialBackground.level_required.level.toString(),
+    activo: initialBackground.activo,
     points_store:
       typeof initialBackground.points_store === 'number' ? initialBackground.points_store.toString() : initialBackground.points_store || '0',
     image: initialBackground.image || null
@@ -40,6 +42,7 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
     setFormData({
       name: initialBackground.name,
       level_required: initialBackground.level_required.level.toString(),
+      activo: initialBackground.activo,
       points_store:
         typeof initialBackground.points_store === 'number' ? initialBackground.points_store.toString() : initialBackground.points_store || '0',
       image: initialBackground.image || null
@@ -63,6 +66,7 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
   type FormData = {
     name: string
     level_required: string
+    activo: boolean
     points_store: string
     image: File | null
   }
@@ -81,6 +85,7 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
       ...prev,
       name: initialBackground.name,
       level_required: initialBackground.level_required.level.toString(),
+      activo: initialBackground.activo,
       points_store:
         typeof initialBackground.points_store === 'number' ? initialBackground.points_store.toString() : initialBackground.points_store || '0',
       image: initialBackground.image || null
@@ -168,6 +173,7 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
       formDataToSend.append('name', formData.name)
       formDataToSend.append('level_required', selectedLevel.level.toString())
       formDataToSend.append('points_store', formData.points_store)
+      formDataToSend.append('activo', formData.activo ? '1' : '0')
 
       if (formData.image && typeof formData.image !== 'string') {
         formDataToSend.append('image', formData.image)
@@ -180,6 +186,7 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
         level_required: selectedLevel.level,
         level_name: selectedLevel.name,
         points_store: formData.points_store,
+        activo: formData.activo,
         image: typeof formData.image === 'string' ? formData.image : initialBackground.image || ''
       }
 
@@ -280,6 +287,20 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
               />
               {errors.points_store && <p className='text-sm text-red-500'>{errors.points_store}</p>}
             </div>
+          </div>
+
+          {/* Activo */}
+          <div className='flex items-center space-x-2'>
+            <input
+              type='checkbox'
+              id='activo'
+              checked={formData.activo}
+              onChange={(e) => setFormData((prev) => ({ ...prev, activo: e.target.checked }))}
+              className='h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500'
+            />
+            <Label htmlFor='activo' className='text-sm font-medium text-gray-700'>
+              Activo
+            </Label>
           </div>
 
           {/* Imagen */}

@@ -15,6 +15,7 @@ class Background extends Model
         'image',
         'level_required',
         'points_store',
+        'activo',
     ];
 
     protected $casts = [

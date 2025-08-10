@@ -12,6 +12,7 @@ type Background = {
   id: number
   name: string
   image: string
+  activo: boolean
   level_required: number
   points_store: number
   level_required_name?: string
@@ -177,6 +178,7 @@ export default function BackgroundsPage() {
                 bg.id === updatedBackground.id
                   ? {
                       ...updatedBackground,
+                      activo: updatedBackground.activo,
                       level_required: (() => {
                         const level = updatedBackground.level_required
                         return typeof level === 'object' && level !== null ? (level as { level: number }).level : (level as number)

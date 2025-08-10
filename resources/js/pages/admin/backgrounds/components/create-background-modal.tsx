@@ -26,6 +26,7 @@ export function CreateBackgroundModal({ isOpen, onClose, onSuccess }: CreateBack
   const { data, setData, errors, reset } = useForm({
     name: '',
     level_required: '',
+    activo: true as boolean,
     points_store: '',
     image: null as File | null
   })
@@ -89,6 +90,7 @@ export function CreateBackgroundModal({ isOpen, onClose, onSuccess }: CreateBack
       formData.append('_token', csrfToken)
       formData.append('name', data.name)
       formData.append('level_required', data.level_required)
+      formData.append('activo', data.activo ? '1' : '0')
       formData.append('points_store', data.points_store)
       if (data.image) {
         formData.append('image', data.image)
@@ -181,6 +183,19 @@ export function CreateBackgroundModal({ isOpen, onClose, onSuccess }: CreateBack
               />
               {errors.points_store && <p className='text-sm text-red-500'>{errors.points_store}</p>}
             </div>
+          </div>
+
+          <div className='flex items-center space-x-2'>
+            <input
+              type='checkbox'
+              id='activo'
+              checked={data.activo}
+              onChange={(e) => setData('activo', e.target.checked)}
+              className='h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500'
+            />
+            <Label htmlFor='activo' className='text-sm font-medium text-gray-700'>
+              Activo
+            </Label>
           </div>
 
           <div className='space-y-2'>

@@ -9,6 +9,7 @@ export type Background = {
   name: string
   image: string
   level_required: number // In the component state, we'll always have a number
+  activo: boolean
   points_store: string | number
   level_name: string // In the component state, this will always be defined
   updated_at?: string
@@ -21,6 +22,7 @@ export type ApiBackground = Omit<Background, 'level_required' | 'level_name'> & 
 
 export type EditModalBackground = Omit<Background, 'level_required'> & {
   level_required: Level // In the edit modal, we'll always have a full Level object
+  activo: boolean
 }
 
 // Type guards

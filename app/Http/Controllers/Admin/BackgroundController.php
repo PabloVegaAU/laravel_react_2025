@@ -53,6 +53,7 @@ class BackgroundController extends Controller
             'level_required' => 'required|exists:levels,id',
             'points_store' => 'required|numeric|min:0',
             'image' => 'required|image|max:2048',
+            'activo' => 'required|boolean',
         ]);
 
         try {
@@ -64,6 +65,7 @@ class BackgroundController extends Controller
                 'level_required' => $validated['level_required'],
                 'points_store' => $validated['points_store'],
                 'image' => $imagePath,
+                'activo' => $validated['activo'],
             ]);
 
             if ($request->wantsJson()) {
@@ -136,12 +138,14 @@ class BackgroundController extends Controller
             'level_required' => 'required|exists:levels,id',
             'points_store' => 'required|numeric|min:0',
             'image' => 'nullable|image|max:2048',
+            'activo' => 'required|boolean',
         ]);
 
         $updateData = [
             'name' => $validated['name'],
             'level_required' => $validated['level_required'],
             'points_store' => $validated['points_store'],
+            'activo' => $validated['activo'],
         ];
 
         if ($request->hasFile('image')) {
