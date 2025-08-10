@@ -58,5 +58,18 @@ export const getNestedError = (errors: NestedErrors, path: string): string | und
   return typeof current === 'string' ? current : undefined
 }
 
-// Función de utilidad para búsqueda insensible a mayúsculas
-export const normalizeString = (str: string) => str?.toLowerCase() || ''
+/**
+ * Normaliza una cadena de texto, eliminando acentos y caracteres especiales
+ * @param str Cadena de texto a normalizar
+ * @returns Cadena de texto normalizada en minúsculas y sin acentos
+ */
+export const normalizeString = (str: string): string => {
+  if (!str) return ''
+
+  return str
+    .toLowerCase()
+    .normalize('NFD') // Descompone los caracteres acentuados en su forma base + marca diacrítica
+    .replace(/[\u0300-\u036f]/g, '') // Elimina las marcas diacríticas
+    .replace(/[^a-z0-9\s]/g, '') // Elimina caracteres especiales, manteniendo letras, números y espacios
+    .trim()
+}

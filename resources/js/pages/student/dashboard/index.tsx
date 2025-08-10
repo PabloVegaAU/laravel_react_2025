@@ -38,7 +38,7 @@ export default function Dashboard({ application_form_responses, enrollment, avat
       <div className='relative flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4 pb-96'>
         {/* Application Forms| */}
         <div className='flex flex-col gap-4'>
-          <h2 className='text-xl font-semibold'>Fichas de aplicación pendientes</h2>
+          <h2 className='text-xl font-semibold'>{t('Pending Application Forms')}</h2>
           <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
             {application_form_responses.map((application_form_response) => (
               <Link
@@ -64,19 +64,19 @@ export default function Dashboard({ application_form_responses, enrollment, avat
         <div className='fixed right-4 bottom-4'>
           <div className='border-sidebar-border/70 dark:border-sidebar-border dark:bg-sidebar flex flex-col gap-4 rounded-xl border bg-white p-4'>
             <div className='space-y-1'>
-              <Label className='text-base'>Nivel</Label>
+              <Label className='text-base'>{t('Level')}</Label>
               <p className='text-muted-foreground text-sm'>{t(enrollment?.classroom?.level)}</p>
             </div>
             <div className='space-y-1'>
-              <Label className='text-base'>Grado</Label>
+              <Label className='text-base'>{t('Grade')}</Label>
               <p className='text-muted-foreground text-sm'>{t(enrollment?.classroom?.grade)}</p>
             </div>
             <div className='space-y-1'>
-              <Label className='text-base'>Sección</Label>
+              <Label className='text-base'>{t('Section')}</Label>
               <p className='text-muted-foreground text-sm'>{enrollment?.classroom?.section}</p>
             </div>
             <div className='space-y-1'>
-              <Label className='text-base'>Año escolar</Label>
+              <Label className='text-base'>{t('School Year')}</Label>
               <p className='text-muted-foreground text-sm'>{enrollment.academic_year}</p>
             </div>
           </div>

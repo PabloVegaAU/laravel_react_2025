@@ -1,4 +1,5 @@
 import { Link, usePage } from '@inertiajs/react'
+import { useMemo } from 'react'
 
 import { createNavItems } from '@/constants/navigation'
 import { useInitials } from '@/hooks/use-initials'
@@ -13,10 +14,10 @@ import ProgressBar from './organisms/progress-bar'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from './ui/sidebar'
 
-// Constants
+// Constantes
 const FOOTER_NAV_ITEMS: NavItem[] = []
 
-// Types
+// Tipos
 interface NavigationSections {
   noTitleNavItems: NavItem[]
   peopleNavItems: NavItem[]
@@ -34,27 +35,34 @@ interface SectionVisibility {
 }
 
 export function AppSidebar() {
-  // Hooks
+  // Hooks de React y estados
   const { state } = useSidebar()
   const page = usePage<SharedData>()
   const getInitials = useInitials()
   const { currentDashboardRole, avatar, roles, permissions } = useUserStore()
 
-  // Data extraction
+  // Extracción de datos del estado global
   const { auth } = page.props
 
-  // Navigation items creation
-  const navigationSections: NavigationSections = createNavItems(permissions)
+  // Memoizar elementos de navegación para evitar recreación en cada renderizado
+  const navigationSections = useMemo<NavigationSections>(
+    () => createNavItems(permissions),
+    [permissions] // Solo se recrea cuando los permisos cambian
+  )
+
   const { noTitleNavItems, peopleNavItems, schoolNavItems, applicationFormsNavItems, storeNavItems } = navigationSections
 
-  // Section visibility logic
-  const sectionVisibility: SectionVisibility = {
-    showStudentSection: roles.includes('student'),
-    showPeopleSection: peopleNavItems.length > 0,
-    showSchoolSection: schoolNavItems.length > 0,
-    showApplicationFormsSection: applicationFormsNavItems.length > 0,
-    showStoreSection: storeNavItems.length > 0
-  }
+  // Memoizar visibilidad de secciones para evitar recálculos en cada renderizado
+  const sectionVisibility = useMemo<SectionVisibility>(
+    () => ({
+      showStudentSection: roles.includes('student'),
+      showPeopleSection: peopleNavItems.length > 0,
+      showSchoolSection: schoolNavItems.length > 0,
+      showApplicationFormsSection: applicationFormsNavItems.length > 0,
+      showStoreSection: storeNavItems.length > 0
+    }),
+    [roles, peopleNavItems.length, schoolNavItems.length, applicationFormsNavItems.length, storeNavItems.length]
+  )
 
   const { showStudentSection } = sectionVisibility
 
@@ -64,7 +72,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size='lg' asChild>
-              <Link href={currentDashboardRole} prefetch>
+              <Link href={currentDashboardRole}>
                 <AppLogo />
               </Link>
             </SidebarMenuButton>
@@ -95,7 +103,7 @@ export function AppSidebar() {
   )
 }
 
-// Sub-components
+// Componentes secundarios
 interface StudentProfileSectionProps {
   state: string
   avatar: string | null
@@ -107,7 +115,7 @@ function StudentProfileSection({ state, avatar, userName, getInitials }: Student
   const isCollapsed = state === 'collapsed'
 
   return (
-    <Link href='/student/profile' prefetch className='flex flex-col items-center gap-4 p-4'>
+    <Link href='/student/profile' className='flex flex-col items-center gap-4 p-4'>
       <Avatar className={isCollapsed ? 'size-12' : 'size-20'}>
         <AvatarImage src={avatar || undefined} alt={userName || undefined} />
         <AvatarFallback className='bg-green-200 text-green-900'>{getInitials(userName || '')}</AvatarFallback>

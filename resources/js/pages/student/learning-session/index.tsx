@@ -7,7 +7,7 @@ import { CurricularArea } from '@/types/academic'
 import { BreadcrumbItem } from '@/types/core'
 import { PaginatedResponse, ResourcePageProps } from '@/types/core/api-types'
 import { type LearningSession } from '@/types/learning-session'
-import { Head, router } from '@inertiajs/react'
+import { Head, Link, router } from '@inertiajs/react'
 import { CellContext, ColumnDef } from '@tanstack/react-table'
 import { useState } from 'react'
 
@@ -80,32 +80,33 @@ export default function LearningSession({ learning_sessions, curricular_areas, f
     {
       header: 'Acciones',
       accessorKey: 'id',
-      cell: (row: CellContext<LearningSession, unknown>) => {
-        const applicationForms = row.row.original.application_form
-        const response = applicationForms?.responses?.[0]
+      cell: ({ row }: CellContext<LearningSession, unknown>) => {
+        const applicationForm = row.original.application_form
+        const response = applicationForm?.responses?.[0]
         const now = new Date()
-        const startDate = new Date(applicationForms?.start_date || '')
-        const endDate = new Date(applicationForms?.end_date || '')
-        const isAvailable = (applicationForms?.responses?.length || 0) > 0 && now >= startDate && now <= endDate
-        const canTakeTest = !response || response.status === 'pending' || response.status === 'in progress'
+        const startDate = new Date(applicationForm?.start_date || '')
+        const endDate = new Date(applicationForm?.end_date || '')
+        const isAvailable = (applicationForm?.responses?.length || 0) > 0
+        const isOutDate = now > endDate
+        const canTakeTest = (!response || response.status === 'pending' || response.status === 'in progress') && !isOutDate
 
         return (
           <div className='flex space-x-2'>
             {isAvailable &&
               (canTakeTest ? (
-                <a
-                  href={`/student/application-form-responses/${applicationForms?.responses[0].id}/edit`}
+                <Link
+                  href={`/student/application-form-responses/${applicationForm?.responses[0].id}/edit`}
                   className='inline-flex items-center rounded-md border border-transparent bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none'
                 >
                   {response ? 'Continuar prueba' : 'Comenzar prueba'}
-                </a>
+                </Link>
               ) : (
-                <a
-                  href={`/student/application-form-responses/${applicationForms?.responses[0].id}`}
+                <Link
+                  href={`/student/application-form-responses/${applicationForm?.responses[0].id}`}
                   className='inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none'
                 >
                   Ver prueba
-                </a>
+                </Link>
               ))}
           </div>
         )

@@ -28,16 +28,16 @@ type PageProps = {
   teacher_classroom_curricular_area_cycles: TeacherClassroomCurricularAreaCycle[]
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-  {
-    title: 'Sesiones de Aprendizaje',
-    href: 'teacher/learning-session'
-  }
-]
-
 export default function LearningSessionCreate({ educational_institution, teacher_classroom_curricular_area_cycles }: PageProps) {
   const { auth } = usePage<SharedData>().props
   const { t } = useTranslations()
+
+  const breadcrumbs: BreadcrumbItem[] = [
+    {
+      title: t('Learning Sessions'),
+      href: 'teacher/learning-session'
+    }
+  ]
 
   const [classrooms, setClassrooms] = useState<Classroom[]>([])
   const [curricularAreas, setCurricularAreas] = useState<CurricularAreaCycle[]>([])
@@ -131,7 +131,7 @@ export default function LearningSessionCreate({ educational_institution, teacher
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title={t('session_learning.title', 'Sesiones de Aprendizaje')} />
+      <Head title={t('Create Learning Session')} />
       <FlashMessages />
 
       <div className='flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
@@ -147,7 +147,7 @@ export default function LearningSessionCreate({ educational_institution, teacher
           <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
             {/* Campo: Título */}
             <div className='space-y-2'>
-              <Label htmlFor='name'>Título</Label>
+              <Label htmlFor='name'>{t('Learning Session Name')}</Label>
               <Input
                 id='name'
                 value={data.name}
@@ -159,7 +159,7 @@ export default function LearningSessionCreate({ educational_institution, teacher
 
             {/* Campo: Fecha de la sesión */}
             <div className='space-y-2'>
-              <Label htmlFor='application_date'>Fecha de la sesión</Label>
+              <Label htmlFor='application_date'>{t('Application Date')}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -187,10 +187,10 @@ export default function LearningSessionCreate({ educational_institution, teacher
 
             {/* Campo: Aula */}
             <div className='space-y-2'>
-              <Label htmlFor='classroom_id'>Aula</Label>
+              <Label htmlFor='classroom_id'>{t('Classroom')}</Label>
               <Select value={data.classroom_id} onValueChange={(value) => setData('classroom_id', value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder='Selecciona un aula' />
+                  <SelectValue placeholder={t('Select a Classroom')} />
                 </SelectTrigger>
                 <SelectContent>
                   {classrooms.map((classroom) => (
@@ -209,10 +209,10 @@ export default function LearningSessionCreate({ educational_institution, teacher
           <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
             {/* Campo: Área Curricular */}
             <div className='space-y-2'>
-              <Label htmlFor='curricular_area_cycle_id'>Área Curricular</Label>
+              <Label htmlFor='curricular_area_cycle_id'>{t('Curricular Area')}</Label>
               <Select value={data.curricular_area_cycle_id} onValueChange={(value) => setData('curricular_area_cycle_id', value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder='Selecciona una área curricular' />
+                  <SelectValue placeholder={t('Select a Curricular Area')} />
                 </SelectTrigger>
                 <SelectContent>
                   {curricularAreas.map((area) => (
@@ -227,10 +227,10 @@ export default function LearningSessionCreate({ educational_institution, teacher
 
             {/* Campo: Competencia */}
             <div className='space-y-2'>
-              <Label htmlFor='competency_id'>Competencia</Label>
+              <Label htmlFor='competency_id'>{t('Competency')}</Label>
               <Select value={data.competency_id} onValueChange={(value) => setData('competency_id', value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder='Selecciona una competencia' />
+                  <SelectValue placeholder={t('Select a Competency')} />
                 </SelectTrigger>
                 <SelectContent>
                   {competencies.map((competency) => (
@@ -245,7 +245,7 @@ export default function LearningSessionCreate({ educational_institution, teacher
 
             {/* Campo: Capacidades */}
             <div className='space-y-2'>
-              <Label>Capacidades</Label>
+              <Label>{t('Capabilities')}</Label>
               <MultiSelect
                 options={capabilities.map((capability) => ({
                   label: capability.name,
@@ -253,7 +253,7 @@ export default function LearningSessionCreate({ educational_institution, teacher
                 }))}
                 value={data.capability_ids}
                 onChange={(values) => setData('capability_ids', values)}
-                placeholder='Selecciona una o más capacidades'
+                placeholder={t('Select one or more capabilities')}
                 id='capability_ids'
                 name='capability_ids'
               />
@@ -266,7 +266,7 @@ export default function LearningSessionCreate({ educational_institution, teacher
           <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
             {/* Campo: Desempeños */}
             <div className='space-y-2'>
-              <Label htmlFor='performances'>Desempeños</Label>
+              <Label htmlFor='performances'>{t('Performances')}</Label>
               <Textarea
                 id='performances'
                 value={data.performances}
@@ -278,7 +278,7 @@ export default function LearningSessionCreate({ educational_institution, teacher
 
             {/* Campo: Propósito de la sesión */}
             <div className='space-y-2'>
-              <Label htmlFor='purpose_learning'>Propósito de la sesión</Label>
+              <Label htmlFor='purpose_learning'>{t('Purpose of the Session')}</Label>
               <Textarea
                 id='purpose_learning'
                 value={data.purpose_learning}
@@ -296,7 +296,7 @@ export default function LearningSessionCreate({ educational_institution, teacher
             <div className='grid grid-cols-8 items-center gap-6'>
               <div className='col-span-2 flex size-full flex-col items-center justify-center gap-2'>INICIO</div>
               <div className='col-span-6 w-full space-y-2'>
-                <Label htmlFor='start_sequence'>Secuencia de inicio</Label>
+                <Label htmlFor='start_sequence'>{t('Initial Sequence')}</Label>
                 <Textarea
                   id='start_sequence'
                   value={data.start_sequence}
@@ -313,11 +313,11 @@ export default function LearningSessionCreate({ educational_institution, teacher
                 DESARROLLO
               </div>
               <div className='col-span-6 w-full space-y-2'>
-                <Label htmlFor='application_form_ids'>Formularios de aplicación</Label>
+                <Label htmlFor='application_form_ids'>{t('Application Form')}</Label>
                 <div className='flex gap-6'>
                   <div className='flex items-center space-x-2'>
                     <Switch id='redirect-to-form' checked={data.redirect} onCheckedChange={(checked) => setData('redirect', checked)} />
-                    <Label htmlFor='redirect-to-form'>Crear Ficha luego de guardar</Label>
+                    <Label htmlFor='redirect-to-form'>{t('Create Form after saving')}</Label>
                   </div>
                 </div>
               </div>
@@ -327,7 +327,7 @@ export default function LearningSessionCreate({ educational_institution, teacher
             <div className='grid grid-cols-8 items-center gap-6'>
               <div className='col-span-2 flex size-full flex-col items-center justify-center gap-2'>CIERRE</div>
               <div className='col-span-6 w-full space-y-2'>
-                <Label htmlFor='end_sequence'>Secuencia de cierre</Label>
+                <Label htmlFor='end_sequence'>{t('Closing Sequence')}</Label>
                 <Textarea
                   id='end_sequence'
                   value={data.end_sequence}

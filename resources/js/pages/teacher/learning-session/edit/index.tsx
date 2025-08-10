@@ -60,7 +60,7 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
     performances: learning_session.performances,
     purpose_learning: learning_session.purpose_learning,
     start_sequence: learning_session.start_sequence || '',
-    application_form_ids: learning_session?.application_form?.id.toString() || [],
+    application_form_id: learning_session?.application_form?.id.toString() || '',
     end_sequence: learning_session.end_sequence || ''
   })
 
@@ -142,7 +142,7 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
         teacher_classroom_curricular_area_cycle_id: learning_session.teacher_classroom_curricular_area_cycle_id?.toString() || '',
         competency_id: learning_session.competency_id?.toString() || '',
         capability_ids: learning_session.capabilities?.map((c) => c.id.toString()) || [],
-        application_form_ids: learning_session.application_form?.id?.toString() || []
+        application_form_id: learning_session.application_form?.id?.toString() || ''
       })
 
       // Setear el ID de la aula si está disponible
@@ -400,7 +400,7 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
                     </div>
                   )}
 
-                  <div className={cn('flex items-center space-x-2', data.application_form_ids.length > 0 ? 'hidden' : '')}>
+                  <div className={cn('flex items-center space-x-2', data.application_form_id ? 'hidden' : '')}>
                     <Switch id='redirect-to-form' checked={data.redirect} onCheckedChange={(checked) => setData('redirect', checked)} />
                     <Label htmlFor='redirect-to-form'>Crear Ficha luego de guardar</Label>
                   </div>

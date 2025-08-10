@@ -3,10 +3,14 @@ import FlashMessages from '@/components/organisms/flash-messages'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import Image from '@/components/ui/image'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import AppLayout from '@/layouts/app-layout'
-import { cn, getNestedError } from '@/lib/utils'
+import { useTranslations } from '@/lib/translator'
+import { getNestedError } from '@/lib/utils'
 import { ApplicationFormResponse, ResponseAnswer } from '@/types/application-form'
+import { getQuestionTypeBadge } from '@/types/application-form/question/question-type-c'
 import { BreadcrumbItem } from '@/types/core'
 import { Head, useForm } from '@inertiajs/react'
 import { QuestionResponse } from '../components/QuestionResponse'
@@ -29,7 +33,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 export default function ApplicationFormResponseEdit({ application_form_response }: PageProps) {
-  console.log(application_form_response)
+  const { t } = useTranslations()
+
   // Transformar los datos de la respuesta inicial en una estructura de diccionario plana.
   const initialResponses = application_form_response.response_questions.reduce(
     (acc, responseQuestion) => {
@@ -270,91 +275,102 @@ export default function ApplicationFormResponseEdit({ application_form_response 
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title='Ficha de aplicación' />
+      <Head title={t('Application Form Response')} />
       <FlashMessages />
 
       <div className='relative flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
         <form onSubmit={handleSubmit}>
           <div className='space-y-6 py-6'>
             <div className='flex items-center justify-between'>
-              <div className='space-y-1'>
-                <h1 className='text-2xl font-bold'>{application_form_response.application_form.name}</h1>
-                <p className='text-muted-foreground'>{application_form_response.application_form.description}</p>
+              <div className='space-y-2 rounded-xl bg-white p-4'>
+                <h1 className='text-2xl font-bold tracking-tight'>Completa la ficha de aplicación</h1>
+                <p className='text-muted-foreground'>Responde todas las preguntas y revisa tus respuestas antes de enviar</p>
               </div>
               <div className='flex items-center gap-4'>
                 {isGraded && (
-                  <Badge variant={isGraded ? 'secondary' : 'outline'} className='text-base'>
-                    <p>
-                      Puntaje:{' '}
-                      <span className='font-semibold'>
-                        {application_form_response.application_form.score_max} / {application_form_response.score}
-                      </span>
-                    </p>
+                  <Badge variant='secondary' className='text-base'>
+                    {t('Score')}:{' '}
+                    <span className='font-semibold'>
+                      {application_form_response.application_form.score_max} / {application_form_response.score}
+                    </span>
                   </Badge>
                 )}
                 {!disabled && (
                   <Button type='submit' disabled={processing}>
-                    {processing ? 'Enviando...' : 'Enviar respuestas'}
+                    {processing ? t('Sending...') : t('Submit answers')}
                   </Button>
                 )}
               </div>
             </div>
 
             <div className='space-y-8'>
-              {application_form_response.response_questions.map((responseQuestion) => {
+              {application_form_response.response_questions.map((responseQuestion, index) => {
                 const questionTypeId = responseQuestion.application_form_question.question.question_type.id
                 const canSelectOption = [1, 4].includes(questionTypeId)
                 const image = responseQuestion.application_form_question.question?.image
 
                 return (
                   <Card key={responseQuestion.id}>
-                    <div className='flex flex-col justify-between gap-4 lg:flex-row-reverse'>
-                      {image && (
-                        <div className='w-full p-4 lg:w-1/3'>
-                          <img src={image} alt='icon' />
-                        </div>
+                    <CardHeader className='p-4'>
+                      <div className='mb-2 flex items-center gap-2'>
+                        <span className='text-muted-foreground text-sm font-medium'>Pregunta {index + 1}</span>
+                        {getQuestionTypeBadge(responseQuestion.application_form_question.question)}
+                      </div>
+                      <CardTitle className='text-lg'>{responseQuestion.application_form_question.question.name}</CardTitle>
+                      {responseQuestion.application_form_question.question.description && (
+                        <p className='text-muted-foreground mt-2 text-sm'>{responseQuestion.application_form_question.question.description}</p>
                       )}
-                      <div className={cn(!image ? 'w-full' : 'w-full lg:w-2/3')}>
-                        <CardHeader className='mb-4 flex items-start justify-between gap-4'>
-                          <div className='flex-1 space-y-4'>
-                            <CardTitle>{responseQuestion.application_form_question.question.name}</CardTitle>
-                            {responseQuestion.application_form_question.question.description && (
-                              <p className='text-muted-foreground text-sm'>{responseQuestion.application_form_question.question.description}</p>
-                            )}
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <QuestionResponse
-                            question={responseQuestion}
-                            response={data.responses[responseQuestion.application_form_question_id]}
-                            onOptionSelect={
-                              canSelectOption
-                                ? (optionId: number) => handleOptionSelect(responseQuestion.application_form_question_id, optionId)
-                                : undefined
-                            }
-                            onReorder={(optionIds: number[]) => handleReorder(responseQuestion.application_form_question_id, optionIds)}
-                            onMatchingPairSelect={(leftId: number, rightId: number | null) =>
-                              handleMatchingPairSelect(responseQuestion.application_form_question_id, leftId, rightId)
-                            }
-                            disabled={disabled}
-                          />
-                          {/* Explanation */}
-                          {responseQuestion.application_form_question.question.explanation_required && (
+                    </CardHeader>
+                    <CardContent className='flex flex-col-reverse gap-4 md:flex-row md:items-center'>
+                      <div className='flex-1 space-y-4'>
+                        {/* Explicación */}
+                        {responseQuestion.application_form_question.question.explanation_required && (
+                          <div className='space-y-2'>
+                            <Label>{t('Explanation')}</Label>
                             <Input
                               type='text'
                               name={`responses.${responseQuestion.application_form_question_id}.explanation`}
                               value={data.responses[responseQuestion.application_form_question_id].explanation || ''}
                               onChange={(e) => handleExplanationChange(responseQuestion.application_form_question_id, e.target.value)}
                               disabled={disabled}
+                              required
                             />
-                          )}
-                          <InputError
-                            message={getNestedError(errors, `responses.${responseQuestion.application_form_question_id}.selected_options`)}
-                            className='mt-2'
-                          />
-                        </CardContent>
+                          </div>
+                        )}
+
+                        {/* Opciones */}
+                        {responseQuestion.application_form_question.question.question_type_id !== 5 && (
+                          <>
+                            <div className='space-y-2'>
+                              <Label>{t('Options')}</Label>
+                              <QuestionResponse
+                                question={responseQuestion}
+                                response={data.responses[responseQuestion.application_form_question_id]}
+                                onOptionSelect={
+                                  canSelectOption
+                                    ? (optionId: number) => handleOptionSelect(responseQuestion.application_form_question_id, optionId)
+                                    : undefined
+                                }
+                                onReorder={(optionIds: number[]) => handleReorder(responseQuestion.application_form_question_id, optionIds)}
+                                onMatchingPairSelect={(leftId: number, rightId: number | null) =>
+                                  handleMatchingPairSelect(responseQuestion.application_form_question_id, leftId, rightId)
+                                }
+                                disabled={disabled}
+                              />
+                              <InputError
+                                message={getNestedError(errors, `responses.${responseQuestion.application_form_question_id}.selected_options`)}
+                                className='mt-2'
+                              />
+                            </div>
+                          </>
+                        )}
                       </div>
-                    </div>
+                      {image && (
+                        <div className='w-full md:h-full md:w-auto'>
+                          <Image src={image} alt={image} className='w-full' />
+                        </div>
+                      )}
+                    </CardContent>
                   </Card>
                 )
               })}

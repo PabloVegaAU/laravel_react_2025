@@ -90,19 +90,6 @@ export default function ApplicationFormEdit({ application_form, questions }: App
     setData('score_max', Number(totalScore.toFixed(2)))
   }, [data.questions])
 
-  const handleDateSelect = (date: Date | undefined, field: 'start_date' | 'end_date') => {
-    if (!date) return
-
-    setData(field, format(date, 'yyyy-MM-dd'))
-
-    // Si se cambia la fecha de inicio, actualizar la de fin si es necesario
-    if (field === 'start_date' && date > new Date(data.end_date)) {
-      const newEndDate = new Date(date)
-      newEndDate.setDate(newEndDate.getDate() + 7)
-      setData('end_date', format(newEndDate, 'yyyy-MM-dd'))
-    }
-  }
-
   const handleQuestionToggle = (questionId: number, isChecked: boolean) => {
     // Obtener las preguntas actuales
     const currentQuestions = [...(data.questions || [])]
@@ -321,7 +308,7 @@ export default function ApplicationFormEdit({ application_form, questions }: App
                   <Calendar
                     mode='single'
                     selected={data.start_date ? new Date(data.start_date) : undefined}
-                    onSelect={(date) => handleDateSelect(date, 'start_date')}
+                    onSelect={(date) => setData('start_date', date?.toISOString() || '')}
                     disabled={{ before: new Date() }}
                     fromMonth={new Date()}
                   />
@@ -344,7 +331,7 @@ export default function ApplicationFormEdit({ application_form, questions }: App
                   <Calendar
                     mode='single'
                     selected={data.end_date ? new Date(data.end_date) : undefined}
-                    onSelect={(date) => handleDateSelect(date, 'end_date')}
+                    onSelect={(date) => setData('end_date', date?.toISOString() || '')}
                     disabled={{ before: data.start_date ? new Date(data.start_date) : new Date() }}
                     fromMonth={data.start_date ? new Date(data.start_date) : new Date()}
                   />
@@ -400,7 +387,7 @@ export default function ApplicationFormEdit({ application_form, questions }: App
             <div className='space-y-4'>
               {application_form.learning_session?.capabilities?.map((capability) => (
                 <div key={capability.id} className={cn('rounded-lg p-2', 'bg-' + capability.color + '-500')}>
-                  <span>{capability.name}</span>
+                  <span className='text-white'>{capability.name}</span>
                 </div>
               ))}
             </div>
@@ -453,6 +440,12 @@ export default function ApplicationFormEdit({ application_form, questions }: App
                           {question.explanation_required && (
                             <Badge variant='outline' className='gap-1 text-xs'>
                               Tiene explicación requerida
+                            </Badge>
+                          )}
+                          {/* DIFICULTAD */}
+                          {question.difficulty && (
+                            <Badge variant='outline' className='gap-1 text-xs'>
+                              {t(question.difficulty)}
                             </Badge>
                           )}
                         </div>

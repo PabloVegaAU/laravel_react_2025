@@ -4,7 +4,6 @@ const Background = () => {
   const { roles, background } = useUserStore()
 
   const isStudent = roles.includes("student")
-  console.log("background", background) // Verifica que la URL sea válida
 
   if (!isStudent || !background) return null
 

@@ -1,5 +1,5 @@
 import { NavItem } from '@/types/core'
-import { Book, FileQuestion, GraduationCap, Home, Users } from 'lucide-react'
+import { Book, ClipboardList, FileQuestion, Gift, GraduationCap, Home, Image, Package, ShoppingCart, Trophy, User, Users } from 'lucide-react'
 
 // Función para verificar permisos
 const hasPermission = (permissions: string[] = [], requiredPermission: string): boolean => {
@@ -32,25 +32,25 @@ export const createNavItems = (permissions: string[] = []) => {
     {
       title: 'Avatar',
       href: '/admin/avatars',
-      icon: Home,
+      icon: User,
       permission: 'admin.avatars.index'
     },
     {
       title: 'Fondo',
       href: '/admin/backgrounds',
-      icon: Home,
+      icon: Image,
       permission: 'admin.backgrounds.index'
     },
     {
       title: 'Premios',
       href: '/admin/prizes',
-      icon: Home,
+      icon: Gift,
       permission: 'admin.prizes.index'
     },
     {
       title: 'Logros',
       href: '/teacher/achievements',
-      icon: Users,
+      icon: Trophy,
       permission: 'teacher.achievements.index'
     }
   ]
@@ -71,7 +71,7 @@ export const createNavItems = (permissions: string[] = []) => {
     {
       title: 'Matriculas',
       href: '/admin/enrollments',
-      icon: Users,
+      icon: ClipboardList,
       permission: 'admin.enrollments.index'
     }
   ]
@@ -101,25 +101,25 @@ export const createNavItems = (permissions: string[] = []) => {
     {
       title: 'Gestión de Logros',
       href: '/teacher/achievements',
-      icon: FileQuestion,
+      icon: Trophy,
       permission: 'teacher.achievements.index'
     },
     {
       title: 'Sesiones de aprendizaje',
       href: '/teacher/learning-sessions',
-      icon: FileQuestion,
+      icon: GraduationCap,
       permission: 'teacher.learning-sessions.index'
     },
     {
       title: 'Sesiones de aprendizaje',
       href: '/student/learning-sessions',
-      icon: FileQuestion,
+      icon: GraduationCap,
       permission: 'student.learning-sessions.index'
     },
     {
       title: 'Fichas de Aplicación',
       href: '/teacher/application-forms',
-      icon: FileQuestion,
+      icon: ClipboardList,
       permission: 'teacher.application-forms.index'
     },
     {
@@ -146,13 +146,13 @@ export const createNavItems = (permissions: string[] = []) => {
     {
       title: 'Tienda de Puntos',
       href: '/student/store',
-      icon: FileQuestion,
+      icon: ShoppingCart,
       permission: 'student.store'
     },
     {
       title: 'Objetos',
       href: '/student/objects',
-      icon: FileQuestion,
+      icon: Package,
       permission: 'student.objects'
     }
   ]

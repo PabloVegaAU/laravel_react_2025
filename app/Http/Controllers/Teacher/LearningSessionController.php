@@ -185,8 +185,7 @@ class LearningSessionController extends Controller
                 'competency_id' => 'required|exists:competencies,id',
                 'capability_ids' => 'nullable|array',
                 'capability_ids.*' => 'nullable|exists:capabilities,id',
-                'application_form_ids' => 'nullable|array',
-                'application_form_ids.*' => 'nullable|exists:application_forms,id',
+                'application_form_id' => 'nullable|exists:application_forms,id',
             ]);
 
             DB::beginTransaction();
@@ -205,14 +204,14 @@ class LearningSessionController extends Controller
                 'competency_id' => $validated['competency_id'],
             ]);
 
-            if (isset($validated['application_form_ids'])) {
+            if (isset($validated['application_form_id'])) {
                 // Remover las formularios que ya no pertenecen a esta sesión
                 ApplicationForm::where('learning_session_id', $learningSession->id)
-                    ->whereNotIn('id', $validated['application_form_ids'])
+                    ->whereNotIn('id', $validated['application_form_id'])
                     ->update(['learning_session_id' => null]);
 
                 // Asignar esta sesión a los nuevos formularios
-                ApplicationForm::whereIn('id', $validated['application_form_ids'])
+                ApplicationForm::whereIn('id', $validated['application_form_id'])
                     ->update(['learning_session_id' => $learningSession->id]);
             }
 

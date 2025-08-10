@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge'
-import { Check, CheckSquare, HelpCircle, Link2, ListOrdered, X } from 'lucide-react'
+import { AlignLeft, Check, CheckSquare, HelpCircle, Link2, ListOrdered, X } from 'lucide-react'
 import { Question } from '.'
 
 /**
@@ -34,8 +34,8 @@ export const QUESTION_TYPES = {
   TRUE_FALSE: 4,
 
   /**
-   * Pregunta de tipo no soportado.
-   * El usuario debe seleccionar entre verdadero o falso.
+   * Pregunta de respuesta abierta.
+   * El usuario debe responder con una respuesta abierta.
    */
   OPEN_ANSWER: 5
 }
@@ -55,6 +55,8 @@ export const getQuestionTypeIcon = (typeId: number) => {
           <Check className='h-3.5 w-3.5' />/<X className='h-3.5 w-3.5' />
         </div>
       )
+    case 5: // Respuesta abierta
+      return <AlignLeft className='h-3.5 w-3.5' />
     default:
       return <HelpCircle className='h-3.5 w-3.5' />
   }

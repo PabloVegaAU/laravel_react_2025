@@ -2,6 +2,7 @@ import ProgressBar from '@/components/organisms/progress-bar'
 import { Button } from '@/components/ui/button'
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation'
 import AppLayout from '@/layouts/app-layout'
+import { useTranslations } from '@/lib/translator'
 import { useUserStore } from '@/store/useUserStore'
 import { BreadcrumbItem, SharedData } from '@/types/core'
 import { Head, Link, router, usePage } from '@inertiajs/react'
@@ -30,6 +31,7 @@ type StudentProfile = {
 }
 
 export default function Profile() {
+  const { t } = useTranslations()
   const cleanup = useMobileNavigation()
   const { auth } = usePage<SharedData>().props
   const { reset } = useUserStore()
@@ -97,9 +99,9 @@ export default function Profile() {
         <div className='mx-auto w-full max-w-7xl space-y-8'>
           <div className='mb-8 flex items-center justify-between'>
             <h2 className='text-2xl font-bold text-gray-800'>Mi Perfil</h2>
-            <a href={route('student.objects')} className='rounded-lg bg-blue-500 px-6 py-2 text-white hover:bg-blue-600'>
+            <Link href={route('student.objects')} className='rounded-lg bg-blue-500 px-6 py-2 text-white hover:bg-blue-600'>
               Mis objetos
-            </a>
+            </Link>
           </div>
 
           <div className='rounded-xl bg-white p-6 shadow-md'>
@@ -146,7 +148,7 @@ export default function Profile() {
           <Button variant='destructive' asChild>
             <Link className='block w-full' method='post' href={route('logout')} as='button' onClick={handleLogout}>
               <LogOut className='mr-2' />
-              Log out
+              {t('Log Out')}
             </Link>
           </Button>
         </div>

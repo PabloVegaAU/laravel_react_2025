@@ -12,6 +12,7 @@ interface UserState {
   roles: string[]
   permissions: string[]
   progress: ProgressData
+  isLoading: boolean
 }
 
 // Acciones disponibles
@@ -46,7 +47,8 @@ const initialState: UserState = {
     experience_achieved: 0,
     experience_required: 0,
     experience_max: 0
-  }
+  },
+  isLoading: false
 }
 
 // Clave para almacenamiento persistente
@@ -63,6 +65,7 @@ export const useUserStore = create<UserStore>()(
       setBackground: (background) => set({ background }),
       fetchUserPermissions: async () => {
         try {
+          set({ isLoading: true })
           const res = await fetch(route('roles-permissions'))
           const data = await res.json()
           set({
@@ -71,6 +74,8 @@ export const useUserStore = create<UserStore>()(
           })
         } catch (error) {
           console.error('Error consultando permisos:', error)
+        } finally {
+          set({ isLoading: false })
         }
       },
       setProgress: (progress) => set({ progress }),

@@ -10,9 +10,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import AppLayout from '@/layouts/app-layout'
-import { toUTCDateString } from '@/lib/date'
+import { parseDateString, toUTCDateString } from '@/lib/date'
 import { useTranslations } from '@/lib/translator'
-import { cn, getNestedError } from '@/lib/utils'
+import { cn, getNestedError, normalizeString } from '@/lib/utils'
 import { TeacherClassroomCurricularAreaCycle } from '@/types/academic/teacher-classroom-curricular-area-cycle'
 import { Question, QuestionWithScore } from '@/types/application-form'
 import { ApplicationFormStatus } from '@/types/application-form/application-form'
@@ -23,18 +23,7 @@ import { Head, useForm } from '@inertiajs/react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Calendar as CalendarIcon } from 'lucide-react'
-import { useEffect } from 'react'
-
-const breadcrumbs: BreadcrumbItem[] = [
-  {
-    title: 'Fichas de Aplicación',
-    href: '/teacher/application-forms'
-  },
-  {
-    title: 'Crear Ficha',
-    href: '/teacher/application-forms/create'
-  }
-]
+import { useEffect, useState } from 'react'
 
 interface CreateApplicationFormProps {
   learning_session: LearningSession
@@ -43,9 +32,9 @@ interface CreateApplicationFormProps {
 }
 
 export default function ApplicationsForm({ learning_session, teacher_classroom_curricular_area_cycle, questions }: CreateApplicationFormProps) {
-  console.log(questions)
-
   const { t } = useTranslations()
+  const [searchQuestion, setSearchQuestion] = useState('')
+  const [questionsFiltered, setQuestionsFiltered] = useState(questions)
 
   const today = new Date()
   const startDate = today
@@ -55,25 +44,14 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
     return inOneWeek
   })()
 
-  // Función para formatear fechas de string a Date
-  const parseDateString = (date: Date | string | undefined): Date => {
-    if (!date) return new Date()
-    if (date instanceof Date) return date
-    if (typeof date === 'string') {
-      try {
-        // Handle ISO date strings
-        if (date.includes('T')) {
-          return new Date(date)
-        }
-        // Handle YYYY-MM-DD format
-        const [year, month, day] = date.split('-').map(Number)
-        return new Date(year, month - 1, day)
-      } catch (error) {
-        console.error('Error parsing date:', error)
-      }
-    }
-    return new Date()
-  }
+  useEffect(() => {
+    const filteredQuestions = questions.filter(
+      (question) =>
+        normalizeString(question?.name || '').includes(normalizeString(searchQuestion)) ||
+        normalizeString(question?.description || '').includes(normalizeString(searchQuestion))
+    )
+    setQuestionsFiltered(filteredQuestions)
+  }, [searchQuestion])
 
   const dateLocale = es
 
@@ -108,20 +86,6 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
     const totalScore = data.questions.reduce((sum, q) => sum + (q.score || 0), 0)
     setData('score_max', totalScore)
   }, [data.questions])
-
-  /** Manejo de cambios en fechas */
-  const handleDateChange = (date: Date | undefined, field: 'start_date' | 'end_date') => {
-    if (!date) return
-
-    setData(field, toUTCDateString(date))
-
-    // Si se cambia la fecha de inicio, actualizar la de fin si es necesario
-    if (field === 'start_date' && date > endDate) {
-      const newEndDate = new Date(date)
-      newEndDate.setDate(newEndDate.getDate() + 7)
-      setData('end_date', toUTCDateString(newEndDate))
-    }
-  }
 
   const handleQuestionToggle = (questionId: number, isChecked: boolean) => {
     // Obtener las preguntas actuales
@@ -264,17 +228,28 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
     })
   }
 
+  const breadcrumbs: BreadcrumbItem[] = [
+    {
+      title: t('Application Forms'),
+      href: '/teacher/application-forms'
+    },
+    {
+      title: t('Create Application Form'),
+      href: '/teacher/application-forms/create'
+    }
+  ]
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title='Crear Ficha de Aplicación' />
+      <Head title={t('Create Application Form')} />
       <FlashMessages />
 
-      <div className='flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-6'>
+      <div className='flex flex-col gap-6 overflow-x-auto rounded-xl p-6'>
         <form onSubmit={handleSubmit} className='space-y-6'>
           <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
             {/* Campo: Área Curricular */}
             <div className='space-y-2'>
-              <Label htmlFor='teacher_classroom_curricular_area_id'>Área Curricular</Label>
+              <Label htmlFor='teacher_classroom_curricular_area_id'>{t('Curricular Area')}</Label>
               <Input
                 defaultValue={
                   t(teacher_classroom_curricular_area_cycle.classroom?.level) +
@@ -291,25 +266,20 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
 
             {/* Campo: Competencia */}
             <div className='space-y-2'>
-              <Label htmlFor='competency_id'>Competencia</Label>
+              <Label htmlFor='competency_id'>{t('Competency')}</Label>
               <Input defaultValue={learning_session?.competency?.name} readOnly />
               <InputError message={errors.competency_id} className='mt-1' />
             </div>
           </div>
 
           {/* Campos Ficha de Aplicación */}
-          <h2 className='text-xl font-bold'>Ficha de Aplicación</h2>
+          <h2 className='text-xl font-bold'>{t('Application Form')}</h2>
 
           <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
             {/* Campo: Título */}
             <div className='col-span-2 space-y-2'>
-              <Label htmlFor='name'>Título</Label>
-              <Input
-                id='name'
-                value={data.name}
-                onChange={(e) => setData('name', e.target.value)}
-                placeholder='Ej: Evaluación de Matemáticas - Unidad 1'
-              />
+              <Label htmlFor='name'>{t('Title')}</Label>
+              <Input id='name' value={data.name} onChange={(e) => setData('name', e.target.value)} placeholder={t('Enter the form title')} />
               <InputError message={errors.name} className='mt-1' />
             </div>
 
@@ -331,8 +301,8 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
                   <Calendar
                     mode='single'
                     selected={data.start_date ? parseDateString(data.start_date) : undefined}
-                    onSelect={(date) => handleDateChange(date, 'start_date')}
-                    initialFocus
+                    onSelect={(date) => setData('start_date', date?.toISOString() || '')}
+                    autoFocus
                     locale={dateLocale}
                     disabled={(date) => date < new Date() || date < new Date('1900-01-01')}
                   />
@@ -355,8 +325,8 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
                   <Calendar
                     mode='single'
                     selected={data.end_date ? parseDateString(data.end_date) : undefined}
-                    onSelect={(date) => handleDateChange(date, 'end_date')}
-                    initialFocus
+                    onSelect={(date) => setData('end_date', date?.toISOString() || '')}
+                    autoFocus
                     locale={dateLocale}
                     disabled={(date) => {
                       const start = data.start_date ? parseDateString(data.start_date) : new Date()
@@ -415,7 +385,7 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
             <div className='space-y-4'>
               {learning_session?.capabilities?.map((capability) => (
                 <div key={capability.id} className={cn('rounded-lg p-2', 'bg-' + capability.color + '-500')}>
-                  <span>{capability.name}</span>
+                  <span className='text-white'>{capability.name}</span>
                 </div>
               ))}
             </div>
@@ -423,9 +393,14 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
 
           {/* Campo: Preguntas */}
           <div className='space-y-4'>
-            <h2 className='text-xl font-bold'>Preguntas</h2>
+            <div className='flex items-center justify-between'>
+              <h2 className='text-xl font-bold'>Preguntas</h2>
+              <div>
+                <Input value={searchQuestion} onChange={(e) => setSearchQuestion(e.target.value)} placeholder='Buscar pregunta' />
+              </div>
+            </div>
             <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-              {questions.map((question, index) => {
+              {questionsFiltered.map((question, index) => {
                 const questionInForm = data.questions.find((q) => q.id === question.id)
                 const isChecked = !!questionInForm
 
@@ -468,6 +443,12 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
                           {question.explanation_required && (
                             <Badge variant='outline' className='gap-1 text-xs'>
                               Tiene explicación requerida
+                            </Badge>
+                          )}
+                          {/* DIFICULTAD */}
+                          {question.difficulty && (
+                            <Badge variant='outline' className='gap-1 text-xs'>
+                              {t(question.difficulty)}
                             </Badge>
                           )}
                         </div>

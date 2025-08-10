@@ -9,7 +9,7 @@ import { useTranslations } from '@/lib/translator'
 import type { ApplicationFormResponse } from '@/types/application-form/form/response/application-form-response'
 import { BreadcrumbItem } from '@/types/core'
 import type { PaginatedResponse, ResourcePageProps } from '@/types/core/api-types'
-import { Head, router } from '@inertiajs/react'
+import { Head, Link, router } from '@inertiajs/react'
 import { ColumnDef } from '@tanstack/react-table'
 import { useState } from 'react'
 
@@ -152,9 +152,9 @@ export default function ApplicationFormResponse({ application_form_responses, fi
 
         return action ? (
           <div className='flex space-x-2'>
-            <a href={route(`teacher.application-form-responses.${action.route}`, id)} className='text-indigo-600 hover:text-indigo-900'>
+            <Link href={route(`teacher.application-form-responses.${action.route}`, id)} className='text-indigo-600 hover:text-indigo-900'>
               {action.label}
-            </a>
+            </Link>
           </div>
         ) : null
       }

@@ -99,6 +99,7 @@ class ApplicationFormResponseController extends Controller
         // Primero obtenemos la respuesta del formulario con las relaciones básicas
         $applicationFormResponse = ApplicationFormResponse::with([
             'applicationForm',
+            'applicationForm.learningSession',
             'responseQuestions.applicationFormQuestion',
             'responseQuestions.selectedOptions.questionOption',
         ])

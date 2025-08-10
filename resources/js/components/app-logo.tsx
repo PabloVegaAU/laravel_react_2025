@@ -1,6 +1,7 @@
+import { memo } from 'react'
 import AppLogoIcon from './app-logo-icon'
 
-export default function AppLogo() {
+const AppLogo = memo(function AppLogo() {
   return (
     <>
       <div className='flex aspect-square size-12 items-center justify-center rounded-md'>
@@ -11,4 +12,6 @@ export default function AppLogo() {
       </div>
     </>
   )
-}
+})
+
+export default AppLogo

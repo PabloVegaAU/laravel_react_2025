@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import Image from '@/components/ui/image'
 import AppLayout from '@/layouts/app-layout'
 import { useTranslations } from '@/lib/translator'
 import { cn } from '@/lib/utils'
@@ -36,6 +37,7 @@ function QuestionDisplay({
   index: number
 }) {
   const { t } = useTranslations()
+
   const q = question?.question
   if (!q) return null
 
@@ -43,13 +45,11 @@ function QuestionDisplay({
   const options = q.options || []
 
   const renderOptions = () => {
-    if (!options.length || typeof questionType === 'undefined') return null
-
     switch (questionType) {
       case QUESTION_TYPES.SINGLE_CHOICE:
         return (
           <div className='mt-3 space-y-2'>
-            <div className='text-muted-foreground text-sm font-medium'>Opciones:</div>
+            <div className='text-muted-foreground text-sm font-medium'>{t('Options')}:</div>
             <ul className='space-y-1'>
               {options.map((option) => (
                 <li
@@ -57,7 +57,7 @@ function QuestionDisplay({
                   className={`flex items-center gap-2 text-sm ${option.is_correct ? 'font-medium text-green-600' : 'text-foreground'}`}
                 >
                   {option.is_correct ? <CheckCircle className='h-4 w-4 text-green-500' /> : <div className='h-4 w-4' />}
-                  <span>{option.value ?? 'Sin valor'}</span>
+                  <span>{option.value ?? t('No value')}</span>
                 </li>
               ))}
             </ul>
@@ -70,7 +70,7 @@ function QuestionDisplay({
         )
         return (
           <div className='mt-3 space-y-2'>
-            <div className='text-muted-foreground text-sm font-medium'>Orden correcto:</div>
+            <div className='text-muted-foreground text-sm font-medium'>{t('Correct order')}:</div>
             <ol className='list-decimal space-y-1 pl-5'>
               {orderedOptions.map((option) => (
                 <li key={option.id} className='text-sm'>
@@ -87,15 +87,15 @@ function QuestionDisplay({
 
         return (
           <div className='mt-3 space-y-3'>
-            <div className='text-muted-foreground text-sm font-medium'>Pares correctos:</div>
+            <div className='text-muted-foreground text-sm font-medium'>{t('Correct pairs')}:</div>
             <div className='space-y-2'>
               {leftItems.map((left) => {
                 const rightMatch = rightItems.find((r) => r.pair_key === left.pair_key)
                 return (
                   <div key={left.id} className='flex items-center gap-2 text-sm'>
-                    <span className='font-medium'>{left.value ?? 'Sin valor'}</span>
+                    <span className='font-medium'>{left.value ?? t('No value')}</span>
                     <LinkIcon className='text-muted-foreground h-4 w-4 flex-shrink-0' />
-                    <span className='truncate'>{rightMatch?.value ?? 'Sin coincidencia'}</span>
+                    <span className='truncate'>{rightMatch?.value ?? t('No match')}</span>
                   </div>
                 )
               })}
@@ -109,28 +109,37 @@ function QuestionDisplay({
 
         return (
           <div className='mt-3 space-y-2'>
-            <div className='text-muted-foreground text-sm font-medium'>Respuesta correcta:</div>
+            <div className='text-muted-foreground text-sm font-medium'>{t('Correct answer')}:</div>
             <div className='flex items-center gap-2'>
               {isTrueCorrect ? (
                 <div className='flex items-center gap-1 text-green-600'>
                   <CheckCircle className='h-4 w-4' />
-                  <span>Verdadero</span>
+                  <span>{t('True')}</span>
                 </div>
               ) : (
                 <div className='flex items-center gap-1 text-red-600'>
                   <XCircle className='h-4 w-4' />
-                  <span>Falso</span>
+                  <span>{t('False')}</span>
                 </div>
               )}
             </div>
           </div>
         )
       }
+
       case QUESTION_TYPES.OPEN_ANSWER:
-        return null
+        return (
+          <div className='mt-3 space-y-2'>
+            <div className='text-muted-foreground text-sm font-medium'>{t('Explanation required')}</div>
+          </div>
+        )
 
       default:
-        return <div className='mt-3 text-sm text-amber-600'>Tipo de pregunta no soportado: {questionType}</div>
+        return (
+          <div className='mt-3 text-sm text-amber-600'>
+            {t('Unsupported question type')}: {questionType}
+          </div>
+        )
     }
   }
 
@@ -156,6 +165,11 @@ function QuestionDisplay({
               {t(q.difficulty)}
             </span>
           )}
+          {q.explanation_required && (
+            <span className='inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800'>
+              {t('Explanation required')}
+            </span>
+          )}
           <span className='text-muted-foreground text-sm'>{question.score ?? 0} puntos</span>
           {q?.capability?.name && (
             <span className={cn('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium', capabilityBgColor, capabilityTextColor)}>
@@ -164,7 +178,10 @@ function QuestionDisplay({
           )}
         </div>
 
-        {renderOptions()}
+        <div className='flex flex-col-reverse flex-wrap items-center justify-between gap-2 pt-1 md:flex-row'>
+          {renderOptions()}
+          <Image src={q.image ?? ''} alt={q.name} className='w-64' />
+        </div>
       </div>
     </div>
   )
@@ -194,7 +211,7 @@ export default function ApplicationFormShow({ application_form }: ApplicationFor
                 {t(application_form.status)}
               </span>
               <Button asChild variant='outline' size='sm'>
-                <Link href={route('teacher.application-forms.edit', application_form.id)}>Editar</Link>
+                <Link href={route('teacher.application-forms.edit', application_form.id)}>{t('Edit form')}</Link>
               </Button>
             </div>
           </div>
@@ -203,11 +220,11 @@ export default function ApplicationFormShow({ application_form }: ApplicationFor
             {/* Información General */}
             <Card>
               <CardHeader>
-                <CardTitle>Información General</CardTitle>
+                <CardTitle>{t('General Information')}</CardTitle>
               </CardHeader>
               <CardContent className='space-y-4'>
                 <div className='space-y-2'>
-                  <div className='text-muted-foreground text-sm font-medium'>Área Curricular</div>
+                  <div className='text-muted-foreground text-sm font-medium'>{t('Curricular Area')}</div>
                   <div>
                     {application_form.learning_session?.teacher_classroom_curricular_area_cycle?.curricular_area_cycle?.curricular_area?.name ||
                       'No especificado'}
@@ -215,12 +232,12 @@ export default function ApplicationFormShow({ application_form }: ApplicationFor
                 </div>
 
                 <div className='space-y-2'>
-                  <div className='text-muted-foreground text-sm font-medium'>Competencia</div>
-                  <div>{application_form.learning_session?.competency?.name || 'No especificada'}</div>
+                  <div className='text-muted-foreground text-sm font-medium'>{t('Competency')}</div>
+                  <div>{application_form.learning_session?.competency?.name || t('Not specified')}</div>
                 </div>
 
                 <div className='space-y-2'>
-                  <div className='text-muted-foreground text-sm font-medium'>Nivel/Sección</div>
+                  <div className='text-muted-foreground text-sm font-medium'>{t('Grade/Section')}</div>
                   <div>
                     {t(application_form.learning_session?.teacher_classroom_curricular_area_cycle?.classroom?.level) +
                       ' ' +
@@ -235,28 +252,28 @@ export default function ApplicationFormShow({ application_form }: ApplicationFor
             {/* Fechas y Puntaje */}
             <Card>
               <CardHeader>
-                <CardTitle>Período de Aplicación</CardTitle>
+                <CardTitle>{t('Application Period')}</CardTitle>
               </CardHeader>
               <CardContent className='space-y-4'>
                 <div className='space-y-2'>
-                  <div className='text-muted-foreground text-sm font-medium'>Fecha de Inicio</div>
+                  <div className='text-muted-foreground text-sm font-medium'>{t('Start Date')}</div>
                   <div className='flex items-center gap-2'>
                     <span>{formatDate(application_form.start_date)}</span>
                   </div>
                 </div>
 
                 <div className='space-y-2'>
-                  <div className='text-muted-foreground text-sm font-medium'>Fecha de Fin</div>
+                  <div className='text-muted-foreground text-sm font-medium'>{t('End Date')}</div>
                   <div className='flex items-center gap-2'>
                     <span>{formatDate(application_form.end_date)}</span>
                   </div>
                 </div>
 
                 <div className='space-y-2'>
-                  <div className='text-muted-foreground text-sm font-medium'>Puntaje Total</div>
+                  <div className='text-muted-foreground text-sm font-medium'>{t('Total Score')}</div>
                   <div className='flex items-center gap-2'>
                     <span className='text-lg font-bold'>{application_form.score_max}</span>
-                    <span className='text-muted-foreground text-sm'>puntos</span>
+                    <span className='text-muted-foreground text-sm'>{t('points')}</span>
                   </div>
                 </div>
               </CardContent>
@@ -267,7 +284,7 @@ export default function ApplicationFormShow({ application_form }: ApplicationFor
           {application_form.learning_session?.capabilities && application_form.learning_session.capabilities.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Capacidades</CardTitle>
+                <CardTitle>{t('Capabilities')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className='flex flex-wrap gap-2'>
@@ -287,8 +304,10 @@ export default function ApplicationFormShow({ application_form }: ApplicationFor
           {/* Preguntas */}
           <Card>
             <CardHeader>
-              <CardTitle>Preguntas</CardTitle>
-              <p className='text-muted-foreground text-sm'>{application_form.questions?.length || 0} preguntas en total</p>
+              <CardTitle>{t('Questions')}</CardTitle>
+              <p className='text-muted-foreground text-sm'>
+                {application_form.questions?.length || 0} {t('questions in total')}
+              </p>
             </CardHeader>
             <CardContent>
               {application_form.questions && application_form.questions.length > 0 ? (
@@ -299,7 +318,7 @@ export default function ApplicationFormShow({ application_form }: ApplicationFor
                 </div>
               ) : (
                 <div className='rounded-lg border-2 border-dashed p-8 text-center'>
-                  <p className='text-muted-foreground'>No hay preguntas en esta ficha</p>
+                  <p className='text-muted-foreground'>{t('No questions in this form')}</p>
                 </div>
               )}
             </CardContent>
@@ -307,7 +326,7 @@ export default function ApplicationFormShow({ application_form }: ApplicationFor
 
           <div className='flex justify-end'>
             <Button asChild variant='outline'>
-              <Link href={route('teacher.application-forms.index')}>Volver al listado</Link>
+              <Link href={route('teacher.application-forms.index')}>{t('Back to list')}</Link>
             </Button>
           </div>
         </div>
