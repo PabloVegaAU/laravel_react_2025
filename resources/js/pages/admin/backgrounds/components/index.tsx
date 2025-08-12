@@ -51,7 +51,6 @@ export default function BackgroundsPage() {
     }
   }
 
-
   const filteredBackgrounds = backgrounds.filter(
     (background) =>
       background.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

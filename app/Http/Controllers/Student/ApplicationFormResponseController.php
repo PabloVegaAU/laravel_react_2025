@@ -162,6 +162,9 @@ class ApplicationFormResponseController extends Controller
                 ]);
             });
 
+        // Start the timer
+        $applicationFormResponse->markAsStarted();
+
         return Inertia::render('student/application-form-response/edit/index', [
             'application_form_response' => $formattedResponse,
         ]);

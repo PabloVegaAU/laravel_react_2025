@@ -29,6 +29,10 @@
   "grade": "Grado",
   "section": "Sección",
 
+  "submitted": "Enviado",
+  "graded": "Calificado",
+  "pending": "Pendiente",
+
   "1st": "1ro",
   "2nd": "2do",
   "3rd": "3ro",

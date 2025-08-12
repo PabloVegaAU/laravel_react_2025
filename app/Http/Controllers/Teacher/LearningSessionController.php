@@ -130,9 +130,22 @@ class LearningSessionController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(LearningSession $learningSession)
+    public function show(int $id)
     {
-        //
+        $learningSession = LearningSession::with([
+            'educationalInstitution',
+            'teacherClassroomCurricularAreaCycle.classroom',
+            'teacherClassroomCurricularAreaCycle.curricularAreaCycle.curricularArea',
+            'teacherClassroomCurricularAreaCycle.curricularAreaCycle.cycle',
+            'applicationForm',
+            'applicationForm.responses',
+            'applicationForm.responses.student',
+            'applicationForm.responses.student.profile',
+        ])->findOrFail($id);
+
+        return Inertia::render('teacher/learning-session/show/index', [
+            'learning_session' => $learningSession,
+        ]);
     }
 
     /**
@@ -259,10 +272,9 @@ class LearningSessionController extends Controller
 
             DB::beginTransaction();
 
-            
             // Validar y manejar la activación de la sesión
             if ($validated['status'] === 'active') {
-                if (!$learningSession->applicationForm || $learningSession->applicationForm->status !== 'active') {
+                if (! $learningSession->applicationForm || $learningSession->applicationForm->status !== 'active') {
                     throw new \Exception('La ficha de aplicación debe estar activo para poder activar la sesión de aprendizaje.');
                 }
                 $this->generateApplicationFormResponses($learningSession);
