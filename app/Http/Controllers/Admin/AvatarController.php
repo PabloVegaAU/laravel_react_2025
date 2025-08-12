@@ -32,11 +32,6 @@ class AvatarController extends Controller
 
     public function store(Request $request)
     {
-        $levelId = $request->input('level_required') ?? $request->input('required_level_id');
-        if (! is_null($levelId)) {
-            $request->merge(['level_required' => $levelId]);
-        }
-
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
@@ -57,12 +52,8 @@ class AvatarController extends Controller
                 'level_required' => $validated['level_required'] ?? null,
             ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Avatar creado exitosamente.',
-                'data' => $avatar,
-            ], 201);
-
+            return redirect()->route('admin.avatars.index')
+                ->with('success', 'Avatar creado exitosamente.');
         } catch (\Exception $e) {
             \Log::error('Error creando avatar: '.$e->getMessage());
 

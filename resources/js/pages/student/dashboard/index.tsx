@@ -39,7 +39,7 @@ export default function Dashboard({ application_form_responses, enrollment, avat
       <div className='relative flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4 pb-96'>
         {/* Application Forms| */}
         <div className='flex flex-col gap-4'>
-          <div className='bg-white dark:bg-sidebar p-2 rounded-xl'>
+          <div className='dark:bg-sidebar rounded-xl bg-white p-2'>
             <h2 className='text-xl font-semibold'>{t('Pending Application Forms')}</h2>
           </div>
 
@@ -50,7 +50,7 @@ export default function Dashboard({ application_form_responses, enrollment, avat
                 className={cn(
                   'border-sidebar-border/70 dark:border-sidebar-border',
                   'overflow-hidden rounded-xl border p-2',
-                  'bg-white dark:bg-sidebar',
+                  'dark:bg-sidebar bg-white',
                   'hover:bg-sidebar-border dark:hover:bg-sidebar-border'
                 )}
                 href={`/student/application-form-responses/${application_form_response.id}/edit`}

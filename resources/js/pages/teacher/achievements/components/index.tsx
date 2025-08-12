@@ -2,14 +2,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import AppLayout from '@/layouts/app-layout'
+import { BreadcrumbItem } from '@/types/core'
+import { Head } from '@inertiajs/react'
 import axios from 'axios'
 import { Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { AssignAchievementModal } from './AssignAchievementModal'
 import { StudentSearchModal } from './student-search-modal'
 import { StudentAchievementsModal } from './StudentAchievementsModal'
-import { Head } from '@inertiajs/react'
-import { BreadcrumbItem } from '@/types/core'
 
 type Achievement = {
   id: number
@@ -34,7 +34,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     href: '/teacher/achievements'
   }
 ]
-
 
 export default function AchievementsListPage() {
   const [achievements, setAchievements] = useState<Achievement[]>([])

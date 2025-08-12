@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Avatar, AvatarFormData } from '@/types'
-import { useForm } from '@inertiajs/react'
+import { router, useForm } from '@inertiajs/react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -104,71 +104,50 @@ export function EditAvatarModal({ isOpen, onClose, avatar: initialAvatar, onSucc
     }
     setIsLoading(true)
 
-    try {
-      const formData = new FormData()
-      formData.append('name', data.name)
-      formData.append('price', data.price.toString())
-      formData.append('is_active', data.is_active ? '1' : '0')
-      formData.append('_method', 'PUT')
+    const formData = new FormData()
+    formData.append('_method', 'PUT')
+    formData.append('name', data.name)
+    formData.append('price', data.price.toString())
+    formData.append('is_active', data.is_active ? '1' : '0')
 
-      // ⚠️ Estándar: usa level_required. Mantengo ambos por compatibilidad.
-      if (data.required_level_id) {
-        formData.append('level_required', data.required_level_id.toString())
-        formData.append('required_level_id', data.required_level_id.toString())
-      } else {
-        formData.append('level_required', '')
-        formData.append('required_level_id', '')
-      }
-
-      if (data.image_url instanceof File) {
-        formData.append('image_url', data.image_url)
-      }
-
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-      const response = await fetch(`/admin/avatars/${avatar.id}`, {
-        method: 'POST',
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-CSRF-TOKEN': csrfToken,
-          Accept: 'application/json'
-        },
-        body: formData
-      })
-
-      const responseData = await response.json().catch(() => ({}))
-
-      if (!response.ok) {
-        if (responseData?.errors) {
-          Object.values(responseData.errors)
-            .flat()
-            .forEach((msg: any) => toast.error(String(msg)))
-          return
-        }
-        throw new Error(responseData?.message || 'Error actualizando avatar')
-      }
-
-      const avatarData = responseData.avatar || responseData
-      toast.success('Avatar actualizado correctamente')
-
-      const updatedAvatar: Avatar = {
-        ...avatar,
-        id: avatarData.id ?? avatar.id,
-        name: avatarData.name ?? avatar.name,
-        price: avatarData.price ?? avatar.price,
-        is_active: avatarData.is_active ?? avatar.is_active ?? true,
-        image_url: avatarData.image_url ?? avatar.image_url,
-        required_level: avatarData.required_level ?? avatar.required_level,
-        updated_at: avatarData.updated_at || new Date().toISOString()
-      }
-
-      onSuccess(updatedAvatar)
-      onClose()
-    } catch (error: any) {
-      console.error('Error actualizando avatar:', error)
-      toast.error(error?.message || 'Error actualizando avatar')
-    } finally {
-      setIsLoading(false)
+    // ⚠️ Estándar: usa level_required. Mantengo ambos por compatibilidad.
+    if (data.required_level_id) {
+      formData.append('level_required', data.required_level_id.toString())
+      formData.append('required_level_id', data.required_level_id.toString())
+    } else {
+      formData.append('level_required', '')
+      formData.append('required_level_id', '')
     }
+
+    if (data.image_url instanceof File) {
+      formData.append('image_url', data.image_url)
+    }
+
+    router.post(`/admin/avatars/${avatar.id}`, formData, {
+      onSuccess: (response) => {
+        const avatarData = (response.props.avatar as any) || response
+        const updatedAvatar: Avatar = {
+          ...avatar,
+          id: avatarData?.id ?? avatar.id,
+          name: avatarData?.name ?? avatar.name,
+          price: avatarData?.price ?? avatar.price,
+          is_active: avatarData?.is_active ?? avatar.is_active ?? true,
+          image_url: avatarData?.image_url ?? avatar.image_url,
+          required_level: avatarData?.required_level ?? avatar.required_level,
+          updated_at: avatarData.updated_at || new Date().toISOString()
+        }
+
+        toast.success('Avatar actualizado exitosamente')
+        onClose()
+        onSuccess(updatedAvatar)
+      },
+      onError: (error) => {
+        toast.error(error.message || 'Error al actualizar el avatar')
+      },
+      onFinish: () => {
+        setIsLoading(false)
+      }
+    })
   }
 
   return (

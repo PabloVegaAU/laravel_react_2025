@@ -140,7 +140,7 @@ export default function LearningSession({ learning_sessions, curricular_areas, f
       <FlashMessages />
 
       <div className='flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
-        <div className='flex flex-col justify-end gap-4 sm:flex-row sm:items-center min-h-11'>
+        <div className='flex min-h-11 flex-col justify-end gap-4 sm:flex-row sm:items-center'>
           {/* MOSTRAR DOCENTE */}
           {localFilters.curricular_area_id !== '0' &&
             (() => {
@@ -148,8 +148,8 @@ export default function LearningSession({ learning_sessions, curricular_areas, f
               const teacher = selectedArea?.cycles?.[0]?.teacher_classroom_curricular_area_cycles?.[0]?.teacher
 
               return teacher?.user?.profile ? (
-                <div className='min-w-0 flex-1 text-right sm:text-left bg-white dark:bg-sidebar p-2 rounded-xl'>
-                  <p className='truncate  text-gray-600 text-lg'>
+                <div className='dark:bg-sidebar min-w-0 flex-1 rounded-xl bg-white p-2 text-right sm:text-left'>
+                  <p className='truncate text-lg text-gray-600'>
                     <span className='font-medium'>Docente:</span>{' '}
                     {[teacher.user.profile.first_name, teacher.user.profile.last_name].filter(Boolean).join(' ')}
                   </p>

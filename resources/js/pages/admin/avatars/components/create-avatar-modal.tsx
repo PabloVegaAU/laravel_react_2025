@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Avatar } from '@/types'
-import { useForm } from '@inertiajs/react'
+import { router, useForm } from '@inertiajs/react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -81,54 +81,35 @@ export function CreateAvatarModal({ isOpen, onClose, onSuccess }: CreateAvatarMo
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
 
-    try {
-      const formData = new FormData()
-      formData.append('name', data.name)
-      formData.append('price', data.price.toString())
-      formData.append('is_active', data.is_active ? '1' : '0')
-      if (data.level_required) {
-        formData.append('level_required', data.level_required.toString())
-      }
-      if (data.image_url instanceof File) {
-        formData.append('image_url', data.image_url)
-      }
-
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-      const response = await fetch('/admin/avatars', {
-        method: 'POST',
-        headers: {
-          'X-CSRF-TOKEN': csrfToken,
-          'X-Requested-With': 'XMLHttpRequest',
-          Accept: 'application/json'
-        },
-        body: formData
-      })
-
-      const responseData = await response.json()
-
-      if (!response.ok) {
-        if (responseData.errors) {
-          Object.values(responseData.errors)
-            .flat()
-            .forEach((msg: any) => toast.error(String(msg)))
-          return
-        }
-        throw new Error(responseData.message || 'Error creando avatar')
-      }
-
-      toast.success('Avatar creado correctamente')
-      onSuccess(responseData.data || responseData.avatar)
-      onClose()
-    } catch (error: any) {
-      console.error('Error creando avatar:', error)
-      if (!String(error?.message || '').includes('validation')) {
-        toast.error(error?.message || 'Error creando avatar')
-      }
-    } finally {
-      setIsLoading(false)
+    const formData = new FormData()
+    formData.append('name', data.name)
+    formData.append('price', data.price.toString())
+    formData.append('is_active', data.is_active ? '1' : '0')
+    if (data.level_required) {
+      formData.append('level_required', data.level_required.toString())
     }
+    if (data.image_url instanceof File) {
+      formData.append('image_url', data.image_url)
+    }
+
+    router.post('/admin/avatars', formData, {
+      onBefore: () => {
+        setIsLoading(true)
+      },
+      onSuccess: (response) => {
+        const avatarData = (response.props.data as any) || response
+        toast.success('Avatar creado exitosamente')
+        onClose()
+        onSuccess(avatarData)
+      },
+      onError: (error) => {
+        toast.error(error.message || 'Error creando avatar')
+      },
+      onFinish: () => {
+        setIsLoading(false)
+      }
+    })
   }
 
   return (

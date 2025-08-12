@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useForm } from '@inertiajs/react'
+import { router, useForm } from '@inertiajs/react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -82,59 +82,32 @@ export function CreateBackgroundModal({ isOpen, onClose, onSuccess }: CreateBack
     e.preventDefault()
     setIsLoading(true)
 
-    try {
-      const formData = new FormData()
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-
-      // Add CSRF token to form data
-      formData.append('_token', csrfToken)
-      formData.append('name', data.name)
-      formData.append('level_required', data.level_required)
-      formData.append('activo', data.activo ? '1' : '0')
-      formData.append('points_store', data.points_store)
-      if (data.image) {
-        formData.append('image', data.image)
-      }
-
-      const response = await fetch('/admin/backgrounds', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-          Accept: 'application/json',
-          'X-CSRF-TOKEN': csrfToken
-        },
-        credentials: 'include'
-      })
-
-      const responseData = await response.json()
-
-      if (response.ok) {
-        // Show success message
-        toast.success(responseData.message || 'Fondo creado exitosamente')
-
-        // Reset form and close modal
-        reset()
-        setPreviewImage(null)
-
-        // Call the onSuccess callback with the new background data
-        if (onSuccess && typeof onSuccess === 'function') {
-          onSuccess(responseData.data)
-        }
-
-        // Close the modal
-        onClose()
-      } else {
-        // Show error message
-        toast.error(responseData.message || 'Error al crear el fondo')
-        console.error('Error creating background:', responseData)
-      }
-    } catch (error) {
-      console.error('Error creating background:', error)
-      toast.error('Error al procesar la solicitud')
-    } finally {
-      setIsLoading(false)
+    const formData = new FormData()
+    formData.append('name', data.name)
+    formData.append('level_required', data.level_required)
+    formData.append('activo', data.activo ? '1' : '0')
+    formData.append('points_store', data.points_store)
+    if (data.image) {
+      formData.append('image', data.image)
     }
+
+    router.post('/admin/backgrounds', formData, {
+      onBefore: () => {
+        setIsLoading(true)
+      },
+      onSuccess: (response) => {
+        const backgroundData = (response.props.data as any) || response
+        toast.success('Fondo creado exitosamente')
+        onClose()
+        onSuccess(backgroundData)
+      },
+      onError: (error) => {
+        toast.error(error.message || 'Error creando fondo')
+      },
+      onFinish: () => {
+        setIsLoading(false)
+      }
+    })
   }
 
   return (

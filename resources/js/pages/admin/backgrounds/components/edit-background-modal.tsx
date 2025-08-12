@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Background, EditModalBackground, Level } from '@/types/background'
-import { useForm } from '@inertiajs/react'
+import { router, useForm } from '@inertiajs/react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -161,80 +161,46 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
       return
     }
 
-    setIsLoading(true)
+    const formDataToSend = new FormData()
 
-    try {
-      const formDataToSend = new FormData()
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+    // Add form data
+    formDataToSend.append('_method', 'PUT')
+    formDataToSend.append('name', formData.name)
+    formDataToSend.append('level_required', selectedLevel.level.toString())
+    formDataToSend.append('points_store', formData.points_store)
+    formDataToSend.append('activo', formData.activo ? '1' : '0')
 
-      // Add form data
-      formDataToSend.append('_token', csrfToken)
-      formDataToSend.append('_method', 'PUT')
-      formDataToSend.append('name', formData.name)
-      formDataToSend.append('level_required', selectedLevel.level.toString())
-      formDataToSend.append('points_store', formData.points_store)
-      formDataToSend.append('activo', formData.activo ? '1' : '0')
-
-      if (formData.image && typeof formData.image !== 'string') {
-        formDataToSend.append('image', formData.image)
-      }
-
-      // Prepare the updated background data for the parent component
-      const updatedBackground: Background = {
-        ...initialBackground,
-        name: formData.name,
-        level_required: selectedLevel.level,
-        level_name: selectedLevel.name,
-        points_store: formData.points_store,
-        activo: formData.activo,
-        image: typeof formData.image === 'string' ? formData.image : initialBackground.image || ''
-      }
-
-      const response = await fetch(`/admin/backgrounds/${initialBackground.id}`, {
-        method: 'POST',
-        body: formDataToSend,
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-          Accept: 'application/json',
-          'X-CSRF-TOKEN': csrfToken
-        },
-        credentials: 'include'
-      })
-
-      const responseData = await response.json()
-
-      if (response.ok) {
-        // Show success message
-        toast.success(responseData.message || 'Fondo actualizado exitosamente')
-        window.location.reload()
-        // Call the onSuccess callback with the updated background data
-        if (onSuccess && typeof onSuccess === 'function') {
-          // Safely access response data with fallbacks to existing background data
-          const updatedData = responseData.data || {}
-          onSuccess({
-            ...initialBackground,
-            ...updatedData,
-            name: updatedData.name || initialBackground.name,
-            points_store: updatedData.points_store || initialBackground.points_store,
-            image: updatedData.image || initialBackground.image,
-            level_required: updatedData.level_required || initialBackground.level_required,
-            updated_at: updatedData.updated_at || new Date().toISOString()
-          })
-        }
-
-        // Close the modal
-        onClose()
-      } else {
-        // Show error message
-        toast.error(responseData.message || 'Error al actualizar el fondo')
-        console.error('Error updating background:', responseData)
-      }
-    } catch (error) {
-      console.error('Error updating background:', error)
-      toast.error('Error al procesar la solicitud')
-    } finally {
-      setIsLoading(false)
+    if (formData.image && typeof formData.image !== 'string') {
+      formDataToSend.append('image', formData.image)
     }
+
+    // Prepare the updated background data for the parent component
+    const updatedBackground: Background = {
+      ...initialBackground,
+      name: formData.name,
+      level_required: selectedLevel.level,
+      level_name: selectedLevel.name,
+      points_store: formData.points_store,
+      activo: formData.activo,
+      image: typeof formData.image === 'string' ? previewImage || '' : initialBackground.image || ''
+    }
+
+    router.post(`/admin/backgrounds/${initialBackground.id}`, formDataToSend, {
+      onBefore: () => {
+        setIsLoading(true)
+      },
+      onSuccess: () => {
+        toast.success('Fondo actualizado exitosamente')
+        onClose()
+        onSuccess(updatedBackground)
+      },
+      onError: (error) => {
+        toast.error(error.message || 'Error al actualizar el fondo')
+      },
+      onFinish: () => {
+        setIsLoading(false)
+      }
+    })
   }
 
   return (

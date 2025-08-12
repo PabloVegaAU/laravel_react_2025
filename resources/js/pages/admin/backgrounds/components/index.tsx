@@ -27,29 +27,30 @@ export default function BackgroundsPage() {
 
   // Fetch backgrounds
   useEffect(() => {
-    const fetchBackgrounds = async () => {
-      try {
-        const response = await fetch('/api/backgroundslist', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-          }
-        })
-        const data = await response.json()
-        if (data.success) {
-          setBackgrounds(data.data)
-        } else {
-          console.error('Error en datos:', data.message)
-        }
-      } catch (error) {
-        console.error('Error al obtener fondos:', error)
-      }
-    }
-
     fetchBackgrounds()
   }, [])
+
+  const fetchBackgrounds = async () => {
+    try {
+      const response = await fetch('/api/backgroundslist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        }
+      })
+      const data = await response.json()
+      if (data.success) {
+        setBackgrounds(data.data)
+      } else {
+        console.error('Error en datos:', data.message)
+      }
+    } catch (error) {
+      console.error('Error al obtener fondos:', error)
+    }
+  }
+
 
   const filteredBackgrounds = backgrounds.filter(
     (background) =>
@@ -151,7 +152,7 @@ export default function BackgroundsPage() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={(newBackground) => {
-          setBackgrounds((prev) => [...prev, newBackground]) // evita problemas si el estado aún no está actualizado
+          fetchBackgrounds()
           setIsCreateModalOpen(false)
         }}
       />
@@ -188,6 +189,7 @@ export default function BackgroundsPage() {
                   : bg
               )
             )
+            fetchBackgrounds()
             setIsEditModalOpen(false)
             setSelectedBackground(null)
           }}
