@@ -108,6 +108,15 @@ export default function LearningSession({ learning_sessions, curricular_areas, f
                   Ver prueba
                 </Link>
               ))}
+
+            {response && startDate && (
+              <Link
+                href={`/student/learning-sessions/${applicationForm?.learning_session_id}`}
+                className='inline-flex items-center rounded-md border border-transparent bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none'
+              >
+                Calificaciones
+              </Link>
+            )}
           </div>
         )
       }

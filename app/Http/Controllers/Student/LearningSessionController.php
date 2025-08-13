@@ -117,9 +117,22 @@ class LearningSessionController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(LearningSession $learningSession)
+    public function show(int $id)
     {
-        //
+        $learningSession = LearningSession::with([
+            'educationalInstitution',
+            'teacherClassroomCurricularAreaCycle.classroom',
+            'teacherClassroomCurricularAreaCycle.curricularAreaCycle.curricularArea',
+            'teacherClassroomCurricularAreaCycle.curricularAreaCycle.cycle',
+            'applicationForm',
+            'applicationForm.responses',
+            'applicationForm.responses.student',
+            'applicationForm.responses.student.profile',
+        ])->findOrFail($id);
+
+        return Inertia::render('student/learning-session/show/index', [
+            'learning_session' => $learningSession,
+        ]);
     }
 
     /**
