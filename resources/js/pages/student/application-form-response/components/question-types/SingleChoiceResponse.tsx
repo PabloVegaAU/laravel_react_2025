@@ -29,13 +29,6 @@ export function SingleChoiceResponse({ question, selectedOptions, onOptionSelect
           )
         })}
       </div>
-
-      {question.explanation && (
-        <div className='mt-4 rounded-md bg-blue-50 p-4 text-sm text-blue-800'>
-          <p className='font-medium'>Tu explicación:</p>
-          <p className='mt-1'>{question.explanation}</p>
-        </div>
-      )}
     </BaseQuestionResponse>
   )
 }

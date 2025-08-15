@@ -124,27 +124,56 @@ class ApplicationFormResponseController extends Controller
             ->where('student_id', auth()->id())
             ->firstOrFail();
 
+        // Iniciar el temporizador
+        $applicationFormResponse->markAsStarted();
+
         // Si el formulario no ha sido enviado, aleatorizar opciones de ordenamiento y emparejamiento
-        if ($applicationFormResponse->status === 'pending') {
+        if ($applicationFormResponse->status == 'in progress') {
             $applicationFormResponse->responseQuestions->each(function ($responseQuestion) {
                 $question = $responseQuestion->applicationFormQuestion->question;
-                $questionTypeId = $question->questionType->id;
+                $questionTypeId = $question->question_type_id;
 
                 // Solo aleatorizar si no hay opciones seleccionadas
-                if ($responseQuestion->selectedOptions->isEmpty() && in_array($questionTypeId, [2, 3])) {
-                    // Crear una colección mutable para las opciones
-                    $options = $question->options;
+                if ($responseQuestion->selectedOptions->isEmpty()) {
+                    // Para preguntas de ordenamiento (tipo 2)
+                    if ($questionTypeId == 2) {
+                        $shuffledOptions = $question->options->shuffle();
+                        $question->setRelation('options', $shuffledOptions);
+                    }
+                    // Para preguntas de emparejamiento (tipo 3)
+                    elseif ($questionTypeId == 3) {
+                        // Separar items izquierdos y derechos
+                        $leftItems = $question->options->where('pair_side', 'left')->values();
+                        $rightItems = $question->options->where('pair_side', 'right')->values();
 
-                    // Aleatorizar el orden de las opciones
-                    $shuffledOptions = $options->shuffle();
+                        // Mezclar los índices
+                        $leftIndices = $leftItems->pluck('pair_key')->unique()->shuffle();
+                        $rightIndices = $rightItems->pluck('pair_key')->unique()->shuffle();
 
-                    // Reemplazar la colección de opciones con la versión aleatorizada
-                    $question->setRelation('options', $shuffledOptions);
+                        // Asignar nuevos pair_keys aleatorios
+                        $newLeftItems = $leftItems->map(function ($item, $index) use ($leftIndices) {
+                            $item->pair_key = $leftIndices[$index];
+
+                            return $item;
+                        })->shuffle();
+
+                        $newRightItems = $rightItems->map(function ($item, $index) use ($rightIndices) {
+                            $item->pair_key = $rightIndices[$index];
+
+                            return $item;
+                        })->shuffle();
+
+                        // Combinar y mezclar los items
+                        $shuffledOptions = $newLeftItems->merge($newRightItems)->shuffle();
+
+                        // Actualizar la relación de opciones
+                        $question->setRelation('options', $shuffledOptions);
+                    }
                 }
             });
         }
 
-        // Transformar los datos para el frontend
+        // En el método edit(), reemplaza la transformación actual con:
         $formattedResponse = $applicationFormResponse->toArray();
         $formattedResponse['response_questions'] = $applicationFormResponse->responseQuestions
             ->sortBy('applicationFormQuestion.order')
@@ -161,9 +190,6 @@ class ApplicationFormResponseController extends Controller
                     'score' => $question->score,
                 ]);
             });
-
-        // Start the timer
-        $applicationFormResponse->markAsStarted();
 
         return Inertia::render('student/application-form-response/edit/index', [
             'application_form_response' => $formattedResponse,

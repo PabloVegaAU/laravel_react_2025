@@ -44,6 +44,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 export default function ApplicationFormResponseEdit({ application_form_response }: PageProps) {
+  console.log(application_form_response)
   const { t } = useTranslations()
 
   // Transformar los datos de la respuesta inicial en una estructura de diccionario plana.
@@ -291,7 +292,7 @@ export default function ApplicationFormResponseEdit({ application_form_response 
 
   const [showSubmitDialog, setShowSubmitDialog] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
-  const disabled = application_form_response.status !== 'pending'
+  const disabled = application_form_response.status !== 'in progress'
   const isGraded = application_form_response.status === 'graded'
 
   return (
@@ -412,8 +413,8 @@ export default function ApplicationFormResponseEdit({ application_form_response 
                         )}
                       </div>
                       {image && (
-                        <div className='w-full md:h-full md:w-auto'>
-                          <Image src={image} alt={image} className='w-full' />
+                        <div className='w-full flex-1 md:w-auto'>
+                          <Image src={image} alt={image} />
                         </div>
                       )}
                     </CardContent>
