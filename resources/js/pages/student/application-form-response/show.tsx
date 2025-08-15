@@ -165,8 +165,8 @@ export default function ApplicationFormResponseShow({ application_form_response 
                     </div>
 
                     {question.image && (
-                      <div className='w-full md:h-full md:w-auto'>
-                        <Image src={question.image} alt={question.name} className='w-full' />
+                      <div className='w-full flex-1 md:w-auto'>
+                        <Image src={question.image} alt={question.name} />
                       </div>
                     )}
                   </CardContent>
