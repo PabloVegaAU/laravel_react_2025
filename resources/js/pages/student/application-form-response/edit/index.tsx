@@ -44,6 +44,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 export default function ApplicationFormResponseEdit({ application_form_response }: PageProps) {
+  console.log(application_form_response)
   const { t } = useTranslations()
 
   // Transformar los datos de la respuesta inicial en una estructura de diccionario plana.
