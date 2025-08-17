@@ -17,20 +17,22 @@ class ApplicationFormController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $currentYear = now()->year;
 
+        // Obtener parámetros de filtrado
+        $filters = $request->only(['search', 'status', 'start_date', 'end_date']);
+
         // Obtener formularios de aplicación con relaciones optimizadas
-        $applicationForms = ApplicationForm::select([
+        $query = ApplicationForm::select([
             'application_forms.*',
             'learning_sessions.name as session_name',
             DB::raw("CONCAT(classrooms.grade, ' - ', classrooms.section) as classroom_name"),
             'curricular_areas.name as curricular_area_name',
         ])
             ->join('learning_sessions', 'learning_sessions.id', '=', 'application_forms.learning_session_id')
-            ->join('teacher_classroom_curricular_area_cycles as tccac',
-                'tccac.id', '=', 'learning_sessions.teacher_classroom_curricular_area_cycle_id')
+            ->join('teacher_classroom_curricular_area_cycles as tccac', 'tccac.id', '=', 'learning_sessions.teacher_classroom_curricular_area_cycle_id')
             ->join('classrooms', 'classrooms.id', '=', 'tccac.classroom_id')
             ->join('curricular_area_cycles as cac', 'cac.id', '=', 'tccac.curricular_area_cycle_id')
             ->join('curricular_areas', 'curricular_areas.id', '=', 'cac.curricular_area_id')
@@ -43,13 +45,40 @@ class ApplicationFormController extends Controller
                 'learningSession.competency' => function ($query) {
                     $query->select('id', 'name');
                 },
-            ])
-            ->latest('application_forms.created_at')
-            ->paginate(10);
+            ]);
+
+        // Aplicar filtros
+        if (!empty($filters['search'])) {
+            $search = '%' . $filters['search'] . '%';
+            $query->where(function($q) use ($search) {
+                $q->where('application_forms.name', 'LIKE', $search)
+                  ->orWhere('learning_sessions.name', 'LIKE', $search)
+                  ->orWhere('classrooms.grade', 'LIKE', $search)
+                  ->orWhere('classrooms.section', 'LIKE', $search)
+                  ->orWhere('curricular_areas.name', 'LIKE', $search);
+            });
+        }
+
+        if (!empty($filters['status'])) {
+            $query->where('application_forms.status', $filters['status']);
+        }
+
+        if (!empty($filters['start_date'])) {
+            $query->whereDate('application_forms.start_date', '>=', $filters['start_date']);
+        }
+
+        if (!empty($filters['end_date'])) {
+            $query->whereDate('application_forms.end_date', '<=', $filters['end_date']);
+        }
+
+        $applicationForms = $query->latest('application_forms.created_at')
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('teacher/application-form/index', [
             'applicationForms' => $applicationForms,
             'currentYear' => $currentYear,
+            'filters' => $filters,
         ]);
     }
 
