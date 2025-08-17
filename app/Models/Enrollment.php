@@ -17,11 +17,6 @@ class Enrollment extends Model
         'academic_year',
         'status',
         'enrollment_date',
-        'start_date',
-        'end_date',
-        'notes',
-        'created_by',
-        'updated_by',
         'student_id',
         'classroom_id',
     ];
@@ -29,17 +24,10 @@ class Enrollment extends Model
     protected $casts = [
         'academic_year' => 'integer',
         'enrollment_date' => 'date',
-        'start_date' => 'date',
-        'end_date' => 'date',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
     ];
 
     protected $dates = [
         'enrollment_date',
-        'start_date',
-        'end_date',
         'created_at',
         'updated_at',
         'deleted_at',

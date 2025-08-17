@@ -57,7 +57,41 @@ class EnrollmentController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'student_id' => 'required|exists:students,user_id',
+            'classroom_id' => 'required|exists:classrooms,id',
+            'academic_year' => 'required|integer',
+            'enrollment_date' => 'required|date',
+            'status' => 'required|string|in:active,inactive',
+            'status_previous' => 'required|string|in:inactive,active,completed,transferred,withdrawn,dismissed,failed',
+        ]);
+
+        // Buscar matricula anterior
+        $previousEnrollment = Enrollment::where('student_id', $request->student_id)
+            ->latest('academic_year')
+            ->first();
+
+        // Verificar si ya existe una matrícula para este año
+        if ($previousEnrollment && $previousEnrollment->academic_year == $request->academic_year) {
+            return redirect()->back()->with('error', 'El estudiante ya tiene una matrícula para este año');
+        }
+
+        // Cambiar estado de matricula anterior si existe
+        if ($previousEnrollment) {
+            $previousEnrollment->update([
+                'status' => $request->status_previous,
+            ]);
+        }
+
+        Enrollment::create([
+            'student_id' => $request->student_id,
+            'classroom_id' => $request->classroom_id,
+            'academic_year' => $request->academic_year,
+            'enrollment_date' => $request->enrollment_date,
+            'status' => $request->status,
+        ]);
+
+        return redirect()->route('admin.enrollments.index')->with('success', 'Matricula agregada exitosamente');
     }
 
     /**

@@ -1,4 +1,5 @@
 import DataTable from '@/components/organisms/data-table'
+import FlashMessages from '@/components/organisms/flash-messages'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,6 +12,7 @@ import { BreadcrumbItem, PaginatedResponse, ResourcePageProps } from '@/types/co
 import { Head, router } from '@inertiajs/react'
 import { ColumnDef } from '@tanstack/react-table'
 import { useState } from 'react'
+import { CreateEnrollmentDialog } from './components/form-create'
 
 type PageProps = Omit<ResourcePageProps<Enrollment>, 'data'> & {
   enrollments: PaginatedResponse<Enrollment>
@@ -29,7 +31,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Enrollments({ enrollments, filters }: PageProps) {
   const { t } = useTranslations()
-  /*   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)*/
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [localFilters, setLocalFilters] = useState(filters)
 
   const handleFilterChange = (name: string, value: string) => {
@@ -96,9 +98,10 @@ export default function Enrollments({ enrollments, filters }: PageProps) {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title='Matriculas' />
+      <FlashMessages />
 
       <div className='flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
-        {/* <CreateEnrollmentDialog isOpen={isCreateModalOpen} onOpenChange={setIsCreateModalOpen} /> */}
+        <CreateEnrollmentDialog isOpen={isCreateModalOpen} onOpenChange={setIsCreateModalOpen} />
 
         {/* Filter */}
         <div className='flex items-center gap-4'>

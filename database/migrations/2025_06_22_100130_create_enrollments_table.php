@@ -26,6 +26,7 @@ return new class extends Migration
                 'inactive',     // Inactivo (puede regresar)
                 'withdrawn',    // Retirado voluntariamente
                 'dismissed',    // Expulsado/separado de la institución
+                'failed',       // Reprobado
             ])->default('active')
                 ->comment('Estado actual de la matrícula');
 

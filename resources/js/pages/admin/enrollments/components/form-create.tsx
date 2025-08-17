@@ -1,10 +1,11 @@
 import InputError from '@/components/input-error'
 import { SearchableSelect } from '@/components/organisms/searchable-select'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { SelectItem } from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useTranslations } from '@/lib/translator'
 import { normalizeString } from '@/lib/utils'
 import { Classroom } from '@/types/academic'
@@ -16,10 +17,11 @@ import { useState } from 'react'
 
 type CreateEnrollment = {
   academic_year: number
-  status_last_enrollment: string
   enrollment_date: string
   student_id: number
   classroom_id: number
+  status: string
+  status_previous: string
 }
 
 interface CreateEnrollmentDialogProps {
@@ -34,10 +36,11 @@ export function CreateEnrollmentDialog({ isOpen, onOpenChange }: CreateEnrollmen
 
   const initialValues: CreateEnrollment = {
     academic_year: new Date().getFullYear(),
-    status_last_enrollment: 'active',
     enrollment_date: new Date().toISOString(),
     student_id: 0,
-    classroom_id: 0
+    classroom_id: 0,
+    status: 'active',
+    status_previous: 'active'
   }
 
   /* STUDENTS */
@@ -168,6 +171,30 @@ export function CreateEnrollmentDialog({ isOpen, onOpenChange }: CreateEnrollmen
                 ))}
               </SearchableSelect>
               <InputError message={errors.classroom_id} />
+            </div>
+          </div>
+
+          <div className='grid grid-cols-2 gap-4'>
+            <div>
+              <Checkbox checked={data.status === 'active'} onCheckedChange={(checked) => setData('status', checked ? 'active' : 'inactive')} />
+              <Label>Activo</Label>
+            </div>
+            {/* Estado anterior */}
+            <div>
+              <Label>Estado anterior</Label>
+              <Select value={data.status_previous} onValueChange={(value) => setData('status_previous', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder='Seleccionar estado' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='completed'>Completado</SelectItem>
+                  <SelectItem value='transferred'>Transferido</SelectItem>
+                  <SelectItem value='withdrawn'>Retirado</SelectItem>
+                  <SelectItem value='dismissed'>Expulsado</SelectItem>
+                  <SelectItem value='failed'>Reprobado</SelectItem>
+                </SelectContent>
+              </Select>
+              <InputError message={errors.status_previous} />
             </div>
           </div>
 
