@@ -15,6 +15,9 @@ type Props = {
 type Student = {
   user_id: number
   user_name: string
+  first_name: string
+  last_name: string
+  second_last_name: string
   status: string
   points_store: string
 }
@@ -34,7 +37,7 @@ export function AssignAchievementModal({ isOpen, onClose, achievementId }: Props
     if (!achievementId) return
 
     try {
-      const res = await axios.post('/api/getstudentbyuserid', { p_achievement_id: achievementId })
+      const res = await axios.post('/api/getstudentbyachievement', { p_achievement_id: achievementId })
       setStudents(res.data)
     } catch (err) {
       console.error('❌ Error al obtener estudiantes:', err)
@@ -76,8 +79,9 @@ export function AssignAchievementModal({ isOpen, onClose, achievementId }: Props
             <TableHeader>
               <TableRow>
                 <TableHead></TableHead>
-                <TableHead>Nombre</TableHead>
                 <TableHead>Puntos</TableHead>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Apellido</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -86,7 +90,8 @@ export function AssignAchievementModal({ isOpen, onClose, achievementId }: Props
                   <TableCell>
                     <Checkbox checked={selectedIds.includes(s.user_id)} onCheckedChange={() => toggleSelection(s.user_id)} />
                   </TableCell>
-                  <TableCell className='font-medium'>{s.user_name}</TableCell>
+                  <TableCell className='font-medium'>{s.first_name}</TableCell>
+                  <TableCell className='font-medium'>{s.last_name} {s.second_last_name}</TableCell>
                   <TableCell>{s.points_store}</TableCell>
                 </TableRow>
               ))}

@@ -163,6 +163,35 @@ class ApiController extends Controller
         }
     }
 
+    public function getstudentbyachievement(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'p_achievement_id' => 'nullable|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error en la validación de datos',
+                'errors' => $validator->errors(),
+            ], 400);
+        }
+
+        try {
+            $result = DB::select('SELECT * FROM public.spu_get_student_by_achievement(?)', [
+                $request->p_achievement_id ?? 0,
+            ]);
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener los datos',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     // Avatar Methods
     public function avatargra(Request $request): JsonResponse
     {

@@ -60,8 +60,8 @@ export function CreateStudentDialog({ isOpen, onOpenChange }: CreateStudentDialo
         <Button variant='outline-info'>Agregar estudiante</Button>
       </DialogTrigger>
       <DialogContent className='sm:max-w-[700px]'>
-        <DialogTitle>Agregar Pregunta</DialogTitle>
-        <DialogDescription>Complete el formulario para agregar una nueva pregunta.</DialogDescription>
+        <DialogTitle>Agregar estudiante</DialogTitle>
+        <DialogDescription>Complete el formulario para agregar un nuevo estudiante.</DialogDescription>
 
         <form onSubmit={handleSubmit} className='flex flex-col gap-6'>
           {/* USUARIO */}

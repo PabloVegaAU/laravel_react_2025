@@ -79,3 +79,5 @@ Route::post('studentprogressbar', [ApiController::class, 'studentprogressbar']);
 Route::post('studentprogressupd', [ApiController::class, 'studentprogressupd']);
 Route::post('studentssearch', [ApiController::class, 'studentssearch']);
 Route::post('getstudentbyuserid', [ApiController::class, 'getstudentbyuserid']);
+Route::post('getstudentbyachievement', [ApiController::class, 'getstudentbyachievement']);
+

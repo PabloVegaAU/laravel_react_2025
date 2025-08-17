@@ -16,14 +16,26 @@ class AchievementController extends Controller
      */
     public function index()
     {
-        // Obtener estudiantes con el rol 'student' y contar sus logros
         $students = User::role('student')
             ->select([
                 'users.id',
                 'users.name',
-                'users.grade',
-                'users.section',
-                DB::raw('(SELECT COUNT(*) FROM student_achievements JOIN students ON student_achievements.student_id = students.user_id WHERE students.user_id = users.id) as achievements_count'),
+                DB::raw('(SELECT c.grade 
+                          FROM enrollments e 
+                          JOIN classrooms c ON c.id = e.classroom_id 
+                          WHERE e.student_id = users.id 
+                          ORDER BY e.created_at DESC 
+                          LIMIT 1) as grade'),
+                DB::raw('(SELECT c.section 
+                          FROM enrollments e 
+                          JOIN classrooms c ON c.id = e.classroom_id 
+                          WHERE e.student_id = users.id 
+                          ORDER BY e.created_at DESC 
+                          LIMIT 1) as section'),
+                DB::raw('(SELECT COUNT(*) 
+                          FROM student_achievements sa 
+                          JOIN students s2 ON sa.student_id = s2.user_id 
+                          WHERE s2.user_id = users.id) as achievements_count'),
             ])
             ->latest()
             ->paginate(10)
