@@ -46,7 +46,7 @@ export default function LearningSessionCreate({ educational_institution, teacher
 
   const dateLocale = es
 
-  const { data, setData, post, processing, errors } = useForm({
+  const { data, setData, post, processing, errors, hasErrors } = useForm({
     redirect: true as boolean,
     educational_institution_id: educational_institution.id,
     status: 'draft',
@@ -67,10 +67,6 @@ export default function LearningSessionCreate({ educational_institution, teacher
   useEffect(() => {
     const validClassrooms = (teacher_classroom_curricular_area_cycles || []).flatMap((area) => (area.classroom ? [area.classroom] : []))
     setClassrooms(validClassrooms)
-
-    setCurricularAreas([])
-    setCompetencies([])
-    setCapabilities([])
   }, [teacher_classroom_curricular_area_cycles])
 
   // En el useEffect para cargar áreas curriculares
@@ -341,7 +337,7 @@ export default function LearningSessionCreate({ educational_institution, teacher
 
           {/* Botones de acción */}
           <div className='flex items-center justify-center'>
-            <Button type='submit' disabled={processing}>
+            <Button type='submit' disabled={hasErrors || processing}>
               {processing && <LoaderCircle className='h-4 w-4 animate-spin' />}
               {processing ? 'Guardando...' : 'Guardar Ficha de Aplicación'}
             </Button>
