@@ -132,7 +132,7 @@ export default function Profile() {
               {['nombres', 'apellidos', 'anio_escolar', 'grado', 'level_numero', 'seccion'].map((field) => (
                 <div key={field} className='space-y-1'>
                   <label className='text-sm font-medium text-gray-600 capitalize'>
-                    {t(field.replace('_', ' ').replace('anio_escolar', 'año escolar'))}
+                    {t(field.replace('_', ' ').replace('anio escolar', 'año escolar'))}
                   </label>
                   <input
                     className='w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2'

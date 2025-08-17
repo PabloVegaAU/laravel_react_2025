@@ -23,6 +23,8 @@ class StudentSeeder extends Seeder
         Student::factory()->create(
             [
                 'user_id' => $student->id,
+                'level_id' => 1,
+                'experience_achieved' => 0
             ]
         );
     }
