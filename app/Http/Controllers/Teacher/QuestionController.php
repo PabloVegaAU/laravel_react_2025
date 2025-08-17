@@ -33,12 +33,12 @@ class QuestionController extends Controller
     public function index(Request $request)
     {
         $filters = [
-            'search' => '',
+            'search' => $request->input('search', ''),
+            'question_type' => $request->input('question_type', '0'),
+            'curricular_area' => $request->input('curricular_area', '0'),
+            'competency' => $request->input('competency', '0'),
+            'capability' => $request->input('capability', '0'),
         ];
-
-        if ($request->has('search')) {
-            $filters['search'] = $request->search;
-        }
 
         $teacherId = Auth::id();
 
@@ -89,27 +89,44 @@ class QuestionController extends Controller
             }, function ($query) {
                 $query->whereNull('capability_id');
             })
-            /* ->where('name', 'like', "%{$filters['search']}%") */
             ->when($filters['search'], function ($query) use ($filters) {
-                $query->where('name', 'like', "%{$filters['search']}%");
+                $query->where('questions.name', 'like', "%{$filters['search']}%");
+            })
+            ->when($filters['question_type'], function ($query) use ($filters) {
+                $query->where('question_type_id', $filters['question_type']);
+            })
+            ->when($filters['curricular_area'], function ($query) use ($filters) {
+                $query->whereHas('capability.competency.curricularAreaCycle', function ($q) use ($filters) {
+                    $q->where('id', $filters['curricular_area']);
+                });
+            })
+            ->when($filters['competency'], function ($query) use ($filters) {
+                $query->whereHas('capability.competency', function ($q) use ($filters) {
+                    $q->where('id', $filters['competency']);
+                });
+            })
+            ->when($filters['capability'], function ($query) use ($filters) {
+                $query->whereHas('capability', function ($q) use ($filters) {
+                    $q->where('id', $filters['capability']);
+                });
             })
             ->with([
                 'questionType:id,name',
                 'capability:id,name,competency_id',
                 'capability.competency:id,name,curricular_area_cycle_id',
-                'capability.competency.curricularAreaCycle:id',
+                'capability.competency.curricularAreaCycle.curricularArea:id,name',
             ])
             ->latest('created_at')
             ->paginate(10);
 
         return Inertia::render('teacher/questions/index', [
             'questions' => $questions,
-            'filters' => $filters,
             'question_types' => $questionTypes,
             'curricular_areas' => $curricularAreas,
             'competencies' => $competencies,
             'capabilities' => $capabilities,
             'difficulties' => self::DIFFICULTIES,
+            'filters' => $filters,
         ]);
     }
 
@@ -263,7 +280,6 @@ class QuestionController extends Controller
             'description' => 'nullable|string',
             'difficulty' => 'required|in:easy,medium,hard',
             'explanation_required' => 'sometimes|boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ];
 
         // Tipo pregunta diferente a preguntas abiertas
@@ -303,7 +319,7 @@ class QuestionController extends Controller
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
                 'difficulty' => $validated['difficulty'],
-                'explanation_required' => $validated['explanation_required'] ?? false,
+                'explanation_required' => $validated['explanation_required'],
             ];
 
             if ($request->hasFile('image')) {

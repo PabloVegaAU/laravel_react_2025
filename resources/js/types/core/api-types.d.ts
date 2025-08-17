@@ -24,6 +24,11 @@ export type ResourcePageProps<T> = {
     search?: string
     sort?: string
     direction?: 'asc' | 'desc'
+    question_type?: string
+    curricular_area?: string
+    competency?: string
+    capability?: string
+    difficulty?: string
   }
   flash?: FlashMessage
 }

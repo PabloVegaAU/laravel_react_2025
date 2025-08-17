@@ -311,7 +311,11 @@ export default function ApplicationFormEdit({ application_form, questions }: App
                     selected={data.start_date ? new Date(data.start_date) : undefined}
                     onSelect={(date) => setData('start_date', date?.toISOString() || '')}
                     disabled={{ before: new Date() }}
-                    startMonth={application_form?.learning_session?.application_date ? parseDateString(application_form?.learning_session?.application_date) : undefined}
+                    startMonth={
+                      application_form?.learning_session?.application_date
+                        ? parseDateString(application_form?.learning_session?.application_date)
+                        : undefined
+                    }
                   />
                 </PopoverContent>
               </Popover>

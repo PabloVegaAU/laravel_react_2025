@@ -196,7 +196,6 @@ export function CreatePrizeModal({ isOpen, onClose, onSuccess }: CreatePrizeModa
               onChange={(e) => setData('level_required', e.target.value ? parseInt(e.target.value) : null)}
               className='border-input bg-background ring-offset-background flex h-10 w-full rounded-md border px-3 py-2 text-sm'
             >
-              <option value=''>Ninguno (Disponible para todos)</option>
               {levels.map((level) => (
                 <option key={level.id} value={level.id}>
                   Nivel {level.level} - {level.name}

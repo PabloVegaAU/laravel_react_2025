@@ -151,7 +151,6 @@ export function CreateAvatarModal({ isOpen, onClose, onSuccess }: CreateAvatarMo
               onChange={(e) => setData('level_required', e.target.value ? parseInt(e.target.value) : null)}
               className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50'
             >
-              <option value=''>Disponible para todos</option>
               {levels.map((level) => (
                 <option key={level.id} value={level.id}>
                   Nivel {level.level} - {level.name}
