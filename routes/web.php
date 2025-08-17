@@ -19,6 +19,7 @@ use App\Http\Controllers\Teacher\ApplicationFormResponseController as TeacherApp
 use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
 use App\Http\Controllers\Teacher\LearningSessionController as TeacherLearningSessionController;
 use App\Http\Controllers\Teacher\QuestionController as TeacherQuestionController;
+use App\Http\Controllers\Teacher\StudentPrizeController as TeacherStudentPrizeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -69,6 +70,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/{id}', [TeacherQuestionController::class, 'destroy'])->name('destroy');
     });
     Route::resource('teacher/application-form-responses', TeacherApplicationFormResponseController::class)->names('teacher.application-form-responses');
+    Route::resource('teacher/student-prizes', TeacherStudentPrizeController::class)->names('teacher.student-prizes');
+    Route::post('teacher/student-prizes/{id}/claim', [TeacherStudentPrizeController::class, 'claim'])->name('teacher.student-prizes.claim');
 
     // Rutas para la gestión de fondos
     // REALIZADO POR CARLOS

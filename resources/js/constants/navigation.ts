@@ -148,6 +148,12 @@ export const createNavItems = (permissions: string[] = []) => {
       href: '/student/objects',
       icon: Package,
       permission: 'student.objects'
+    },
+    {
+      title: 'Premios',
+      href: '/teacher/student-prizes',
+      icon: Gift,
+      permission: 'teacher.student-prizes.index'
     }
   ]
 

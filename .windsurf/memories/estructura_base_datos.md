@@ -65,8 +65,8 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 31. `2025_06_22_100370_create_application_form_response_question_options_table.php` - Opciones de respuestas
 
 ### Migraciones de Recompensas y Tienda
-32. `2025_06_22_100400_create_store_rewards_table.php` - Recompensas de tienda
-33. `2025_06_22_100410_create_student_store_rewards_table.php` - Recompensas de estudiantes
+32. `2025_06_22_100400_create_prizes_table.php` - Recompensas de tienda
+33. `2025_06_22_100410_create_student_prizes_table.php` - Recompensas de estudiantes
 34. `2025_06_22_100420_create_avatars_table.php` - Avatares
 35. `2025_06_22_100430_create_student_avatars_table.php` - Avatares de estudiantes
 36. `2025_06_22_100440_create_backgrounds_table.php` - Fondos
@@ -501,14 +501,14 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 
 ### 9. Sistema de Recompensas y Tienda
 **Archivos relacionados:**
-- `[32] 2025_06_22_100400_create_store_rewards_table.php` - Recompensas de tienda
-- `[33] 2025_06_22_100410_create_student_store_rewards_table.php` - Recompensas de estudiantes
+- `[32] 2025_06_22_100400_create_prizes_table.php` - Recompensas de tienda
+- `[33] 2025_06_22_100410_create_student_prizes_table.php` - Recompensas de estudiantes
 - `[34] 2025_06_22_100420_create_avatars_table.php` - Avatares
 - `[35] 2025_06_22_100430_create_student_avatars_table.php` - Avatares de estudiantes
 - `[36] 2025_06_22_100440_create_backgrounds_table.php` - Fondos
 - `[37] 2025_06_22_100450_create_student_backgrounds_table.php` - Fondos de estudiantes
 
-#### store_rewards
+#### prizes
 - **Propósito**: Recompensas disponibles en la tienda
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -528,24 +528,24 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 - **Relaciones**:
   - `studentRewards`: Relación con recompensas canjeadas por estudiantes
 
-#### student_store_rewards
+#### student_prizes
 - **Propósito**: Recompensas canjeadas por estudiantes
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
   - `student_id`: FK a students (user_id)
-  - `store_reward_id`: FK a store_rewards
+  - `prize_id`: FK a prizes
   - `purchase_date`: Fecha de canje (timestamp)
   - `points_spent`: Puntos gastados (decimal 10,2)
   - `is_active`: Si está activa (boolean, default: true)
   - `created_at`, `updated_at`: Marcas de tiempo (timestamp)
 - **Índices**:
   - Clave foránea a `students.user_id`
-  - Clave foránea a `store_rewards.id`
+  - Clave foránea a `prizes.id`
   - Índice en `purchase_date`
   - Índice en `is_active`
 - **Relaciones**:
   - `student`: Estudiante que canjeó
-  - `storeReward`: Recompensa canjeada
+  - `prize`: Recompensa canjeada
 
 ### 7. Sistema de Avatares y Fondos
 
@@ -641,7 +641,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `enrollments`: Matrículas actuales e históricas
   - `classrooms`: Aulas actuales
   - `achievements`: Logros obtenidos
-  - `storeRewards`: Recompensas canjeadas
+  - `prizes`: Recompensas canjeadas
   - `avatars`: Avatares desbloqueados
   - `backgrounds`: Fondos desbloqueados
 
@@ -810,7 +810,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 - **Relaciones**:
   - `students`: Estudiantes que obtuvieron este logro
 
-#### store_rewards
+#### prizes
 - **Descripción**: Recompensas disponibles en la tienda
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -835,19 +835,19 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 - **Índices**:
   - `idx_student_achievement` (student_id, achievement_id) único
 
-#### student_store_rewards
+#### student_prizes
 - **Descripción**: Historial de recompensas canjeadas por estudiantes
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
   - `student_id`: FK a students (bigint)
-  - `store_reward_id`: FK a store_rewards (bigint)
+  - `prize_id`: FK a prizes (bigint)
   - `points_used`: Puntos utilizados (integer)
   - `exchange_date`: Fecha de canje (timestamp)
   - `status`: Estado (enum: 'pending', 'completed', 'cancelled')
   - `created_at`, `updated_at`: Marcas de tiempo
 - **Relaciones**:
   - `student`: Estudiante que canjeó
-  - `storeReward`: Recompensa canjeada
+  - `prize`: Recompensa canjeada
 
 #### student_level_histories
 - **Descripción**: Historial de progreso de niveles de estudiantes
@@ -992,7 +992,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `created_at`, `updated_at`: Marcas de tiempo
   - Clave primaria compuesta: (student_id, achievement_id)
 
-#### store_rewards
+#### prizes
 - **Descripción**: Recompensas disponibles en la tienda
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)

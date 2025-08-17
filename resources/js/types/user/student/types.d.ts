@@ -6,10 +6,10 @@ import { Range } from '../../academic/range'
 import { StudentLevelHistory } from '../../academic/student-level-history'
 import { StudentAchievement } from '../../achievement/student-achievement'
 import { ApplicationFormResponse } from '../../application-form/form/response/application-form-response'
-import { StudentStoreReward } from '../../store/student-store-reward'
 import { User } from '../user'
 import { StudentAvatar } from './avatar/student-avatar'
 import { StudentBackground } from './background/student-background'
+import { StudentPrize } from './prize/student-prize'
 
 type StudentStatus = 'active' | 'inactive' | 'suspended' | 'graduated' | 'withdrawn'
 
@@ -41,7 +41,7 @@ export interface Student {
   avatars?: StudentAvatar[]
   backgrounds?: StudentBackground[]
   levelHistory?: StudentLevelHistory[]
-  storeRewards?: StudentStoreReward[]
+  prizes?: StudentPrize[]
   applicationFormResponses?: ApplicationFormResponse[]
   profile?: Profile
 }

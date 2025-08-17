@@ -1,3 +1,5 @@
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import AppLayout from '@/layouts/app-layout'
 import { useUserStore } from '@/store/useUserStore'
 import { UserInertia } from '@/types/auth'
@@ -18,7 +20,6 @@ type Prize = {
   available_until: string | null
   created_at: string
   updated_at: string
-  already_acquired: boolean
   estado_adquisicion: string
   fecha_adquisicion?: string | null
 }
@@ -34,12 +35,10 @@ export default function Dashboard() {
   const [prizes, setPrizes] = useState<Prize[]>([])
   const [puntos, setPuntos] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'disponible' | 'adquirido'>('disponible')
 
   useEffect(() => {
     if (props.user) {
       setUser(props.user)
-
       fetchStudentProfile(props.user.id)
       fetchPrizes(props.user.id)
     }
@@ -85,9 +84,7 @@ export default function Dashboard() {
         p_student_id: props.user.id,
         p_prize_id: prizeId
       })
-
       const result = response.data.data?.[0] || {}
-
       if (result.error < 0) {
         toast.error(result.mensa)
       } else {
@@ -100,14 +97,12 @@ export default function Dashboard() {
     }
   }
 
-  const filteredPrizes = prizes.filter((prize) => (activeTab === 'adquirido' ? prize.already_acquired : !prize.already_acquired))
-
   if (loading) {
     return (
       <AppLayout breadcrumbs={breadcrumbs}>
         <Head title='Tienda de Puntos - Premios' />
         <div className='flex h-64 items-center justify-center'>
-          <div className='h-8 w-8 animate-spin rounded-full border-b-2 border-blue-500'></div>
+          <div className='border-primary h-8 w-8 animate-spin rounded-full border-b-2'></div>
         </div>
       </AppLayout>
     )
@@ -117,80 +112,57 @@ export default function Dashboard() {
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title='Tienda de Puntos - Premios' />
       <div className='container mx-auto px-4 py-6'>
-        <div className='mb-6 flex items-center justify-between'>
-          <h1 className='text-2xl font-bold'>Premios</h1>
-          <div className='rounded-lg bg-yellow-100 px-4 py-2'>
-            <span className='font-medium'>Tus puntos: </span>
-            <span className='font-bold text-yellow-700'>{puntos !== null ? `${puntos} pts` : '...'}</span>
+        {/* Header Section */}
+        <div className='mb-8 flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0'>
+          <div className='bg-background rounded-lg border p-6 shadow-sm'>
+            <h2 className='text-foreground text-2xl font-bold'>Premios</h2>
+            <p className='text-muted-foreground text-sm'>Gestiona tus premios</p>
+          </div>
+          <div className='flex items-center space-x-4'>
+            <div className='rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-2 dark:border-yellow-800 dark:bg-yellow-950'>
+              <span className='font-medium text-yellow-900 dark:text-yellow-100'>Tus puntos: </span>
+              <span className='font-bold text-yellow-700 dark:text-yellow-300'>{puntos !== null ? `${puntos} pts` : '...'}</span>
+            </div>
           </div>
         </div>
-
-        {/* Tabs */}
-        <div className='mb-6 flex space-x-2 border-b'>
-          <button
-            onClick={() => setActiveTab('disponible')}
-            className={`px-4 py-2 font-medium ${activeTab === 'disponible' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-          >
-            Disponible
-          </button>
-          <button
-            onClick={() => setActiveTab('adquirido')}
-            className={`px-4 py-2 font-medium ${activeTab === 'adquirido' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-          >
-            Adquirido
-          </button>
-        </div>
-
-        {filteredPrizes.length === 0 ? (
-          <div className='mt-8 rounded-lg bg-white p-8 text-center shadow'>
-            <p className='text-gray-500'>
-              {activeTab === 'adquirido' ? 'No has canjeado ningún premio aún.' : 'No hay premios disponibles para canjear.'}
-            </p>
-          </div>
-        ) : (
-          <div className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
-            {filteredPrizes.map((prize) => (
-              <div key={prize.id} className='overflow-hidden rounded-lg border bg-white shadow-sm transition-shadow hover:shadow-md'>
-                <div className='h-48 bg-gray-100'>
-                  {prize.image ? (
-                    <img
-                      src={prize.image.startsWith('http') ? prize.image : `${prize.image}`}
-                      alt={prize.name}
-                      className='h-full w-full object-cover'
-                    />
-                  ) : (
-                    <div className='flex h-full items-center justify-center bg-gray-200 text-gray-400'>
-                      <span>Sin imagen</span>
-                    </div>
-                  )}
-                </div>
-                <div className='p-4'>
-                  <h3 className='text-lg font-semibold'>{prize.name}</h3>
-                  <p className='mt-1 text-sm text-gray-600'>{prize.description}</p>
-                  <div className='mt-3 flex items-center justify-between'>
-                    <span className='text-sm font-medium text-gray-900'>{prize.points_cost} pts</span>
-                    {prize.already_acquired ? (
-                      <span className='rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800'>Canjeado</span>
-                    ) : (
-                      <button
-                        onClick={() => handlePurchase(prize.id)}
-                        disabled={puntos !== null && (puntos < prize.points_cost || prize.stock <= 0 || !prize.is_active)}
-                        className={`rounded-full px-4 py-1 text-sm font-medium text-white ${puntos !== null && puntos >= prize.points_cost && prize.stock > 0 && prize.is_active ? 'bg-blue-500 hover:bg-blue-600' : 'cursor-not-allowed bg-gray-400'}`}
-                        title={!prize.is_active ? 'No disponible' : prize.stock <= 0 ? 'Sin stock' : ''}
-                      >
-                        {!prize.is_active ? 'No disponible' : prize.stock <= 0 ? 'Sin stock' : 'Canjear'}
-                      </button>
-                    )}
-                  </div>
-                  {prize.fecha_adquisicion && (
-                    <p className='mt-2 text-xs text-gray-500'>Canjeado el: {new Date(prize.fecha_adquisicion).toLocaleDateString('es-ES')}</p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <PrizeGrid prizes={prizes} puntos={puntos} onPurchase={handlePurchase} />
       </div>
     </AppLayout>
+  )
+}
+
+function PrizeGrid({ prizes, puntos, onPurchase }: { prizes: Prize[]; puntos: number | null; onPurchase: (id: number) => void }) {
+  if (prizes.length === 0) {
+    return <div className='bg-card text-muted-foreground mt-8 rounded-lg p-8 text-center shadow'>No hay premios en esta categoría.</div>
+  }
+
+  return (
+    <div className='grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
+      {prizes.map((prize) => (
+        <Card key={prize.id} className='overflow-hidden'>
+          <CardHeader className='p-0'>
+            {prize.image ? (
+              <img src={prize.image} alt={prize.name} className='h-48 w-full object-cover' />
+            ) : (
+              <div className='bg-muted text-muted-foreground flex h-48 items-center justify-center'>Sin imagen</div>
+            )}
+          </CardHeader>
+          <CardContent className='p-4'>
+            <h3 className='text-foreground text-lg font-semibold'>{prize.name}</h3>
+            <p className='text-muted-foreground mt-1 text-sm'>{prize.description}</p>
+            <div className='mt-3 flex items-center justify-between'>
+              <span className='text-foreground text-sm font-medium'>{prize.points_cost} pts</span>
+              <Button
+                onClick={() => onPurchase(prize.id)}
+                disabled={puntos !== null && (Number(puntos) < Number(prize.points_cost) || prize.stock <= 0 || !prize.is_active)}
+                variant='default'
+              >
+                {!prize.is_active ? 'No disponible' : prize.stock <= 0 ? 'Sin stock' : 'Canjear'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   )
 }

@@ -40,13 +40,12 @@ class QuestionController extends Controller
             $filters['search'] = $request->search;
         }
 
-        $currentYear = now()->year;
         $teacherId = Auth::id();
 
-        $curricularAreas = CurricularArea::whereHas('teacherClassroomCurricularAreaCycles', function ($query) use ($teacherId, $currentYear) {
+        $curricularAreas = CurricularArea::whereHas('teacherClassroomCurricularAreaCycles', function ($query) use ($teacherId) {
             $query->whereHas('teacher', function ($q) use ($teacherId) {
                 $q->where('user_id', $teacherId);
-            })->where('academic_year', $currentYear);
+            });
         })->get(['id', 'name']);
 
         if ($curricularAreas->isEmpty()) {

@@ -155,7 +155,7 @@ interface Student extends User {
   levelHistory?: StudentLevelHistory[];
   applicationForms?: ApplicationForm[];
   applicationFormResponses?: ApplicationFormResponse[];
-  storeRewards?: StudentStoreReward[];
+  prizes?: StudentPrize[];
 }
 ```
 
@@ -249,10 +249,10 @@ type UpdateStudent = Partial<Omit<CreateStudent, 'user_id'>>;
 - **Tipo**: `HasMany`
 - **Descripción**: Respuestas a formularios de aplicación
 
-### storeRewards (BelongsToMany)
-- **Método**: `storeRewards()`
-- **Modelo**: `StoreReward`
-- **Tabla intermedia**: `student_store_rewards`
+### prizes (BelongsToMany)
+- **Método**: `prizes()`
+- **Modelo**: `Prize`
+- **Tabla intermedia**: `student_prizes`
 - **Campos adicionales**: 
   - `status`
   - `redeemed_at`
@@ -355,7 +355,7 @@ interface Student extends User {
   levelHistory?: StudentLevelHistory[];
   applicationForms?: ApplicationForm[];
   applicationFormResponses?: ApplicationFormResponse[];
-  storeRewards?: StudentStoreReward[];
+  prizes?: StudentPrize[];
 }
 
 /**

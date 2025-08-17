@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('student_store_rewards', function (Blueprint $table) {
+        Schema::create('student_prizes', function (Blueprint $table) {
             // General
             $table->id()->comment('Identificador único del registro de canje');
 
@@ -21,6 +21,12 @@ return new class extends Migration
             $table->timestamp('exchange_date')
                 ->nullable()
                 ->comment('Fecha y hora en que se realizó el canje');
+            $table->boolean('claimed')
+                ->default(false)
+                ->comment('Indica si el canje ha sido reclamado');
+            $table->timestamp('claimed_at')
+                ->nullable()
+                ->comment('Fecha y hora en que se reclamo el canje');
 
             // Relaciones
             $table->foreignId('student_id')
@@ -28,25 +34,19 @@ return new class extends Migration
                 ->cascadeOnDelete()
                 ->comment('Referencia al estudiante que realizó el canje');
 
-            $table->foreignId('store_reward_id')
-                ->constrained('store_rewards')
+            $table->foreignId('prize_id')
+                ->constrained('prizes')
                 ->cascadeOnDelete()
                 ->comment('Referencia a la recompensa canjeada');
 
             // Índices
             $table->index(
-                ['student_id', 'store_reward_id'],
-                'idx_student_store_reward'
+                ['student_id', 'prize_id'],
+                'idx_student_prize'
             );
             $table->index(
                 ['student_id', 'exchange_date'],
-                'idx_student_store_reward_date'
-            );
-
-            // Restricción única para evitar duplicados
-            $table->unique(
-                ['student_id', 'store_reward_id'],
-                'uq_student_store_reward'
+                'idx_student_prize_date'
             );
         });
     }
@@ -56,6 +56,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('student_store_rewards');
+        Schema::dropIfExists('student_prizes');
     }
 };

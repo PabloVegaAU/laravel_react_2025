@@ -50,11 +50,11 @@ class RoleSeeder extends Seeder
         Permission::create(['name' => 'admin.achievements.edit'])->syncRoles([$admin]);
         Permission::create(['name' => 'admin.achievements.destroy'])->syncRoles([$admin]);
 
-        // CRUD STORE REWARDS
-        Permission::create(['name' => 'admin.store-rewards.index'])->syncRoles([$admin]);
-        Permission::create(['name' => 'admin.store-rewards.create'])->syncRoles([$admin]);
-        Permission::create(['name' => 'admin.store-rewards.edit'])->syncRoles([$admin]);
-        Permission::create(['name' => 'admin.store-rewards.destroy'])->syncRoles([$admin]);
+        // CRUD PRIZES
+        Permission::create(['name' => 'admin.prizes.index'])->syncRoles([$admin]);
+        Permission::create(['name' => 'admin.prizes.create'])->syncRoles([$admin]);
+        Permission::create(['name' => 'admin.prizes.edit'])->syncRoles([$admin]);
+        Permission::create(['name' => 'admin.prizes.destroy'])->syncRoles([$admin]);
 
         // CRUD AVATARS
         Permission::create(['name' => 'admin.avatars.index'])->syncRoles([$admin]);
@@ -68,12 +68,6 @@ class RoleSeeder extends Seeder
         Permission::create(['name' => 'admin.backgrounds.edit'])->syncRoles([$admin]);
         Permission::create(['name' => 'admin.backgrounds.destroy'])->syncRoles([$admin]);
 
-        // CRUD PRIZES
-        Permission::create(['name' => 'admin.prizes.index'])->syncRoles([$admin]);
-        Permission::create(['name' => 'admin.prizes.create'])->syncRoles([$admin]);
-        Permission::create(['name' => 'admin.prizes.edit'])->syncRoles([$admin]);
-        Permission::create(['name' => 'admin.prizes.destroy'])->syncRoles([$admin]);
-
         // CRUD ENROLLMENTS
         Permission::create(['name' => 'admin.enrollments.index'])->syncRoles([$admin]);
         Permission::create(['name' => 'admin.enrollments.create'])->syncRoles([$admin]);
@@ -81,6 +75,10 @@ class RoleSeeder extends Seeder
         Permission::create(['name' => 'admin.enrollments.destroy'])->syncRoles([$admin]);
 
         // CRUD OBJECTS
+        Permission::create(['name' => 'admin.objects.index'])->syncRoles([$admin]);
+        Permission::create(['name' => 'admin.objects.create'])->syncRoles([$admin]);
+        Permission::create(['name' => 'admin.objects.edit'])->syncRoles([$admin]);
+        Permission::create(['name' => 'admin.objects.destroy'])->syncRoles([$admin]);
 
         // ********************* PERMISOS TEACHER *****************************
         // CRUD LEARNING SESSIONS
@@ -101,6 +99,18 @@ class RoleSeeder extends Seeder
         Permission::create(['name' => 'teacher.questions.edit'])->syncRoles([$teacher]);
         Permission::create(['name' => 'teacher.questions.destroy'])->syncRoles([$teacher]);
 
+        // CRUD PRIZES
+        Permission::create(['name' => 'teacher.student-prizes.index'])->syncRoles([$teacher]);
+        Permission::create(['name' => 'teacher.student-prizes.create'])->syncRoles([$teacher]);
+        Permission::create(['name' => 'teacher.student-prizes.edit'])->syncRoles([$teacher]);
+        Permission::create(['name' => 'teacher.student-prizes.destroy'])->syncRoles([$teacher]);
+
+        // CRUD ACHIEVEMENTS
+        Permission::create(['name' => 'teacher.achievements.index'])->syncRoles([$teacher]);
+        Permission::create(['name' => 'teacher.achievements.create'])->syncRoles([$teacher]);
+        Permission::create(['name' => 'teacher.achievements.edit'])->syncRoles([$teacher]);
+        Permission::create(['name' => 'teacher.achievements.destroy'])->syncRoles([$teacher]);
+
         // ********************* PERMISOS STUDENT *****************************
         // CRUD LEARNING SESSIONS
         Permission::create(['name' => 'student.learning-sessions.index'])->syncRoles([$student]);
@@ -116,6 +126,7 @@ class RoleSeeder extends Seeder
 
         // STORE
         Permission::create(['name' => 'student.store'])->syncRoles([$student]);
+        Permission::create(['name' => 'student.store.points.index'])->syncRoles([$student]);
         Permission::create(['name' => 'student.objects'])->syncRoles([$student]);
 
     }

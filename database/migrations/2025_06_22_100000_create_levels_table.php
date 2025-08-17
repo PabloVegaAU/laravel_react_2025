@@ -17,6 +17,8 @@ return new class extends Migration
             $table->unsignedInteger('level')
                 ->unique('uq_levels_level')
                 ->comment('Nivel numérico (1, 2, 3, ...)');
+            $table->string('name')
+                ->comment('Nombre del nivel');
             $table->decimal('experience_max', 10, 2)
                 ->unsigned()
                 ->default(0)

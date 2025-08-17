@@ -99,17 +99,16 @@ class Student extends Model
         return $this->hasMany(ApplicationFormResponse::class, 'student_id', 'user_id');
     }
 
-    public function storeRewards(): BelongsToMany
+    public function prizes(): BelongsToMany
     {
         return $this->belongsToMany(
-            StoreReward::class,
-            'student_store_rewards',
+            Prize::class,
+            'student_prizes',
             'student_id',
-            'store_reward_id',
+            'prize_id',
             'user_id',
             'id'
-        )->withPivot('status', 'redeemed_at')
-            ->withTimestamps();
+        );
     }
 
     public function avatars(): BelongsToMany

@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button'
 import AppLayout from '@/layouts/app-layout'
 import { useUserStore } from '@/store/useUserStore'
 import { SharedData } from '@/types/core'
@@ -59,6 +60,7 @@ type Item = {
   nivel_desbloqueo?: number
   precio?: number
   fecha_obtencion?: string
+  claimed?: boolean
   es_premiun?: boolean
   tipo: 'avatar' | 'fondo' | 'premio' | 'logro'
   description?: string
@@ -427,6 +429,12 @@ export default function MyObjects() {
                       )}
 
                       {item.fecha_obtencion && <span className='text-xs text-green-600 dark:text-green-400'>Obtenido</span>}
+
+                      {item.claimed ? (
+                        <span className='text-xs text-green-600 dark:text-green-400'>Reclamado</span>
+                      ) : (
+                        <span className='text-xs text-gray-600 dark:text-gray-400'>No reclamado</span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -519,22 +527,19 @@ export default function MyObjects() {
                     </div>
 
                     <div className='mt-4 flex justify-between space-x-2'>
-                      <button
-                        type='button'
-                        onClick={handleClosePreview}
-                        className='bg-muted text-muted-foreground hover:bg-muted/80 focus:ring-primary flex-1 rounded-md px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-offset-2 focus:outline-none'
-                      >
+                      <Button type='button' onClick={handleClosePreview} className='flex-1 py-2'>
                         Cerrar
-                      </button>
+                      </Button>
                       {(selectedItem?.tipo === 'avatar' || selectedItem?.tipo === 'fondo') && (
-                        <button
+                        <Button
                           type='button'
                           onClick={() => handleApplyItem(selectedItem)}
                           disabled={isApplying}
-                          className='bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-primary flex-1 rounded-md px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:opacity-50'
+                          variant='info'
+                          className='flex-1 py-2'
                         >
                           {isApplying ? 'Aplicando...' : `Usar este ${selectedItem.tipo}`}
-                        </button>
+                        </Button>
                       )}
                     </div>
                   </div>

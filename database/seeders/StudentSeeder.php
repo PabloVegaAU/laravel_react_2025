@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Student;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class StudentSeeder extends Seeder
@@ -14,6 +15,15 @@ class StudentSeeder extends Seeder
      */
     public function run()
     {
-        Student::factory()->create();
+        $student = User::factory()->create([
+            'name' => '76621871',
+            'email' => 'student@student.com',
+        ]);
+
+        Student::factory()->create(
+            [
+                'user_id' => $student->id,
+            ]
+        );
     }
 }

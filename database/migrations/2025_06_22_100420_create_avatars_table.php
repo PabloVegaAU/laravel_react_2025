@@ -14,10 +14,16 @@ return new class extends Migration
         Schema::create('avatars', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('image');
-            $table->integer('level_required')->comment('Nivel mínimo requerido para adquirir el avatar');
-            $table->decimal('points_store', 10, 2)->comment('Puntos requeridos para adquirir el avatar');
+            $table->string('image_url');
+            $table->integer('level_required')
+                ->comment('Nivel mínimo requerido para adquirir el avatar');
+            $table->decimal('price', 10, 2)
+                ->comment('Puntos requeridos para adquirir el avatar');
+            $table->boolean('is_active')
+                ->default(true)
+                ->comment('Indica si el avatar está activo');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
