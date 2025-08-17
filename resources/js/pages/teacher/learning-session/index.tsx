@@ -27,8 +27,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 export default function LearningSessionIndex({ learningSessions }: PageProps) {
-  console.log(learningSessions.data)
-
   const { t } = useTranslations()
 
   const columns: ColumnDef<LearningSession>[] = [

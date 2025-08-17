@@ -27,7 +27,6 @@ export function StudentAchievementsModal({ isOpen, onClose, studentId }: Props) 
 
   const fetchAchievements = async (id: number) => {
     try {
-      console.log('📩 Enviando ID del estudiante:', id)
       const response = await axios.post(
         '/api/studentachievementslist',
         { p_student_id: id },

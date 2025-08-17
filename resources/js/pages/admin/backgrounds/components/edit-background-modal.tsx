@@ -92,16 +92,10 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
     }))
   }, [initialBackground])
 
-  // Log when form data changes
-  useEffect(() => {
-    console.log('Form data updated:', formData)
-  }, [formData])
-
   // Fetch levels when modal opens
   const fetchLevels = async () => {
     try {
       const url = '/api/levels'
-      console.log('Fetching levels from:', url)
       const response = await fetch(url, {
         headers: {
           Accept: 'application/json',
@@ -116,7 +110,6 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
       }
 
       const data = await response.json()
-      console.log('Levels API response:', data)
       setLevels(data.levels || [])
     } catch (error) {
       console.error('Error fetching levels:', error)

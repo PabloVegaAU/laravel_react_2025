@@ -35,7 +35,6 @@ export function CreateBackgroundModal({ isOpen, onClose, onSuccess }: CreateBack
   const fetchLevels = async () => {
     try {
       const url = '/api/levels'
-      console.log('Fetching levels from:', url)
       const response = await fetch(url, {
         headers: {
           Accept: 'application/json',
@@ -50,7 +49,6 @@ export function CreateBackgroundModal({ isOpen, onClose, onSuccess }: CreateBack
       }
 
       const data = await response.json()
-      console.log('Levels API response:', data)
       setLevels(data.levels || [])
     } catch (error) {
       console.error('Error fetching levels:', error)
