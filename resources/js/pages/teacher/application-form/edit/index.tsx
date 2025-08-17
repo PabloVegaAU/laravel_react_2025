@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import AppLayout from '@/layouts/app-layout'
+import { parseDateString } from '@/lib/date'
 import { useTranslations } from '@/lib/translator'
 import { cn, getNestedError } from '@/lib/utils'
 import { Question, QuestionWithScore } from '@/types/application-form'
@@ -310,7 +311,7 @@ export default function ApplicationFormEdit({ application_form, questions }: App
                     selected={data.start_date ? new Date(data.start_date) : undefined}
                     onSelect={(date) => setData('start_date', date?.toISOString() || '')}
                     disabled={{ before: new Date() }}
-                    fromMonth={new Date()}
+                    startMonth={application_form?.learning_session?.application_date ? parseDateString(application_form?.learning_session?.application_date) : undefined}
                   />
                 </PopoverContent>
               </Popover>

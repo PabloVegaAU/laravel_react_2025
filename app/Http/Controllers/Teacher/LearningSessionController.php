@@ -24,6 +24,7 @@ class LearningSessionController extends Controller
     {
         $learningSessions = LearningSession::with([
             'competency',
+            'teacherClassroomCurricularAreaCycle.curricularAreaCycle.curricularArea',
             'applicationForm',
         ])
             ->orderByDesc('id')

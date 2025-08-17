@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import AppLayout from '@/layouts/app-layout'
 import { formatDate } from '@/lib/formats'
 import { useTranslations } from '@/lib/translator'
+import { getBadgeColor } from '@/lib/ui/variants'
 import { cn } from '@/lib/utils'
 import { BreadcrumbItem } from '@/types/core'
 import { PaginatedResponse, ResourcePageProps } from '@/types/core/api-types'
@@ -26,12 +27,18 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 export default function LearningSessionIndex({ learningSessions }: PageProps) {
+  console.log(learningSessions.data)
+
   const { t } = useTranslations()
 
   const columns: ColumnDef<LearningSession>[] = [
     {
-      header: 'Tema',
-      accessorKey: 'name'
+      header: 'ID',
+      accessorKey: 'id'
+    },
+    {
+      header: 'Area Curricular',
+      accessorKey: 'teacher_classroom_curricular_area_cycle.curricular_area_cycle.curricular_area.name'
     },
     {
       header: 'Competencia',
@@ -39,17 +46,22 @@ export default function LearningSessionIndex({ learningSessions }: PageProps) {
       cell: (row) => row.getValue()
     },
     {
-      header: 'Estado',
-      accessorKey: 'status',
-      cell: (row) => {
-        const colorStatus = row.getValue() === 'active' ? 'default' : 'destructive'
-        return <Badge variant={colorStatus}>{t(row.getValue() as string, '')}</Badge>
-      }
+      header: 'Tema',
+      accessorKey: 'name'
     },
     {
       header: 'Fecha de Aplicación',
       accessorKey: 'application_date',
       cell: (row) => formatDate(row.getValue() as string)
+    },
+    {
+      header: 'Estado',
+      accessorKey: 'status',
+      cell: (row) => {
+        const statusValue = row.getValue() as string
+        const status = t(statusValue, '')
+        return <Badge variant={getBadgeColor(statusValue)}>{status}</Badge>
+      }
     },
     {
       header: 'Acciones',

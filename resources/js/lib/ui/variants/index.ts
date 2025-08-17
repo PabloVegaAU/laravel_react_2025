@@ -33,3 +33,27 @@ export const getContainerColorVariant = (color: string): string => {
   // Fallback: podrías retornar un color base o vacío
   return 'bg-gray-200 dark:bg-gray-900 hover:bg-gray-300 hover:dark:bg-gray-800 border-gray-400 dark:border-gray-800'
 }
+
+export const getBadgeColor = (s: string) => {
+  let getColor: any = 'default'
+
+  switch (s) {
+    case 'draft':
+      getColor = 'secondary'
+      break
+    case 'scheduled':
+      getColor = 'warning'
+      break
+    case 'active':
+      getColor = 'success'
+      break
+    case 'inactive':
+      getColor = 'destructive'
+      break
+    case 'archived':
+      getColor = 'secondary'
+      break
+  }
+
+  return getColor
+}

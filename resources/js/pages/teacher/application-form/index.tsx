@@ -1,8 +1,10 @@
 import DataTable from '@/components/organisms/data-table'
 import FlashMessages from '@/components/organisms/flash-messages'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import AppLayout from '@/layouts/app-layout'
 import { useTranslations } from '@/lib/translator'
+import { getBadgeColor } from '@/lib/ui/variants'
 import { ApplicationForm } from '@/types/application-form'
 import { BreadcrumbItem, TypedColumnDef } from '@/types/core'
 import { PaginatedResponse, ResourcePageProps } from '@/types/core/api-types'
@@ -24,7 +26,7 @@ const breadcrumbs: BreadcrumbItem[] = [
   }
 ]
 
-export default function ApplicationsForm({ applicationForms }: PageProps) {
+export default function ApplicationForms({ applicationForms }: PageProps) {
   const { t } = useTranslations()
 
   const columns: TypedColumnDef<ApplicationForm>[] = [
@@ -50,8 +52,9 @@ export default function ApplicationsForm({ applicationForms }: PageProps) {
       header: 'Estado',
       accessorKey: 'status',
       cell: (row) => {
-        const status = String(row.getValue() || '').toLowerCase()
-        return t(status, '')
+        const statusValue = row.getValue() as string
+        const status = t(statusValue, '')
+        return <Badge variant={getBadgeColor(statusValue)}>{status}</Badge>
       }
     },
     {
@@ -81,6 +84,9 @@ export default function ApplicationsForm({ applicationForms }: PageProps) {
       <FlashMessages />
 
       <div className='flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
+        {/* FILTROS */}
+
+        {/* DATATABLE */}
         <DataTable columns={columns} data={applicationForms} />
       </div>
     </AppLayout>

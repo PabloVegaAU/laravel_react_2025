@@ -305,6 +305,7 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
                     autoFocus
                     locale={dateLocale}
                     disabled={(date) => date < new Date() || date < new Date('1900-01-01')}
+                    startMonth={learning_session.application_date ? parseDateString(learning_session.application_date) : undefined}
                   />
                 </PopoverContent>
               </Popover>
