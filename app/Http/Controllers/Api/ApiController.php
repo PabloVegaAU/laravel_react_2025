@@ -192,6 +192,36 @@ class ApiController extends Controller
         }
     }
 
+    public function getstudentbyachievementteacher(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'p_achievement_id' => 'nullable|integer',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error en la validación de datos',
+                'errors' => $validator->errors(),
+            ], 400);
+        }
+
+        try {
+            $result = DB::select('SELECT * FROM public.spu_get_student_by_achievement_teacher(?,?)', [
+                $request->p_achievement_id ?? 0,
+                $request->p_teacher_id ?? 0,
+            ]);
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener los datos',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
     // Avatar Methods
     public function avatargra(Request $request): JsonResponse
     {
@@ -1021,6 +1051,40 @@ class ApiController extends Controller
 
         try {
             $result = DB::select('SELECT * FROM public.spu_students_search(?)', [
+                $request->p_search,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => $result,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al buscar estudiantes',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function teacherstudentssearch(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'p_teacher_id' => 'required|integer',
+            'p_search' => 'required|string|min:3|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error en la validación de datos',
+                'errors' => $validator->errors(),
+            ], 400);
+        }
+
+        try {
+            $result = DB::select('SELECT * FROM public.spu_teacher_students_search(?,?)', [
+                $request->p_teacher_id,
                 $request->p_search,
             ]);
 

@@ -28,6 +28,7 @@ type StudentProfile = {
   rango_imagen?: string
   avatar_imagen?: string
   level_numero?: number
+  level_name?: string
 }
 
 export default function Profile() {
@@ -50,7 +51,8 @@ export default function Profile() {
     rango_nombre: '',
     rango_imagen: '',
     avatar_imagen: '',
-    level_numero: 0
+    level_numero: 0,
+    level_name: ''
   })
 
   useEffect(() => {
@@ -115,7 +117,7 @@ export default function Profile() {
                     {profile.level_numero}°
                   </div>
                   <div>
-                    <div className='font-medium'>{profile.rango_nombre}</div>
+                    <div className='font-medium'>{profile.level_name}</div>
                   </div>
                 </div>
               </div>

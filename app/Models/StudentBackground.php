@@ -10,6 +10,8 @@ class StudentBackground extends Model
 {
     protected $table = 'student_backgrounds';
 
+    public $timestamps = false;
+
     protected $fillable = [
         'screen',
         'active',
@@ -26,8 +28,6 @@ class StudentBackground extends Model
 
     protected $dates = [
         'exchange_date',
-        'created_at',
-        'updated_at',
     ];
 
     public function scopeActive(Builder $query): Builder

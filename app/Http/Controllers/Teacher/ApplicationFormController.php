@@ -48,26 +48,26 @@ class ApplicationFormController extends Controller
             ]);
 
         // Aplicar filtros
-        if (!empty($filters['search'])) {
-            $search = '%' . $filters['search'] . '%';
-            $query->where(function($q) use ($search) {
+        if (! empty($filters['search'])) {
+            $search = '%'.$filters['search'].'%';
+            $query->where(function ($q) use ($search) {
                 $q->where('application_forms.name', 'LIKE', $search)
-                  ->orWhere('learning_sessions.name', 'LIKE', $search)
-                  ->orWhere('classrooms.grade', 'LIKE', $search)
-                  ->orWhere('classrooms.section', 'LIKE', $search)
-                  ->orWhere('curricular_areas.name', 'LIKE', $search);
+                    ->orWhere('learning_sessions.name', 'LIKE', $search)
+                    ->orWhere('classrooms.grade', 'LIKE', $search)
+                    ->orWhere('classrooms.section', 'LIKE', $search)
+                    ->orWhere('curricular_areas.name', 'LIKE', $search);
             });
         }
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('application_forms.status', $filters['status']);
         }
 
-        if (!empty($filters['start_date'])) {
+        if (! empty($filters['start_date'])) {
             $query->whereDate('application_forms.start_date', '>=', $filters['start_date']);
         }
 
-        if (!empty($filters['end_date'])) {
+        if (! empty($filters['end_date'])) {
             $query->whereDate('application_forms.end_date', '<=', $filters['end_date']);
         }
 

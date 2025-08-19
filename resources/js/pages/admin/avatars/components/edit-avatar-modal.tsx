@@ -38,7 +38,7 @@ export function EditAvatarModal({ isOpen, onClose, avatar: initialAvatar, onSucc
 
   if (!isOpen || !avatar) return null
 
-  const { data, setData, errors, reset } = useForm<EditAvatarFormData>({
+  const { data, setData, errors, setError } = useForm<EditAvatarFormData>({
     name: avatar.name || '',
     price: typeof avatar.price === 'string' ? parseFloat(avatar.price) : avatar.price || 0,
     is_active: avatar.is_active ?? true,
@@ -110,14 +110,7 @@ export function EditAvatarModal({ isOpen, onClose, avatar: initialAvatar, onSucc
     formData.append('price', data.price.toString())
     formData.append('is_active', data.is_active ? '1' : '0')
 
-    // ⚠️ Estándar: usa level_required. Mantengo ambos por compatibilidad.
-    if (data.required_level_id) {
-      formData.append('level_required', data.required_level_id.toString())
-      formData.append('required_level_id', data.required_level_id.toString())
-    } else {
-      formData.append('level_required', '')
-      formData.append('required_level_id', '')
-    }
+    formData.append('level_required', data.required_level.toString())
 
     if (data.image_url instanceof File) {
       formData.append('image_url', data.image_url)
@@ -142,6 +135,7 @@ export function EditAvatarModal({ isOpen, onClose, avatar: initialAvatar, onSucc
         onSuccess(updatedAvatar)
       },
       onError: (error) => {
+        setError(error)
         toast.error(error.message || 'Error al actualizar el avatar')
       },
       onFinish: () => {

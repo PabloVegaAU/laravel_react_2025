@@ -24,7 +24,7 @@ class StudentSeeder extends Seeder
             [
                 'user_id' => $student->id,
                 'level_id' => 1,
-                'experience_achieved' => 0
+                'experience_achieved' => 0,
             ]
         );
     }

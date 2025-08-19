@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useForm } from '@inertiajs/react'
+import { router, useForm } from '@inertiajs/react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -58,7 +58,7 @@ export function EditPrizeModal({ isOpen, onClose, prize: initialPrize, onSuccess
 
   if (!isOpen || !prize) return null
 
-  const { data, setData, errors, reset } = useForm<PrizeFormData>({
+  const { data, setData, errors, setError } = useForm<PrizeFormData>({
     name: prize.name || '',
     description: prize.description || '',
     points_cost: prize.points_cost?.toString() || '0',
@@ -136,88 +136,53 @@ export function EditPrizeModal({ isOpen, onClose, prize: initialPrize, onSuccess
     }
     setIsLoading(true)
 
-    try {
-      const formData = new FormData()
-      formData.append('name', data.name)
-      formData.append('description', data.description)
-      formData.append('points_cost', data.points_cost)
-      formData.append('stock', data.stock)
-      if (data.available_until) {
-        formData.append('available_until', data.available_until)
-      }
-      formData.append('is_active', data.is_active ? '1' : '0')
-      formData.append('_method', 'PUT')
-
-      if (data.image) {
-        formData.append('image', data.image)
-      }
-
-      // 👇 enviar nivel
-      if (data.level_required_id) {
-        formData.append('level_required', String(data.level_required_id))
-        formData.append('required_level_id', String(data.level_required_id)) // opcional
-      } else {
-        // si quieres "limpiar" nivel:
-        formData.append('level_required', '')
-        formData.append('required_level_id', '')
-      }
-
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-      const response = await fetch(`/admin/prizes/${prize.id}`, {
-        method: 'POST',
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-CSRF-TOKEN': csrfToken,
-          Accept: 'application/json'
-        },
-        body: formData
-      })
-
-      let responseData: any = {}
-      try {
-        responseData = await response.json()
-      } catch {
-        responseData = {}
-      }
-
-      if (!response.ok) {
-        if (responseData.errors) {
-          Object.values(responseData.errors)
-            .flat()
-            .forEach((errorMsg: any) => toast.error(String(errorMsg)))
-          return
-        }
-        throw new Error(responseData.message || 'Error al actualizar el premio')
-      }
-
-      const prizeData = responseData.data ?? responseData.prize ?? responseData
-      if (!prizeData) throw new Error('No se recibieron datos del premio actualizado')
-
-      toast.success('Premio actualizado exitosamente')
-
-      const updatedPrize: Prize = {
-        id: prizeData.id || prize.id,
-        name: prizeData.name || prize.name,
-        description: prizeData.description || prize.description,
-        points_cost: prizeData.points_cost ?? prize.points_cost,
-        stock: prizeData.stock ?? prize.stock,
-        available_until: prizeData.available_until ?? prize.available_until ?? null,
-        is_active: prizeData.is_active ?? prize.is_active,
-        image: prizeData.image || prize.image || '',
-        created_at: prizeData.created_at || prize.created_at,
-        updated_at: prizeData.updated_at || new Date().toISOString(),
-        level_required: prizeData.level_required ?? prize.level_required ?? null,
-        required_level: prizeData.required_level ?? prize.required_level ?? null
-      }
-
-      onSuccess(updatedPrize)
-      onClose()
-    } catch (error: any) {
-      console.error('Error updating prize:', error)
-      toast.error(error?.message || 'Error al actualizar el premio')
-    } finally {
-      setIsLoading(false)
+    const formData = new FormData()
+    formData.append('name', data.name)
+    formData.append('description', data.description)
+    formData.append('points_cost', data.points_cost)
+    formData.append('stock', data.stock)
+    if (data.available_until) {
+      formData.append('available_until', data.available_until)
     }
+    formData.append('is_active', data.is_active ? '1' : '0')
+    formData.append('_method', 'PUT')
+
+    if (data.image) {
+      formData.append('image', data.image)
+    }
+
+    formData.append('level_required', data.level_required_id?.toString() || '')
+
+    router.post(`/admin/prizes/${prize.id}`, formData, {
+      onSuccess: (response) => {
+        const prizeData = (response.props.prize as any) || response
+        const updatedPrize: Prize = {
+          ...prize,
+          id: prizeData?.id ?? prize.id,
+          name: prizeData?.name ?? prize.name,
+          description: prizeData?.description ?? prize.description,
+          points_cost: prizeData?.points_cost ?? prize.points_cost,
+          stock: prizeData?.stock ?? prize.stock,
+          available_until: prizeData?.available_until ?? prize.available_until ?? null,
+          is_active: prizeData?.is_active ?? prize.is_active,
+          image: prizeData?.image || prize.image || '',
+          created_at: prizeData.created_at || prize.created_at,
+          updated_at: prizeData.updated_at || new Date().toISOString(),
+          level_required: prizeData?.level_required ?? prize.level_required ?? null,
+          required_level: prizeData?.required_level ?? prize.required_level ?? null
+        }
+
+        toast.success('Premio actualizado exitosamente')
+        onClose()
+        onSuccess(updatedPrize)
+      },
+      onError: (error) => {
+        toast.error(error.message || 'Error al actualizar el premio')
+      },
+      onFinish: () => {
+        setIsLoading(false)
+      }
+    })
   }
 
   return (

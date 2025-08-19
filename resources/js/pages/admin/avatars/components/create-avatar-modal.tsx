@@ -33,7 +33,7 @@ export function CreateAvatarModal({ isOpen, onClose, onSuccess }: CreateAvatarMo
   const [isLoading, setIsLoading] = useState(false)
   const [levels, setLevels] = useState<Level[]>([])
 
-  const { data, setData, errors, reset } = useForm<CreateAvatarFormData>({
+  const { data, setData, errors, reset, setError } = useForm<CreateAvatarFormData>({
     name: '',
     price: 0,
     is_active: true,
@@ -86,9 +86,8 @@ export function CreateAvatarModal({ isOpen, onClose, onSuccess }: CreateAvatarMo
     formData.append('name', data.name)
     formData.append('price', data.price.toString())
     formData.append('is_active', data.is_active ? '1' : '0')
-    if (data.level_required) {
-      formData.append('level_required', data.level_required.toString())
-    }
+    formData.append('level_required', data.level_required?.toString() || '')
+
     if (data.image_url instanceof File) {
       formData.append('image_url', data.image_url)
     }
@@ -104,6 +103,7 @@ export function CreateAvatarModal({ isOpen, onClose, onSuccess }: CreateAvatarMo
         onSuccess(avatarData)
       },
       onError: (error) => {
+        setError(error)
         toast.error(error.message || 'Error creando avatar')
       },
       onFinish: () => {
@@ -202,7 +202,7 @@ export function CreateAvatarModal({ isOpen, onClose, onSuccess }: CreateAvatarMo
                 <p className='text-xs text-gray-500'>PNG, JPG, GIF hasta 2MB</p>
               </div>
             </div>
-            {errors.image && <p className='text-sm text-red-500'>{errors.image}</p>}
+            {errors.image_url && <p className='text-sm text-red-500'>{errors.image_url}</p>}
           </div>
 
           <DialogFooter>

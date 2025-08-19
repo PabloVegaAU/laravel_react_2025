@@ -184,7 +184,7 @@ export function EditQuestionDialog({
           <div className='flex flex-col gap-2'>
             <Label htmlFor='curricular_area_cycle_id'>Área Curricular *</Label>
             <Select value={data.curricular_area_cycle_id} onValueChange={(value) => setData('curricular_area_cycle_id', value)}>
-              <SelectTrigger id='curricular_area_cycle_id' name='curricular_area_cycle_id'>
+              <SelectTrigger id='curricular_area_cycle_id' name='curricular_area_cycle_id' className='w-full'>
                 <SelectValue placeholder='Selecciona un área curricular' />
               </SelectTrigger>
               <SelectContent>
@@ -202,7 +202,7 @@ export function EditQuestionDialog({
           <div className='flex flex-col gap-2'>
             <Label htmlFor='competency_id'>Competencia *</Label>
             <Select value={data.competency_id} onValueChange={(value) => setData('competency_id', value)} disabled={!data.curricular_area_cycle_id}>
-              <SelectTrigger id='competency_id' name='competency_id'>
+              <SelectTrigger id='competency_id' name='competency_id' className='w-full'>
                 <SelectValue placeholder={!data.curricular_area_cycle_id ? 'Primero selecciona un área curricular' : 'Selecciona una competencia'} />
               </SelectTrigger>
               <SelectContent>
@@ -220,7 +220,7 @@ export function EditQuestionDialog({
           <div className='flex flex-col gap-2'>
             <Label htmlFor='capability_id'>Capacidad *</Label>
             <Select value={data.capability_id} onValueChange={(value) => setData('capability_id', value)} disabled={!data.competency_id}>
-              <SelectTrigger id='capability_id' name='capability_id'>
+              <SelectTrigger id='capability_id' name='capability_id' className='w-full'>
                 <SelectValue placeholder={!data.competency_id ? 'Primero selecciona una competencia' : 'Selecciona una capacidad'} />
               </SelectTrigger>
               <SelectContent>
@@ -240,7 +240,7 @@ export function EditQuestionDialog({
             <div className='flex flex-1 flex-col gap-2'>
               <Label htmlFor='question_type_id'>Tipo de Pregunta *</Label>
               <Select value={data.question_type_id} onValueChange={(value) => setData('question_type_id', value)} required>
-                <SelectTrigger id='question_type_id' name='question_type_id'>
+                <SelectTrigger id='question_type_id' name='question_type_id' className='w-full'>
                   <SelectValue placeholder='Selecciona un tipo de pregunta' />
                 </SelectTrigger>
                 <SelectContent>
@@ -257,7 +257,7 @@ export function EditQuestionDialog({
             <div className='flex flex-1 flex-col gap-2'>
               <Label htmlFor='difficulty'>Dificultad *</Label>
               <Select value={data.difficulty} onValueChange={(value) => setData('difficulty', value as QuestionDifficulty)} required>
-                <SelectTrigger id='difficulty' name='difficulty'>
+                <SelectTrigger id='difficulty' name='difficulty' className='w-full'>
                   <SelectValue placeholder='Selecciona la dificultad' />
                 </SelectTrigger>
                 <SelectContent>

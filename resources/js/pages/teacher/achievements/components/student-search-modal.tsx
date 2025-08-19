@@ -13,12 +13,13 @@ type Student = {
 }
 
 type Props = {
+  teacherId: number
   isOpen: boolean
   onClose: () => void
   onSelect: (student: Student) => void
 }
 
-export function StudentSearchModal({ isOpen, onClose, onSelect }: Props) {
+export function StudentSearchModal({ teacherId, isOpen, onClose, onSelect }: Props) {
   const [query, setQuery] = useState('')
   const [students, setStudents] = useState<Student[]>([])
   const [loading, setLoading] = useState(false)
@@ -34,7 +35,8 @@ export function StudentSearchModal({ isOpen, onClose, onSelect }: Props) {
   const searchStudents = async (search: string) => {
     try {
       setLoading(true)
-      const response = await axios.post('/api/studentssearch', {
+      const response = await axios.post('/api/teacherstudentssearch', {
+        p_teacher_id: teacherId,
         p_search: search
       })
 

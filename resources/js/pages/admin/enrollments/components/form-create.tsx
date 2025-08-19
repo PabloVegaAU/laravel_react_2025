@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } 
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { formatDateForInput } from '@/lib/formats'
 import { useTranslations } from '@/lib/translator'
 import { normalizeString } from '@/lib/utils'
 import { Classroom } from '@/types/academic'
@@ -36,11 +37,11 @@ export function CreateEnrollmentDialog({ isOpen, onOpenChange }: CreateEnrollmen
 
   const initialValues: CreateEnrollment = {
     academic_year: new Date().getFullYear(),
-    enrollment_date: new Date().toISOString(),
+    enrollment_date: formatDateForInput(new Date()),
     student_id: 0,
     classroom_id: 0,
     status: 'active',
-    status_previous: 'active'
+    status_previous: 'completed'
   }
 
   /* STUDENTS */

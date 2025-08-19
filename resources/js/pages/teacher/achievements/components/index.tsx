@@ -2,8 +2,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import AppLayout from '@/layouts/app-layout'
-import { BreadcrumbItem } from '@/types/core'
-import { Head } from '@inertiajs/react'
+import { BreadcrumbItem, SharedData } from '@/types/core'
+import { Head, usePage } from '@inertiajs/react'
 import axios from 'axios'
 import { Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -36,6 +36,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 export default function AchievementsListPage() {
+  const { auth } = usePage<SharedData>().props
+
   const [achievements, setAchievements] = useState<Achievement[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [isStudentModalOpen, setIsStudentModalOpen] = useState(false)
@@ -129,10 +131,11 @@ export default function AchievementsListPage() {
       </div>
 
       <StudentSearchModal
+        teacherId={auth.user.id}
         isOpen={isSearchModalOpen}
         onClose={() => setIsSearchModalOpen(false)}
         onSelect={(student) => {
-          setSelectedStudentId(student.student_id) // ← 👈 AQUÍ USAS student_id
+          setSelectedStudentId(student.student_id)
           setIsSearchModalOpen(false)
           setIsAchievementsModalOpen(true)
         }}
@@ -140,7 +143,12 @@ export default function AchievementsListPage() {
 
       <StudentAchievementsModal isOpen={isAchievementsModalOpen} onClose={() => setIsAchievementsModalOpen(false)} studentId={selectedStudentId} />
 
-      <AssignAchievementModal isOpen={assignModalOpen} onClose={() => setAssignModalOpen(false)} achievementId={selectedAchievement} />
+      <AssignAchievementModal
+        isOpen={assignModalOpen}
+        onClose={() => setAssignModalOpen(false)}
+        achievementId={selectedAchievement}
+        teacherId={auth.user.id}
+      />
     </AppLayout>
   )
 }

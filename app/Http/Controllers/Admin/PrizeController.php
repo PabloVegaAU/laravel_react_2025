@@ -62,20 +62,13 @@ class PrizeController extends Controller
                 'level_required' => $validated['level_required'] ?? null,
             ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Premio creado exitosamente.',
-                'data' => $prize,
-            ], 201);
-
+            return redirect()->route('admin.prizes.index')
+                ->with('success', 'Premio actualizado exitosamente.');
         } catch (\Exception $e) {
             \Log::error('Error creando premio: '.$e->getMessage());
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al crear el premio.',
-                'error' => $e->getMessage(),
-            ], 500);
+            return redirect()->route('admin.prizes.index')
+                ->with('error', 'Error al crear el premio.');
         }
     }
 

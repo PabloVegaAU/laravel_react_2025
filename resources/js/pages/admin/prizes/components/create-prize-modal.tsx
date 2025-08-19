@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useForm } from '@inertiajs/react'
+import { router, useForm } from '@inertiajs/react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -85,65 +85,36 @@ export function CreatePrizeModal({ isOpen, onClose, onSuccess }: CreatePrizeModa
     e.preventDefault()
     setIsLoading(true)
 
-    try {
-      const formData = new FormData()
-      formData.append('name', data.name)
-      formData.append('description', data.description)
-      formData.append('points_cost', data.points_cost)
-      formData.append('stock', data.stock)
-      if (data.available_until) {
-        formData.append('available_until', data.available_until)
-      }
-      formData.append('is_active', data.is_active ? '1' : '0')
-      if (data.image) {
-        formData.append('image', data.image)
-      }
-
-      // 👇 enviar level_required (y opcionalmente el alias por compatibilidad)
-      if (data.level_required) {
-        formData.append('level_required', String(data.level_required))
-        formData.append('required_level_id', String(data.level_required)) // opcional
-      }
-
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-      const response = await fetch('/admin/prizes', {
-        method: 'POST',
-        headers: {
-          'X-CSRF-TOKEN': csrfToken,
-          'X-Requested-With': 'XMLHttpRequest',
-          Accept: 'application/json'
-        },
-        body: formData
-      })
-
-      let responseData: any = {}
-      try {
-        responseData = await response.json()
-      } catch {
-        responseData = {}
-      }
-
-      if (!response.ok) {
-        if (responseData.errors) {
-          Object.values(responseData.errors)
-            .flat()
-            .forEach((err: any) => toast.error(String(err)))
-          return
-        }
-        throw new Error(responseData.message || 'Error al crear el premio')
-      }
-
-      toast.success('Premio creado exitosamente')
-      onSuccess(responseData.data ?? responseData.prize ?? responseData)
-      onClose()
-    } catch (error) {
-      console.error('Error creating prize:', error)
-      if (error instanceof Error && !error.message.includes('validation')) {
-        toast.error(error.message || 'Error al crear el premio')
-      }
-    } finally {
-      setIsLoading(false)
+    const formData = new FormData()
+    formData.append('name', data.name)
+    formData.append('description', data.description)
+    formData.append('points_cost', data.points_cost)
+    formData.append('stock', data.stock)
+    if (data.available_until) {
+      formData.append('available_until', data.available_until)
     }
+    formData.append('is_active', data.is_active ? '1' : '0')
+    if (data.image) {
+      formData.append('image', data.image)
+    }
+
+    // 👇 enviar level_required (y opcionalmente el alias por compatibilidad)
+    if (data.level_required) {
+      formData.append('level_required', String(data.level_required))
+      formData.append('required_level_id', String(data.level_required)) // opcional
+    }
+
+    router.post('/admin/prizes', formData, {
+      onSuccess: () => {
+        toast.success('Premio creado exitosamente')
+        onSuccess(formData)
+        onClose()
+      },
+      onError: (error) => toast.error(error.message || 'Error al crear el premio'),
+      onFinish: () => {
+        setIsLoading(false)
+      }
+    })
   }
 
   return (
