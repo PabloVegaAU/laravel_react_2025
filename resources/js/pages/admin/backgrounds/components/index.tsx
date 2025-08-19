@@ -114,9 +114,13 @@ export default function BackgroundsPage() {
                   <TableCell className='dark:text-sidebar-foreground/70 text-gray-700'>{index + 1}</TableCell>
                   <TableCell className='font-medium'>{background.name}</TableCell>
                   <TableCell>
-                    <span className='rounded-full bg-green-100 px-2 py-1 text-xs text-green-800 dark:bg-green-900/30 dark:text-green-400'>
-                      Activo
-                    </span>
+                    {background.activo ? (
+                      <span className='rounded-full bg-green-100 px-2 py-1 text-xs text-green-800 dark:bg-green-900/30 dark:text-green-400'>
+                        Activo
+                      </span>
+                    ) : (
+                      <span className='rounded-full bg-red-100 px-2 py-1 text-xs text-red-800 dark:bg-red-900/30 dark:text-red-400'>Inactivo</span>
+                    )}
                   </TableCell>
                   <TableCell className='dark:text-sidebar-foreground/70 text-gray-700'>Nivel {background.level_required}</TableCell>
                   <TableCell className='dark:text-sidebar-foreground/70 text-gray-700'>{background.points_store} pts</TableCell>
