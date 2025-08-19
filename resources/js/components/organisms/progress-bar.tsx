@@ -82,7 +82,6 @@ export default function ProgressBar() {
 
         <div className='flex justify-between text-xs text-gray-600'>
           <span>XP: {Number(progress.experience_achieved).toFixed(0)}</span>
-          <span>Objetivo: {Number(progress.experience_required).toFixed(0)}</span>
           <span>Máx: {Number(progress.experience_max).toFixed(0)}</span>
         </div>
       </div>
