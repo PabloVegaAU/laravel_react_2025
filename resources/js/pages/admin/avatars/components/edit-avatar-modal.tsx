@@ -22,7 +22,7 @@ type EditAvatarModalProps = {
 
 interface EditAvatarFormData extends AvatarFormData {
   _method: 'PUT'
-  required_level_id: number | null
+  level_required: number
   [key: string]: any
 }
 
@@ -43,7 +43,7 @@ export function EditAvatarModal({ isOpen, onClose, avatar: initialAvatar, onSucc
     price: typeof avatar.price === 'string' ? parseFloat(avatar.price) : avatar.price || 0,
     is_active: avatar.is_active ?? true,
     image_url: null,
-    required_level_id: avatar.required_level?.id ?? (avatar as any).level_required ?? null,
+    level_required: avatar.level_required,
     _method: 'PUT'
   })
 
@@ -54,7 +54,7 @@ export function EditAvatarModal({ isOpen, onClose, avatar: initialAvatar, onSucc
         price: typeof avatar.price === 'string' ? parseFloat(avatar.price) : avatar.price || 0,
         is_active: avatar.is_active ?? true,
         image_url: null,
-        required_level_id: avatar.required_level?.id ?? (avatar as any).level_required ?? null,
+        level_required: avatar.level_required,
         _method: 'PUT'
       })
       setPreviewImage(avatar.image_url ? avatar.image_url : null)
@@ -102,21 +102,20 @@ export function EditAvatarModal({ isOpen, onClose, avatar: initialAvatar, onSucc
       onClose()
       return
     }
-    setIsLoading(true)
 
     const formData = new FormData()
     formData.append('_method', 'PUT')
     formData.append('name', data.name)
     formData.append('price', data.price.toString())
     formData.append('is_active', data.is_active ? '1' : '0')
-
-    formData.append('level_required', data.required_level.toString())
+    formData.append('level_required', data?.level_required?.toString())
 
     if (data.image_url instanceof File) {
       formData.append('image_url', data.image_url)
     }
 
     router.post(`/admin/avatars/${avatar.id}`, formData, {
+      onBefore: () => setIsLoading(true),
       onSuccess: (response) => {
         const avatarData = (response.props.avatar as any) || response
         const updatedAvatar: Avatar = {
@@ -126,7 +125,7 @@ export function EditAvatarModal({ isOpen, onClose, avatar: initialAvatar, onSucc
           price: avatarData?.price ?? avatar.price,
           is_active: avatarData?.is_active ?? avatar.is_active ?? true,
           image_url: avatarData?.image_url ?? avatar.image_url,
-          required_level: avatarData?.required_level ?? avatar.required_level,
+          level_required: avatarData?.level_required ?? avatar.level_required,
           updated_at: avatarData.updated_at || new Date().toISOString()
         }
 
@@ -177,11 +176,11 @@ export function EditAvatarModal({ isOpen, onClose, avatar: initialAvatar, onSucc
 
           {/* Si NO quieres ocultarlo, quita style={{ display: 'none' }} */}
           <div className='space-y-2' /* style={{ display: 'none' }} */>
-            <Label htmlFor='required_level_id'>Nivel requerido</Label>
+            <Label htmlFor='level_required'>Nivel requerido</Label>
             <select
-              id='required_level_id'
-              value={data.required_level_id ?? ''}
-              onChange={(e) => setData('required_level_id', e.target.value ? parseInt(e.target.value) : null)}
+              id='level_required'
+              value={data.level_required ?? ''}
+              onChange={(e) => setData('level_required', parseInt(e.target.value))}
               className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50'
             >
               {levels.map((level) => (
@@ -190,9 +189,7 @@ export function EditAvatarModal({ isOpen, onClose, avatar: initialAvatar, onSucc
                 </option>
               ))}
             </select>
-            {(errors.required_level_id || errors.level_required) && (
-              <p className='text-sm text-red-500'>{errors.required_level_id || errors.level_required}</p>
-            )}
+            {errors.level_required && <p className='text-sm text-red-500'>{errors.level_required}</p>}
           </div>
 
           <div className='flex items-center space-x-2'>

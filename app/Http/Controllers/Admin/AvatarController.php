@@ -37,7 +37,7 @@ class AvatarController extends Controller
             'price' => 'required|numeric|min:0',
             'is_active' => 'required|boolean',
             'image_url' => 'required|image|max:2048',
-            'level_required' => 'nullable|integer|exists:levels,id',
+            'level_required' => 'required|integer|exists:levels,id',
         ]);
 
         try {
@@ -49,7 +49,7 @@ class AvatarController extends Controller
                 'price' => $validated['price'],
                 'is_active' => $validated['is_active'],
                 'image_url' => $imagePath,
-                'level_required' => $validated['level_required'] ?? null,
+                'level_required' => $validated['level_required'],
             ]);
 
             return redirect()->route('admin.avatars.index')
@@ -86,8 +86,8 @@ class AvatarController extends Controller
     public function update(Request $request, string $id)
     {
         $avatar = Avatar::findOrFail($id);
-        $levelId = $request->input('level_required') ?? $request->input('required_level_id');
-        if (! is_null($levelId)) {
+        $levelId = $request->input('level_required');
+        if ($levelId !== null) {
             $request->merge(['level_required' => $levelId]);
         }
 
@@ -96,7 +96,7 @@ class AvatarController extends Controller
             'price' => 'required|numeric|min:0',
             'is_active' => 'required|boolean',
             'image_url' => 'nullable|image|max:2048',
-            'level_required' => 'nullable|integer|exists:levels,id',
+            'level_required' => 'required|integer|exists:levels,id',
         ]);
 
         $updateData = [

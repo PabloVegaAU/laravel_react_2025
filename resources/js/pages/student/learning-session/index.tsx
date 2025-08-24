@@ -22,8 +22,12 @@ type PageProps = Omit<ResourcePageProps<LearningSession>, 'data'> & {
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
+    title: 'Inicio',
+    href: '/student/dashboard'
+  },
+  {
     title: 'Sesiones de Aprendizaje',
-    href: 'teacher/learning-session'
+    href: '/student/learning-sessions'
   }
 ]
 

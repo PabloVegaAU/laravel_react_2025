@@ -39,7 +39,7 @@ type TFormData = {
 const breadcrumbs: BreadcrumbItem[] = [
   {
     title: 'Fichas de aplicación respuesta',
-    href: 'student/dashboard'
+    href: '/student/dashboard'
   }
 ]
 

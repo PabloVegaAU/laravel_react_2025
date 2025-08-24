@@ -31,7 +31,9 @@ class EnrollmentController extends Controller
                     $searchTerm = '%'.$request->search.'%';
                     $q->where('first_name', 'like', $searchTerm)
                         ->orWhere('last_name', 'like', $searchTerm)
-                        ->orWhere('second_last_name', 'like', $searchTerm);
+                        ->orWhere('second_last_name', 'like', $searchTerm)
+                        ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", [$searchTerm])
+                        ->orWhereRaw("CONCAT(first_name, ' ', last_name, ' ', second_last_name) LIKE ?", [$searchTerm]);
                 });
             })
             ->latest('enrollment_date')

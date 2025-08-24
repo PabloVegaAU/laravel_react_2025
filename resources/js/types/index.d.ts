@@ -35,11 +35,7 @@ export interface Avatar {
   image_url: string
   price: string | number
   is_active: boolean
-  required_level?: {
-    id: number
-    level: number
-    name: string
-  }
+  level_required: number
   created_at: string
   updated_at: string
   deleted_at: string | null
@@ -60,7 +56,7 @@ export interface AvatarFormData extends Record<string, any> {
   price: number | string
   is_active: boolean
   image_url?: File | string | null
-  required_level_id?: number | null
+  level_required: number
   [key: string]: any // Index signature to satisfy Inertia's useForm
 }
 
