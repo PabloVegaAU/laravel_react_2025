@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
 import AppLayout from '@/layouts/app-layout'
 import { useTranslations } from '@/lib/translator'
 import { cn } from '@/lib/utils'
@@ -24,6 +25,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 export default function ApplicationFormResponseEdit({ application_form_response }: PageProps) {
+  console.log(application_form_response)
   const { t } = useTranslations()
 
   const hasValidQuestionData = (responseQuestion: ApplicationFormResponseQuestion) => {
@@ -99,83 +101,86 @@ export default function ApplicationFormResponseEdit({ application_form_response 
                         {/* Explicación de la respuesta */}
                         {responseQuestion?.explanation && (
                           <div>
+                            <Label>Explicación:</Label>
                             <p className='text-muted-foreground text-sm'>{responseQuestion?.explanation}</p>
                           </div>
                         )}
                         {/* Respuesta del estudiante */}
-                        <div>
-                          <h4 className='mb-2 font-medium'>Respuesta:</h4>
-                          {selectedOptions.length > 0 ? (
-                            <div className='space-y-2'>
-                              {questionTypeId === 3 ? (
-                                // Mejor visualización para preguntas de emparejamiento
-                                <div className='space-y-3'>
-                                  {selectedOptions.map((selectedOption) => {
-                                    const leftOption = question?.options?.find((opt) => opt.id === selectedOption.question_option_id)
-                                    const rightOption = question?.options?.find((opt) => opt.id === selectedOption.paired_with_option_id)
+                        {questionTypeId !== 5 && (
+                          <div>
+                            <h4 className='mb-2 font-medium'>Respuesta:</h4>
+                            {selectedOptions.length > 0 ? (
+                              <div className='space-y-2'>
+                                {questionTypeId === 3 ? (
+                                  // Mejor visualización para preguntas de emparejamiento
+                                  <div className='space-y-3'>
+                                    {selectedOptions.map((selectedOption) => {
+                                      const leftOption = question?.options?.find((opt) => opt.id === selectedOption.question_option_id)
+                                      const rightOption = question?.options?.find((opt) => opt.id === selectedOption.paired_with_option_id)
 
-                                    return (
-                                      <div
-                                        key={selectedOption.id}
-                                        className='group relative overflow-hidden rounded-lg border p-3 transition-all duration-200 ease-in-out'
-                                      >
-                                        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                          <div className='flex items-center gap-2'>
-                                            <span className='text-foreground/90 font-medium'>{leftOption?.value || 'Opción no encontrada'}</span>
-                                          </div>
-                                          <ArrowRight className='text-muted-foreground mx-2 hidden h-4 w-4 flex-shrink-0 sm:block' />
-                                          <div className='bg-background/50 flex-1 rounded p-2'>
-                                            <div className='flex items-center gap-2'>
-                                              <span className='text-foreground/80'>{rightOption?.value || 'No seleccionado'}</span>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    )
-                                  })}
-                                </div>
-                              ) : // Mejor visualización para preguntas de ordenamiento
-                              questionTypeId === 2 ? (
-                                <div className='space-y-3'>
-                                  {selectedOptions
-                                    .sort((a, b) => (a.selected_order || 0) - (b.selected_order || 0))
-                                    .map((option, index) => {
                                       return (
                                         <div
-                                          key={option.id}
-                                          className='group relative overflow-hidden rounded-lg border p-4 transition-all duration-200 ease-in-out'
+                                          key={selectedOption.id}
+                                          className='group relative overflow-hidden rounded-lg border p-3 transition-all duration-200 ease-in-out'
                                         >
-                                          <div className='flex items-start gap-3'>
-                                            <div className='flex flex-shrink-0 flex-col items-center'>
-                                              <div className='flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium'>
-                                                {index + 1}
-                                              </div>
+                                          <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                                            <div className='flex items-center gap-2'>
+                                              <span className='text-foreground/90 font-medium'>{leftOption?.value || 'Opción no encontrada'}</span>
                                             </div>
-                                            <div className='flex-1'>
-                                              <p className='text-foreground text-sm'>{option.question_option?.value}</p>
+                                            <ArrowRight className='text-muted-foreground mx-2 hidden h-4 w-4 flex-shrink-0 sm:block' />
+                                            <div className='bg-background/50 flex-1 rounded p-2'>
+                                              <div className='flex items-center gap-2'>
+                                                <span className='text-foreground/80'>{rightOption?.value || 'No seleccionado'}</span>
+                                              </div>
                                             </div>
                                           </div>
                                         </div>
                                       )
                                     })}
-                                </div>
-                              ) : (
-                                // Mostrar opciones normales para otros tipos de preguntas
-                                selectedOptions.map((option) => (
-                                  <div key={option.id} className='rounded border p-3'>
-                                    <div className='flex items-start gap-2'>
-                                      <div>
-                                        <p className='text-sm'>{option.question_option?.value}</p>
+                                  </div>
+                                ) : // Mejor visualización para preguntas de ordenamiento
+                                questionTypeId === 2 ? (
+                                  <div className='space-y-3'>
+                                    {selectedOptions
+                                      .sort((a, b) => (a.selected_order || 0) - (b.selected_order || 0))
+                                      .map((option, index) => {
+                                        return (
+                                          <div
+                                            key={option.id}
+                                            className='group relative overflow-hidden rounded-lg border p-4 transition-all duration-200 ease-in-out'
+                                          >
+                                            <div className='flex items-start gap-3'>
+                                              <div className='flex flex-shrink-0 flex-col items-center'>
+                                                <div className='flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium'>
+                                                  {index + 1}
+                                                </div>
+                                              </div>
+                                              <div className='flex-1'>
+                                                <p className='text-foreground text-sm'>{option.question_option?.value}</p>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        )
+                                      })}
+                                  </div>
+                                ) : (
+                                  // Mostrar opciones normales para otros tipos de preguntas
+                                  selectedOptions.map((option) => (
+                                    <div key={option.id} className='rounded border p-3'>
+                                      <div className='flex items-start gap-2'>
+                                        <div>
+                                          <p className='text-sm'>{option.question_option?.value}</p>
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
-                                ))
-                              )}
-                            </div>
-                          ) : (
-                            <p className='text-muted-foreground text-sm'>No se proporcionó respuesta</p>
-                          )}
-                        </div>
+                                  ))
+                                )}
+                              </div>
+                            ) : (
+                              <p className='text-muted-foreground text-sm'>No se proporcionó respuesta</p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                     {/* Campo is_correct */}

@@ -289,6 +289,10 @@ class ApplicationFormResponseController extends Controller
                             break;
 
                         case 3: // Emparejar
+                            $selectedOptions = $responseData['selected_options'] ?? [];
+                            if (! is_array($selectedOptions)) {
+                                throw new \Exception('Formato de opciones seleccionadas inválido');
+                            }
                             $pairs = $responseData['pairs'] ?? [];
                             if (! is_array($pairs)) {
                                 throw new \Exception('Formato de pares inválido');
