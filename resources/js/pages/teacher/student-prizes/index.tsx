@@ -81,7 +81,7 @@ export default function StudentPrizes({ student_prizes, filters }: PageProps) {
               onClick={() => handleClaim(studentPrize.id)}
               disabled={studentPrize.claimed}
             >
-              {studentPrize.claimed ? 'Reclamado' : 'Reclamar'}
+              {studentPrize.claimed ? 'Entregado' : 'Entregar'}
             </Button>
           </div>
         )

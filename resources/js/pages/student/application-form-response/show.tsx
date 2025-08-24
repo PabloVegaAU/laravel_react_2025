@@ -16,17 +16,18 @@ type PageProps = {
   application_form_response: ApplicationFormResponse
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-  { title: 'Inicio', href: '/dashboard' },
-  { title: 'Sesión de aprendizaje', href: '/student/learning-sessions' }
-]
-
 export default function ApplicationFormResponseShow({ application_form_response }: PageProps) {
   const { t } = useTranslations()
 
   const hasValidQuestionData = (responseQuestion: any) => {
     return responseQuestion?.question
   }
+
+  const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Inicio', href: '/student/dashboard' },
+    { title: 'Sesiones de aprendizaje', href: '/student/learning-sessions' },
+    { title: 'Ficha de aplicación respuesta', href: '/student/application-form-response/' + application_form_response.id }
+  ]
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>

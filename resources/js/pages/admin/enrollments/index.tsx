@@ -16,10 +16,6 @@ import { CreateEnrollmentDialog } from './components/form-create'
 
 type PageProps = Omit<ResourcePageProps<Enrollment>, 'data'> & {
   enrollments: PaginatedResponse<Enrollment>
-  filters: {
-    year: number | null
-    search: string | null
-  }
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -120,7 +116,7 @@ export default function Enrollments({ enrollments, filters }: PageProps) {
             <Input type='text' placeholder='Buscar' value={localFilters.search} onChange={(e) => handleFilterChange('search', e.target.value)} />
           </div>
 
-          <Button variant='outline-info' onClick={() => handleFilterChange('search', '')}>
+          <Button variant='outline-info' onClick={() => setLocalFilters((prev) => ({ ...prev, year: '', search: '' }))}>
             Limpiar
           </Button>
 

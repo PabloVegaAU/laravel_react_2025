@@ -428,13 +428,14 @@ export default function MyObjects() {
                         <span className='text-muted-foreground text-xs'>Nv. {item.nivel_desbloqueo}</span>
                       )}
 
-                      {item.fecha_obtencion && <span className='text-xs text-green-600 dark:text-green-400'>Obtenido</span>}
+                      {item.exchange_date && <span className='text-xs text-green-600 dark:text-green-400'>Obtenido</span>}
 
-                      {item.claimed ? (
-                        <span className='text-xs text-green-600 dark:text-green-400'>Reclamado</span>
-                      ) : (
-                        <span className='text-xs text-gray-600 dark:text-gray-400'>No reclamado</span>
-                      )}
+                      {item.claimed != null &&
+                        (item.claimed ? (
+                          <span className='text-xs text-green-600 dark:text-green-400'>Reclamado</span>
+                        ) : (
+                          <span className='text-xs text-gray-600 dark:text-gray-400'>No reclamado</span>
+                        ))}
                     </div>
                   </div>
                 </div>

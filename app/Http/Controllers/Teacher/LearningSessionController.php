@@ -221,11 +221,11 @@ class LearningSessionController extends Controller
             if (isset($validated['application_form_id'])) {
                 // Remover las formularios que ya no pertenecen a esta sesión
                 ApplicationForm::where('learning_session_id', $learningSession->id)
-                    ->whereNotIn('id', $validated['application_form_id'])
+                    ->where('id', '!=', $validated['application_form_id'])
                     ->update(['learning_session_id' => null]);
 
                 // Asignar esta sesión a los nuevos formularios
-                ApplicationForm::whereIn('id', $validated['application_form_id'])
+                ApplicationForm::where('id', $validated['application_form_id'])
                     ->update(['learning_session_id' => $learningSession->id]);
             }
 
@@ -252,13 +252,13 @@ class LearningSessionController extends Controller
             return back()
                 ->withInput()
                 ->withErrors($e->validator)
-                ->with('error', 'Ocurrió un error inesperado al guardar la sesión. Intenta nuevamente.');
+                ->with('error', 'Ocurrió un error inesperado al guardar la sesión. Intenta nuevamente.'.$e->getMessage());
         } catch (\Throwable $e) {
             DB::rollBack();
 
             return back()
                 ->withInput()
-                ->with('error', 'Ocurrió un error inesperado al guardar la sesión. Intenta nuevamente.');
+                ->with('error', 'Ocurrió un error inesperado al guardar la sesión. Intenta nuevamente.'.$e->getMessage());
         }
     }
 

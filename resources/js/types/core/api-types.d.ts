@@ -21,6 +21,7 @@ export type PaginatedResponse<T> = {
 export type ResourcePageProps<T> = {
   data: PaginatedResponse<T>
   filters: {
+    year?: string
     search?: string
     sort?: string
     direction?: 'asc' | 'desc'
