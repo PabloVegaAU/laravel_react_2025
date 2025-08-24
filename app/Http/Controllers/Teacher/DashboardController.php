@@ -13,7 +13,7 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        // Curricular areas current year
+        // Areas currículares del año escolar actual
         $teacherClassroomCurricularAreaCycles = TeacherClassroomCurricularAreaCycle::with([
             'curricularAreaCycle.curricularArea:id,name,color',
             'classroom:id,grade,section,level',

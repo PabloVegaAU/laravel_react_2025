@@ -16,13 +16,6 @@ type PageProps = {
   background: string
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-  {
-    title: 'Dashboard',
-    href: 'student/dashboard'
-  }
-]
-
 export default function Dashboard({ application_form_responses, enrollment, avatar, background }: PageProps) {
   const { t } = useTranslations()
   const { setCurrentDashboardRole, setAvatar, setBackground, setUser } = useUserStore()
@@ -33,9 +26,16 @@ export default function Dashboard({ application_form_responses, enrollment, avat
     setBackground(background)
   }, [])
 
+  const breadcrumbs: BreadcrumbItem[] = [
+    {
+      title: t('Dashboard'),
+      href: '/student/dashboard'
+    }
+  ]
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title='Dashboard' />
+      <Head title={t('Dashboard')} />
       <div className='relative flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4 pb-96'>
         {/* Application Forms| */}
         <div className='flex flex-col gap-4'>

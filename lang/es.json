@@ -49,6 +49,7 @@
   "student": "estudiante",
 
   "dashboard": "tablero",
+  "Dashboard": "Tablero",
 
   "draft": "Borrador",
   "scheduled": "Programado",
@@ -197,6 +198,7 @@
   "Classroom": "Aula",
   "Capabilities": "Capacidades",
   "Select one or more capabilities": "Selecciona una o más capacidades",
+  "Curricular Areas": "Áreas Curriculares",
   "Purpose of the Session": "Propósito de la sesión",
   "Initial Sequence": "Secuencia de inicio",
   "Create Form after saving": "Crear Ficha luego de guardar",
@@ -354,6 +356,7 @@
   "View": "Ver",
   "View :name": "Ver :name",
   "Web Server is Down": "El servidor web está caído",
+  "Welcome": "Bienvenido",
   "Whoops!": "¡Ups!",
   "Yes": "Sí",
   "Your": "Tu",
