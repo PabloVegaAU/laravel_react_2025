@@ -1,19 +1,21 @@
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern'
 import AppLayout from '@/layouts/app-layout'
+import { useTranslations } from '@/lib/translator'
 import { useUserStore } from '@/store/useUserStore'
 import { BreadcrumbItem } from '@/types/core'
 import { Head } from '@inertiajs/react'
 import { useEffect } from 'react'
 
-const breadcrumbs: BreadcrumbItem[] = [
-  {
-    title: 'Dashboard',
-    href: 'admin/dashboard'
-  }
-]
-
 export default function Dashboard() {
+  const { t } = useTranslations()
   const { setCurrentDashboardRole } = useUserStore()
+  
+  const breadcrumbs: BreadcrumbItem[] = [
+    {
+      title: t('Dashboard'),
+      href: 'admin/dashboard'
+    }
+  ]
 
   useEffect(() => {
     setCurrentDashboardRole('/admin/dashboard')
@@ -21,7 +23,7 @@ export default function Dashboard() {
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title='Dashboard' />
+      <Head title={t('Dashboard')} />
       <div className='flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
         <div className='grid auto-rows-min gap-4 md:grid-cols-3'>
           <div className='border-sidebar-border/70 dark:border-sidebar-border relative aspect-video overflow-hidden rounded-xl border'>

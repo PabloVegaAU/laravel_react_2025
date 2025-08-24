@@ -137,7 +137,7 @@ export default function ApplicationForms({ applicationForms, filters: initialFil
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title={t('application_forms.title', 'Fichas de Aplicación')} />
+      <Head title={t('Application Forms')} />
       <FlashMessages />
 
       <div className='flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>

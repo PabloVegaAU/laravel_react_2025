@@ -30,7 +30,7 @@ export const createNavItems = (permissions: string[] = []) => {
       permission: 'student.dashboard'
     },
     {
-      title: 'Avatar',
+      title: 'Avatares',
       href: '/admin/avatars',
       icon: User,
       permission: 'admin.avatars.index'
@@ -99,13 +99,13 @@ export const createNavItems = (permissions: string[] = []) => {
 
   const applicationFormsNavItems: NavItem[] = [
     {
-      title: 'Sesiones de aprendizaje',
+      title: 'Sesiones de Aprendizaje',
       href: '/teacher/learning-sessions',
       icon: GraduationCap,
       permission: 'teacher.learning-sessions.index'
     },
     {
-      title: 'Sesiones de aprendizaje',
+      title: 'Sesiones de Aprendizaje',
       href: '/student/learning-sessions',
       icon: GraduationCap,
       permission: 'student.learning-sessions.index'
@@ -117,7 +117,7 @@ export const createNavItems = (permissions: string[] = []) => {
       permission: 'teacher.application-forms.index'
     },
     {
-      title: 'Respuestas de fichas de aplicación',
+      title: 'Respuestas de Fichas de Aplicación',
       href: '/student/application-form-responses',
       icon: FileQuestion,
       permission: 'student.application-form-responses.index'
@@ -129,7 +129,7 @@ export const createNavItems = (permissions: string[] = []) => {
       permission: 'teacher.questions.index'
     }
     /* {
-      title: 'Respuestas de fichas de aplicación',
+      title: 'Respuestas de Fichas de Aplicación',
       href: '/teacher/application-form-responses',
       icon: FileQuestion,
       permission: 'teacher.application-form-responses.index'

@@ -23,11 +23,6 @@ type PageProps = Omit<ResourcePageProps<ApplicationFormResponse>, 'data'> & {
   }
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-  { title: 'Inicio', href: '/teacher/dashboard' },
-  { title: 'Respuestas de Formularios', href: '/teacher/application-form-responses' }
-]
-
 export default function ApplicationFormResponse({ application_form_responses, filters = {} }: PageProps) {
   const { t } = useTranslations()
   const [localFilters, setLocalFilters] = useState(filters)
@@ -161,9 +156,14 @@ export default function ApplicationFormResponse({ application_form_responses, fi
     }
   ]
 
+  const breadcrumbs: BreadcrumbItem[] = [
+    { title: t('Dashboard'), href: '/teacher/dashboard' },
+    { title: t('Application Form Responses'), href: '/teacher/application-form-responses' }
+  ]
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title='Respuestas de Formularios' />
+      <Head title={t('Application Form Responses')} />
       <FlashMessages />
 
       <div className='flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>

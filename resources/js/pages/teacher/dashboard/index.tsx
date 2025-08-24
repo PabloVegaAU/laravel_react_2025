@@ -13,13 +13,6 @@ interface Props {
   teacher_classroom_curricular_area_cycles: TeacherClassroomCurricularAreaCycle[]
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-  {
-    title: 'Dashboard',
-    href: 'teacher/dashboard'
-  }
-]
-
 export default function Dashboard({ teacher_classroom_curricular_area_cycles }: Props) {
   const { t } = useTranslations()
   const { setCurrentDashboardRole } = useUserStore()
@@ -28,9 +21,16 @@ export default function Dashboard({ teacher_classroom_curricular_area_cycles }: 
     setCurrentDashboardRole('/teacher/dashboard')
   }, [])
 
+  const breadcrumbs: BreadcrumbItem[] = [
+    {
+      title: t('Dashboard'),
+      href: '/teacher/dashboard'
+    }
+  ]
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title='Dashboard' />
+      <Head title={t('Dashboard')} />
       <div className='flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
         <div className='flex flex-col gap-4'>
           <h2 className='text-2xl font-bold tracking-tight'>Áreas Currículares</h2>
