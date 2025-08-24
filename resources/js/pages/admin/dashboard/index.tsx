@@ -9,7 +9,7 @@ import { useEffect } from 'react'
 export default function Dashboard() {
   const { t } = useTranslations()
   const { setCurrentDashboardRole } = useUserStore()
-  
+
   const breadcrumbs: BreadcrumbItem[] = [
     {
       title: t('Dashboard'),

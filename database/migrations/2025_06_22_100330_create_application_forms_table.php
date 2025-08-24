@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('name')
                 ->comment('Nombre del formulario de aplicación');
             $table->text('description')
+                ->nullable()
                 ->comment('Descripción detallada del formulario');
 
             // Configuración de estado
