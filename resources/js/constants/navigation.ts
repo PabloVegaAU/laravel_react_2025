@@ -49,6 +49,12 @@ export const createNavItems = (permissions: string[] = []) => {
     },
     {
       title: 'Logros',
+      href: '/admin/achievements',
+      icon: Trophy,
+      permission: 'admin.achievements.index'
+    },
+    {
+      title: 'Logros',
       href: '/teacher/achievements',
       icon: Trophy,
       permission: 'teacher.achievements.index'

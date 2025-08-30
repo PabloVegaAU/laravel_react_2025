@@ -20,6 +20,7 @@ class Achievement extends Model
         'name',
         'description',
         'image',
+        'activo',
     ];
 
     protected $casts = [

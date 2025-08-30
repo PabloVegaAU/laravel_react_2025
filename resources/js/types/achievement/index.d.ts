@@ -11,6 +11,7 @@ export interface Achievement {
   name: string
   description: string
   image: string
+  activo: boolean
   created_at: string
   updated_at: string
   deleted_at: string | null
@@ -52,14 +53,18 @@ export interface StudentAchievement {
 export interface CreateAchievementData {
   name: string
   description: string
-  image: File | string
+  image: File | null | string
+  activo: boolean
+  [key: string]: string | boolean | File | null | undefined
 }
 
 /**
  * Tipo para actualizar un logro existente
  * @see database/migrations/2025_06_22_100260_create_achievements_table.php
  */
-export type UpdateAchievementData = Partial<CreateAchievementData>
+export type UpdateAchievementData = Partial<CreateAchievementData> & {
+  _method?: string
+}
 
 /**
  * Filtros para búsqueda de logros

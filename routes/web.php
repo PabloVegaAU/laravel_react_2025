@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AchievementController as AdminAchievementController;
 use App\Http\Controllers\Admin\AvatarController as AdminAvatarController;
 use App\Http\Controllers\Admin\BackgroundController as AdminBackgroundController;
 use App\Http\Controllers\Admin\ClassroomController as AdminClassroomController;
@@ -44,6 +45,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('admin/enrollments', AdminEnrollmentController::class)->names('admin.enrollments');
     Route::get('admin/students-to-enrollments', [AdminStudentController::class, 'studentToEnrollments'])->name('admin.students-to-enrollments');
     Route::get('admin/get-classrooms', [AdminClassroomController::class, 'getClassrooms'])->name('admin.classrooms');
+    Route::resource('admin/achievements', AdminAchievementController::class)->names('admin.achievements');
 
     // routes teacher
     Route::get('teacher/dashboard', [TeacherDashboardController::class, 'index'])->name('teacher.dashboard');
