@@ -161,7 +161,9 @@ export default function ApplicationFormResponseShow({ application_form_response 
                           </div>
                         </div>
                       ) : (
-                        <p className='text-muted-foreground text-sm'>No se proporcionó respuesta</p>
+                        responseQuestion.application_form_question.question.question_type_id !== 5 && (
+                          <p className='text-muted-foreground text-sm'>No se proporcionó respuesta</p>
+                        )
                       )}
                     </div>
 
