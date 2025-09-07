@@ -1,78 +1,86 @@
+import DataTable from '@/components/organisms/data-table'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import AppLayout from '@/layouts/app-layout'
-import { PageProps } from '@/types'
 import type { Avatar } from '@/types/avatar'
 import { Head } from '@inertiajs/react'
+import { ColumnDef } from '@tanstack/react-table'
 import { Edit, Plus, Search } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
+import { useState } from 'react'
 import { CreateAvatarModal } from './create-avatar-modal'
 import { EditAvatarModal } from './edit-avatar-modal'
 
-type Props = {
-  auth: PageProps['auth']
-}
-
-export default function AvatarsPage({ auth }: Props) {
-  const [avatars, setAvatars] = useState<Avatar[]>([])
+export default function AvatarsPage({ avatars }: any) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
 
-  // Function to fetch avatars from the API
-  const fetchAvatars = async () => {
-    try {
-      setIsLoading(true)
-      const response = await fetch('/admin/avatars', {
-        headers: {
-          Accept: 'application/json',
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      })
-
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error('Error HTTP:', errorText)
-        throw new Error(`Error HTTP! status: ${response.status}`)
+  const columns: ColumnDef<Avatar>[] = [
+    {
+      header: 'ID',
+      accessorKey: 'id'
+    },
+    {
+      header: 'Imagen',
+      accessorKey: 'image_url',
+      cell: ({ row }) => {
+        const avatar = row.original
+        return (
+          <div className='flex items-center space-x-2'>
+            <img src={avatar.image_url} alt={avatar.name} className='h-10 w-10 rounded-full' />
+          </div>
+        )
       }
-
-      const data = await response.json()
-
-      // Handle different possible response structures
-      if (data.avatars && data.avatars.data) {
-        setAvatars(data.avatars.data)
-      } else if (Array.isArray(data)) {
-        setAvatars(data)
-      } else if (data.data) {
-        setAvatars(data.data)
-      } else {
-        console.warn('Unexpected API response structure:', data)
-        setAvatars([])
+    },
+    {
+      header: 'Nombre',
+      accessorKey: 'name'
+    },
+    {
+      header: 'Precio',
+      accessorKey: 'price'
+    },
+    {
+      header: 'Nivel Requerido',
+      accessorKey: 'requiredLevel'
+    },
+    {
+      header: 'Estado',
+      accessorKey: 'is_active',
+      cell: ({ row }) => {
+        const avatar = row.original
+        return (
+          <div className='flex items-center space-x-2'>
+            {avatar.is_active ? <Badge variant='default'>Activo</Badge> : <Badge variant='destructive'>Inactivo</Badge>}
+          </div>
+        )
       }
-    } catch (error) {
-      console.error('Error cargando avatars:', error)
-      toast.error('Error cargando lista de avatars')
-    } finally {
-      setIsLoading(false)
+    },
+    {
+      header: 'Acciones',
+      id: 'actions',
+      cell: ({ row }) => {
+        const avatar = row.original
+        return (
+          <div className='flex items-center space-x-2'>
+            <Button
+              variant='ghost'
+              size='icon'
+              onClick={() => {
+                setSelectedAvatar(avatar)
+                setIsEditModalOpen(true)
+              }}
+              title='Editar avatar'
+            >
+              <Edit className='h-4 w-4' />
+            </Button>
+          </div>
+        )
+      }
     }
-  }
-
-  // Load avatars when component mounts
-  useEffect(() => {
-    fetchAvatars()
-  }, [])
-
-  // Filter avatars based on search term
-  const filteredAvatars = avatars.filter(
-    (avatar) =>
-      avatar.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (avatar.price?.toString() || '').includes(searchTerm) ||
-      (avatar.requiredLevel?.level?.toString() || '').includes(searchTerm)
-  )
+  ]
 
   // Handle avatar deletion
   /* const handleDelete = async (avatarId: number) => {
@@ -106,7 +114,7 @@ export default function AvatarsPage({ auth }: Props) {
   } */
 
   return (
-    <AppLayout user={auth.user}>
+    <AppLayout>
       <div className='container mx-auto p-6'>
         <Head title='Gestión de Avatar' />
 
@@ -130,99 +138,10 @@ export default function AvatarsPage({ auth }: Props) {
           </div>
         </div>
 
-        <div className='dark:border-sidebar-border dark:bg-sidebar rounded-lg border border-gray-200 bg-white'>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Image</TableHead>
-                <TableHead>Nombre</TableHead>
-                <TableHead>Precio</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className='dark:text-sidebar-foreground/60 py-4 text-center text-gray-600'>
-                    Cargando avatars...
-                  </TableCell>
-                </TableRow>
-              ) : filteredAvatars.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className='dark:text-sidebar-foreground/60 py-4 text-center text-gray-600'>
-                    No se encontraron avatares
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredAvatars.map((avatar) => (
-                  <TableRow key={avatar.id}>
-                    <TableCell>
-                      {avatar.image_url ? (
-                        <img
-                          src={avatar.image_url.startsWith('http') ? avatar.image_url : `${avatar.image_url}`}
-                          alt={avatar.name}
-                          className='h-10 w-10 rounded-full object-cover'
-                        />
-                      ) : (
-                        <div className='dark:bg-sidebar-border flex h-10 w-10 items-center justify-center rounded-full bg-gray-200'>
-                          <span className='dark:text-sidebar-foreground/60 text-xs text-gray-500'>No image</span>
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className='font-medium'>{avatar.name}</TableCell>
-                    <TableCell className='dark:text-sidebar-foreground/70 text-gray-700'>{avatar.price}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          avatar.is_active
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                        }`}
-                      >
-                        {avatar.is_active ? 'Activo' : 'Inactivo'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className='flex space-x-2'>
-                        <Button
-                          variant='ghost'
-                          size='icon'
-                          onClick={() => {
-                            setSelectedAvatar(avatar)
-                            setIsEditModalOpen(true)
-                          }}
-                          title='Editar avatar'
-                        >
-                          <Edit className='h-4 w-4' />
-                        </Button>
-                        {/* <Button
-                          variant='ghost'
-                          size='icon'
-                          onClick={() => handleDelete(avatar.id)}
-                          className='text-destructive hover:text-destructive'
-                          title='Eliminar avatar'
-                        >
-                          <Trash2 className='h-4 w-4' />
-                        </Button> */}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+        <DataTable columns={columns} data={avatars} />
       </div>
 
-      <CreateAvatarModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={async () => {
-          await fetchAvatars()
-          setIsCreateModalOpen(false)
-        }}
-      />
+      <CreateAvatarModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} onSuccess={async () => setIsCreateModalOpen(false)} />
 
       {selectedAvatar && (
         <EditAvatarModal
@@ -233,7 +152,6 @@ export default function AvatarsPage({ auth }: Props) {
           }}
           avatar={selectedAvatar}
           onSuccess={async () => {
-            await fetchAvatars()
             setIsEditModalOpen(false)
             setSelectedAvatar(null)
           }}

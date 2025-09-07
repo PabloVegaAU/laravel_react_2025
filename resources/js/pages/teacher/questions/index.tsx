@@ -12,6 +12,7 @@ import { BreadcrumbItem } from '@/types/core'
 import { PaginatedResponse, ResourcePageProps } from '@/types/core/api-types'
 import { Head, router } from '@inertiajs/react'
 import { ColumnDef } from '@tanstack/react-table'
+import { Pencil } from 'lucide-react'
 import { useState } from 'react'
 import { CreateQuestionDialog } from './components/form-create'
 import { EditQuestionDialog } from './components/form-edit'
@@ -40,6 +41,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function Questions({ questions, filters, question_types, capabilities, difficulties, curricular_areas, competencies }: PageProps) {
   const { t } = useTranslations()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [questionId, setQuestionId] = useState<number>()
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
 
   const defaultFilters = {
     search: '',
@@ -92,20 +95,17 @@ export default function Questions({ questions, filters, question_types, capabili
       header: 'Acciones',
       accessorKey: 'id',
       cell: (row) => {
-        const [isEditModalOpen, setIsEditModalOpen] = useState(false)
         return (
           <div className='flex space-x-2' id={row.getValue() as string}>
-            <EditQuestionDialog
-              isOpen={isEditModalOpen}
-              id={row.getValue() as number}
-              curricularAreas={curricular_areas}
-              competencies={competencies}
-              capabilities={capabilities}
-              difficulties={difficulties}
-              questionTypes={question_types}
-              onOpenChange={setIsEditModalOpen}
-              onSuccess={() => setIsEditModalOpen(false)}
-            />
+            <Button
+              variant='outline'
+              onClick={() => {
+                setQuestionId(row.getValue() as number)
+                setIsEditModalOpen(true)
+              }}
+            >
+              <Pencil />
+            </Button>
           </div>
         )
       }
@@ -217,6 +217,20 @@ export default function Questions({ questions, filters, question_types, capabili
 
         <DataTable columns={columns} data={questions} />
       </div>
+
+      {questionId && (
+        <EditQuestionDialog
+          isOpen={isEditModalOpen}
+          id={questionId}
+          curricularAreas={curricular_areas}
+          competencies={competencies}
+          capabilities={capabilities}
+          difficulties={difficulties}
+          questionTypes={question_types}
+          onOpenChange={setIsEditModalOpen}
+          onSuccess={() => setIsEditModalOpen(false)}
+        />
+      )}
     </AppLayout>
   )
 }
