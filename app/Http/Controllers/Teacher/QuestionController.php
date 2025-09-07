@@ -359,10 +359,7 @@ class QuestionController extends Controller
 
             DB::commit();
 
-            return redirect()
-                ->route('teacher.questions.index')
-                ->with('success', 'Pregunta actualizada correctamente');
-
+            return back()->with('success', 'Pregunta actualizada correctamente');
         } catch (\Exception $e) {
             DB::rollBack();
 
