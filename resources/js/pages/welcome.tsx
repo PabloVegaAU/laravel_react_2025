@@ -35,48 +35,49 @@ export default function Welcome() {
       </Head>
       <div className='flex min-h-screen flex-col items-center bg-[#FDFDFC] p-6 text-[#1b1b18] lg:justify-center lg:p-8 dark:bg-[#0a0a0a]'>
         <header className='mb-6 w-full max-w-[335px] text-sm not-has-[nav]:hidden lg:max-w-4xl'>
-          <nav className='flex items-center justify-end gap-4'>
-            {roles.length > 0 ? (
-              <>
-                {roles.map((role) => (
+          {!isLoading && (
+            <nav className='flex items-center justify-end gap-4'>
+              {roles.length > 0 ? (
+                <>
+                  {roles.map((role) => (
+                    <Link
+                      key={role}
+                      href={route(role + '.dashboard')}
+                      className='inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] capitalize hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]'
+                    >
+                      {t('dashboard')} {t(role)}
+                    </Link>
+                  ))}
+                  <div>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Link
+                            className='hover:bg-accent block w-full rounded-md p-2 transition-colors'
+                            method='post'
+                            href={route('logout')}
+                            as='button'
+                            onClick={handleLogout}
+                          >
+                            <LogOut className='h-5 w-5' />
+                          </Link>
+                        </TooltipTrigger>
+                        <TooltipContent side='bottom'>
+                          <p>{t('Log Out')}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </>
+              ) : (
+                <>
                   <Link
-                    key={role}
-                    href={route(role + '.dashboard')}
-                    className='inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] capitalize hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]'
+                    href={route('login')}
+                    className='inline-block rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]'
                   >
-                    {t('dashboard')} {t(role)}
+                    {t('Log In')}
                   </Link>
-                ))}
-                <div>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Link
-                          className='hover:bg-accent block w-full rounded-md p-2 transition-colors'
-                          method='post'
-                          href={route('logout')}
-                          as='button'
-                          onClick={handleLogout}
-                        >
-                          <LogOut className='h-5 w-5' />
-                        </Link>
-                      </TooltipTrigger>
-                      <TooltipContent side='bottom'>
-                        <p>{t('Log Out')}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              </>
-            ) : (
-              <>
-                <Link
-                  href={route('login')}
-                  className='inline-block rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]'
-                >
-                  {t('Log In')}
-                </Link>
-                {/* 
+                  {/* 
                 <Link
                   href={route('register')}
                   className='inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]'
@@ -84,9 +85,10 @@ export default function Welcome() {
                   {t('Register')}
                 </Link>
                 */}
-              </>
-            )}
-          </nav>
+                </>
+              )}
+            </nav>
+          )}
         </header>
         <div className='flex w-full items-center justify-center opacity-100 transition-opacity duration-750 lg:grow starting:opacity-0'>
           <main>
