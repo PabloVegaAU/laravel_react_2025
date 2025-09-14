@@ -12,7 +12,16 @@ class AvatarController extends Controller
 {
     public function index()
     {
-        $avatars = Avatar::latest()->paginate(10);
+        $query = Avatar::query();
+
+        // Handle search query
+        if (request()->has('search') && ! empty(request('search'))) {
+            $search = '%'.request('search').'%';
+            $query->where('name', 'like', $search)
+                ->orWhere('price', 'like', $search);
+        }
+
+        $avatars = $query->latest()->paginate(10);
 
         if (request()->wantsJson()) {
             return response()->json([

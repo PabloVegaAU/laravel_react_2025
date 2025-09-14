@@ -5,18 +5,48 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import AppLayout from '@/layouts/app-layout'
 import type { Avatar } from '@/types/avatar'
-import { Head } from '@inertiajs/react'
+import { Head, router } from '@inertiajs/react'
 import { ColumnDef } from '@tanstack/react-table'
 import { Edit, Plus, Search } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CreateAvatarModal } from './create-avatar-modal'
 import { EditAvatarModal } from './edit-avatar-modal'
 
-export default function AvatarsPage({ avatars }: any) {
+export default function AvatarsPage({ avatars: initialAvatars }: { avatars: any }) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [isSearching, setIsSearching] = useState(false)
+  const [avatarsData, setAvatarsData] = useState(initialAvatars)
+
+  // Handle search with debounce
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      if (searchTerm !== '') {
+        setIsSearching(true)
+        router.get(
+          '/admin/avatars',
+          { search: searchTerm },
+          {
+            preserveState: true,
+            onSuccess: (page) => {
+              setAvatarsData(page.props.avatars)
+              setIsSearching(false)
+            },
+            onError: () => {
+              setIsSearching(false)
+            }
+          }
+        )
+      } else {
+        // If search is empty, reset to initial data
+        setAvatarsData(initialAvatars)
+      }
+    }, 500) // 500ms debounce
+
+    return () => clearTimeout(delayDebounce)
+  }, [searchTerm])
 
   const columns: ColumnDef<Avatar>[] = [
     {
@@ -83,37 +113,6 @@ export default function AvatarsPage({ avatars }: any) {
     }
   ]
 
-  // Handle avatar deletion
-  /* const handleDelete = async (avatarId: number) => {
-    if (!confirm('¿Estás seguro de eliminar este avatar?')) {
-      return
-    }
-
-    try {
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-      const response = await fetch(`/admin/avatars/${avatarId}`, {
-        method: 'POST',
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-CSRF-TOKEN': csrfToken,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ _method: 'DELETE' })
-      })
-
-      if (!response.ok) {
-        throw new Error('Error eliminando avatar')
-      }
-
-      // Reload the avatars list
-      await fetchAvatars()
-      toast.success('Avatar eliminado correctamente')
-    } catch (error) {
-      console.error('Error eliminando avatar:', error)
-      toast.error(error instanceof Error ? error.message : 'Error eliminando avatar')
-    }
-  } */
-
   return (
     <AppLayout>
       <FlashMessages />
@@ -131,16 +130,22 @@ export default function AvatarsPage({ avatars }: any) {
                 className='pl-8'
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                disabled={isSearching}
               />
+              {isSearching && (
+                <div className='absolute top-2 right-2'>
+                  <div className='h-4 w-4 animate-spin rounded-full border-2 border-gray-400 border-t-transparent'></div>
+                </div>
+              )}
             </div>
             <Button onClick={() => setIsCreateModalOpen(true)}>
               <Plus className='mr-2 h-4 w-4' />
-              Crear Avatar
+              Nuevo Avatar
             </Button>
           </div>
         </div>
 
-        <DataTable columns={columns} data={avatars} />
+        <DataTable columns={columns} data={avatarsData} />
       </div>
 
       <CreateAvatarModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} onSuccess={async () => setIsCreateModalOpen(false)} />
