@@ -44,7 +44,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
       <form className='flex flex-col gap-6' onSubmit={submit}>
         <div className='grid gap-6'>
           <div className='grid gap-2'>
-            <Label htmlFor='name'>{t('DNI')}</Label>
+            <Label htmlFor='name'>{t('Usuario')}</Label>
             <Input
               id='name'
               type='text'
@@ -54,7 +54,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
               autoComplete='name'
               value={data.name}
               onChange={(e) => setData('name', e.target.value)}
-              placeholder={t('DNI')}
+              placeholder={t('Usuario')}
             />
             <InputError message={errors.name} />
           </div>
