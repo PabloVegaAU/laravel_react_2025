@@ -63,7 +63,7 @@ export function CreateTeacherDialog({ isOpen, onOpenChange }: CreateTeacherDialo
           {/* USUARIO */}
           <div className='grid grid-cols-2 gap-2'>
             <div className='flex flex-col gap-2'>
-              <Label htmlFor='name'>DNI (usuario)</Label>
+              <Label htmlFor='name'>Usuario</Label>
               <Input id='name' name='name' type='text' value={data.name} onChange={(e) => setData('name', e.target.value)} />
               <InputError message={errors.name} />
             </div>
