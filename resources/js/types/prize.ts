@@ -7,6 +7,7 @@ export interface Prize {
   points_cost: number
   is_active: boolean
   available_until: string | null
+  level_required: number
   created_at: string
   updated_at: string
   deleted_at: string | null

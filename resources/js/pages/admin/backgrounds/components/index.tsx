@@ -1,3 +1,4 @@
+import FlashMessages from '@/components/organisms/flash-messages'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -73,9 +74,10 @@ export default function BackgroundsPage() {
 
   return (
     <AppLayout>
-      <div className='container mx-auto p-6'>
-        <Head title='Gestión de Fondos' />
+      <Head title='Gestión de Fondos' />
+      <FlashMessages />
 
+      <div className='relative flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
         <div className='mb-6 flex items-center justify-between'>
           <h1 className='text-2xl font-bold text-gray-900 dark:text-gray-100'>Gestión de Fondos</h1>
           <div className='flex items-center space-x-4'>

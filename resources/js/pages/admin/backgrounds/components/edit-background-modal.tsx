@@ -30,7 +30,10 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
 
   const [formData, setFormData] = useState<FormDataState>({
     name: initialBackground.name,
-    level_required: initialBackground.level_required.level.toString(),
+    level_required:
+      typeof initialBackground.level_required === 'number'
+        ? initialBackground.level_required.toString()
+        : initialBackground.level_required.level.toString(),
     activo: initialBackground.activo,
     points_store:
       typeof initialBackground.points_store === 'number' ? initialBackground.points_store.toString() : initialBackground.points_store || '0',
@@ -41,7 +44,10 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
   useEffect(() => {
     setFormData({
       name: initialBackground.name,
-      level_required: initialBackground.level_required.level.toString(),
+      level_required:
+        typeof initialBackground.level_required === 'number'
+          ? initialBackground.level_required.toString()
+          : initialBackground.level_required.level.toString(),
       activo: initialBackground.activo,
       points_store:
         typeof initialBackground.points_store === 'number' ? initialBackground.points_store.toString() : initialBackground.points_store || '0',
@@ -76,7 +82,10 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
 
   const [formState, setFormState] = useState({
     level_required: initialBackground.level_required,
-    calculated_level: initialBackground.level_required.level.toString()
+    calculated_level:
+      typeof initialBackground.level_required === 'number'
+        ? initialBackground.level_required.toString()
+        : initialBackground.level_required.level.toString()
   })
 
   // Update form data when initialBackground changes
@@ -84,7 +93,10 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
     setFormData((prev) => ({
       ...prev,
       name: initialBackground.name,
-      level_required: initialBackground.level_required.level.toString(),
+      level_required:
+        typeof initialBackground.level_required === 'number'
+          ? initialBackground.level_required.toString()
+          : initialBackground.level_required.level.toString(),
       activo: initialBackground.activo,
       points_store:
         typeof initialBackground.points_store === 'number' ? initialBackground.points_store.toString() : initialBackground.points_store || '0',

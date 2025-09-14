@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Prize } from '@/types/prize'
 import { router, useForm } from '@inertiajs/react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -10,21 +11,6 @@ type Level = {
   id: number
   name: string
   level: number
-}
-
-type Prize = {
-  id: number
-  name: string
-  description: string
-  points_cost: number
-  stock: number
-  available_until: string | null
-  is_active: boolean
-  image: string
-  created_at: string
-  updated_at: string
-  level_required?: number | null // 👈 por si viene columna
-  required_level?: { id: number; name: string; level: number } | null // 👈 por si viene relación
 }
 
 type EditPrizeModalProps = {
@@ -66,7 +52,7 @@ export function EditPrizeModal({ isOpen, onClose, prize: initialPrize, onSuccess
     available_until: prize.available_until || '',
     is_active: prize.is_active ?? true,
     image: null,
-    level_required_id: prize.required_level?.id ?? prize.level_required ?? null, // 👈 inicialización flexible
+    level_required_id: prize.level_required ?? prize.level_required ?? null, // 👈 inicialización flexible
     _method: 'PUT'
   })
 
@@ -80,7 +66,7 @@ export function EditPrizeModal({ isOpen, onClose, prize: initialPrize, onSuccess
         available_until: prize.available_until || '',
         is_active: prize.is_active,
         image: null,
-        level_required_id: prize.required_level?.id ?? prize.level_required ?? null,
+        level_required_id: prize.level_required ?? prize.level_required ?? null,
         _method: 'PUT'
       })
 
@@ -168,8 +154,7 @@ export function EditPrizeModal({ isOpen, onClose, prize: initialPrize, onSuccess
           image: prizeData?.image || prize.image || '',
           created_at: prizeData.created_at || prize.created_at,
           updated_at: prizeData.updated_at || new Date().toISOString(),
-          level_required: prizeData?.level_required ?? prize.level_required ?? null,
-          required_level: prizeData?.required_level ?? prize.required_level ?? null
+          level_required: prizeData?.level_required ?? prize.level_required ?? null
         }
 
         toast.success('Premio actualizado exitosamente')

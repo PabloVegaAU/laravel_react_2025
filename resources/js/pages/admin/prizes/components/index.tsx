@@ -1,122 +1,85 @@
+import DataTable from '@/components/organisms/data-table'
+import FlashMessages from '@/components/organisms/flash-messages'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import AppLayout from '@/layouts/app-layout'
-
+import { PaginatedResponse } from '@/types/core'
+import { Prize } from '@/types/prize'
 import { Head } from '@inertiajs/react'
-import { Edit, Plus, Search } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Plus, Search } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { CreatePrizeModal } from './create-prize-modal'
 import { EditPrizeModal } from './edit-prize-modal'
-
-type Prize = {
-  id: number
-  name: string
-  description: string
-  points_cost: number
-  stock: number
-  available_until: string | null
-  is_active: boolean
-  image: string
-  created_at: string
-  updated_at: string
-}
+import { prizeColumns } from './prize-columns'
 
 export default function TeacherPrizesPage() {
-  const [prizes, setPrizes] = useState<Prize[]>([])
+  const [prizesData, setPrizesData] = useState<PaginatedResponse<Prize> | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedPrize, setSelectedPrize] = useState<Prize | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10
+  })
 
-  // Función para cargar los premios
-  const fetchPrizes = async () => {
+  // Función para cargar los premios con paginación y búsqueda
+  const fetchPrizes = useCallback(async () => {
     try {
       setIsLoading(true)
-      const response = await fetch('/admin/prizes?page=1', {
+      const queryParams = new URLSearchParams({
+        page: (pagination.pageIndex + 1).toString(),
+        per_page: pagination.pageSize.toString(),
+        ...(searchTerm && { search: searchTerm })
+      })
+
+      const response = await fetch(`/admin/prizes?${queryParams}`, {
         headers: {
           Accept: 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-          'Content-Type': 'application/json'
+          'X-Requested-With': 'XMLHttpRequest'
         }
       })
 
       if (!response.ok) {
-        const errorText = await response.text()
-        console.error('Error response:', errorText)
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
       const data = await response.json()
-
-      // Handle different possible response structures
-      if (data.prizes && data.prizes.data) {
-        setPrizes(data.prizes.data)
-      } else if (Array.isArray(data)) {
-        setPrizes(data)
-      } else if (data.data) {
-        setPrizes(data.data)
-      } else {
-        console.warn('Unexpected API response structure:', data)
-        setPrizes([])
-      }
+      setPrizesData(data.prizes || data)
     } catch (error) {
       console.error('Error al cargar los premios:', error)
       toast.error('Error al cargar la lista de premios')
     } finally {
       setIsLoading(false)
     }
+  }, [pagination.pageIndex, pagination.pageSize, searchTerm])
+
+  // Cargar los premios cuando cambia la paginación o el término de búsqueda
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      fetchPrizes()
+    }, 300) // Debounce de 300ms para la búsqueda
+
+    return () => clearTimeout(timeoutId)
+  }, [fetchPrizes])
+
+  // Manejar edición de premio
+  const handleEdit = (prize: Prize) => {
+    setSelectedPrize(prize)
+    setIsEditModalOpen(true)
   }
 
-  // Cargar los premios al montar el componente
-  useEffect(() => {
-    fetchPrizes()
-  }, [])
-
-  const filteredPrizes = prizes.filter(
-    (prize) =>
-      prize.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      prize.points_cost.toString().includes(searchTerm) ||
-      prize.stock.toString().includes(searchTerm)
-  )
-
-  /* const handleDelete = async (prizeId: number) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar este premio?')) {
-      return
-    }
-
-    try {
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-      const response = await fetch(`/admin/prizes/${prizeId}`, {
-        method: 'POST',
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-CSRF-TOKEN': csrfToken,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ _method: 'DELETE' })
-      })
-
-      if (!response.ok) {
-        throw new Error('Error al eliminar el premio')
-      }
-
-      // Recargar la lista completa de premios
-      await fetchPrizes()
-      toast.success('Premio eliminado exitosamente')
-    } catch (error) {
-      console.error('Error deleting prize:', error)
-      toast.error(error instanceof Error ? error.message : 'Error al eliminar el premio')
-    }
-  } */
+  // Actualizar columnas para incluir el manejador de edición
+  const columns = prizeColumns({ onEdit: handleEdit }) // ✅ Correct: Passing object with onEdit
 
   return (
     <AppLayout>
-      <div className='container mx-auto p-6'>
-        <Head title='Gestión de Premios' />
+      <Head title='Gestión de Premios' />
+      <FlashMessages />
 
+      <div className='relative flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
         <div className='mb-6 flex items-center justify-between'>
           <h1 className='text-2xl font-bold text-gray-900 dark:text-gray-100'>Gestión de Premios</h1>
           <div className='flex items-center space-x-4'>
@@ -138,97 +101,15 @@ export default function TeacherPrizesPage() {
         </div>
 
         <div className='dark:border-sidebar-border dark:bg-sidebar rounded-lg border border-gray-200 bg-white'>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Imagen</TableHead>
-                <TableHead>Nombre</TableHead>
-                <TableHead>Puntos</TableHead>
-                <TableHead>Stock</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className='dark:text-sidebar-foreground/60 py-4 text-center text-gray-600'>
-                    Cargando premios...
-                  </TableCell>
-                </TableRow>
-              ) : filteredPrizes.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className='dark:text-sidebar-foreground/60 py-4 text-center text-gray-600'>
-                    No se encontraron premios
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredPrizes.map((prize) => (
-                  <TableRow key={prize.id}>
-                    <TableCell>
-                      {prize.image ? (
-                        <img
-                          src={prize.image.startsWith('http') ? prize.image : `${prize.image}`}
-                          alt={prize.name}
-                          className='h-10 w-10 rounded-full object-cover'
-                        />
-                      ) : (
-                        <div className='dark:bg-sidebar-border flex h-10 w-10 items-center justify-center rounded-full bg-gray-200'>
-                          <span className='dark:text-sidebar-foreground/60 text-xs text-gray-500'>Sin imagen</span>
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className='font-medium'>{prize.name}</TableCell>
-                    <TableCell className='dark:text-sidebar-foreground/70 text-gray-700'>{prize.points_cost} pts</TableCell>
-                    <TableCell className='dark:text-sidebar-foreground/70 text-gray-700'>{prize.stock} unidades</TableCell>
-                    <TableCell>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          prize.is_active
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                        }`}
-                      >
-                        {prize.is_active ? 'Activo' : 'Inactivo'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className='flex space-x-2'>
-                        <Button
-                          variant='ghost'
-                          size='icon'
-                          onClick={() => {
-                            setSelectedPrize(prize)
-                            setIsEditModalOpen(true)
-                          }}
-                          title='Editar premio'
-                        >
-                          <Edit className='h-4 w-4' />
-                        </Button>
-                        {/* <Button
-                          variant='ghost'
-                          size='icon'
-                          onClick={() => handleDelete(prize.id)}
-                          className='text-destructive hover:text-destructive'
-                          title='Eliminar premio'
-                        >
-                          <Trash2 className='h-4 w-4' />
-                        </Button> */}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+          {prizesData && <DataTable data={prizesData} columns={columns} />}
         </div>
       </div>
 
       <CreatePrizeModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={async () => {
-          await fetchPrizes()
+        onSuccess={() => {
+          fetchPrizes()
           setIsCreateModalOpen(false)
         }}
       />
@@ -238,13 +119,13 @@ export default function TeacherPrizesPage() {
           isOpen={isEditModalOpen}
           onClose={() => {
             setIsEditModalOpen(false)
-            setSelectedPrize(null) // Reset selectedPrize when closing
+            setSelectedPrize(null)
           }}
           prize={selectedPrize}
-          onSuccess={async () => {
-            await fetchPrizes()
+          onSuccess={() => {
+            fetchPrizes()
             setIsEditModalOpen(false)
-            setSelectedPrize(null) // Reset selectedPrize after successful update
+            setSelectedPrize(null)
           }}
         />
       )}

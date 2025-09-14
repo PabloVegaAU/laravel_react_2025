@@ -10,14 +10,22 @@ use Inertia\Inertia;
 
 class PrizeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $prizes = Prize::latest()->paginate(10);
+        $perPage = $request->input('per_page', 10);
+        $search = $request->input('search');
 
-        if (request()->wantsJson()) {
-            return response()->json([
-                'prizes' => $prizes,
-            ]);
+        $query = Prize::query()
+            ->when($search, function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            })
+            ->latest();
+
+        $prizes = $query->paginate($perPage);
+
+        if ($request->wantsJson()) {
+            return response()->json($prizes);
         }
 
         return Inertia::render('admin/prizes/index', [

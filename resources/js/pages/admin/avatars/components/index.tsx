@@ -1,4 +1,5 @@
 import DataTable from '@/components/organisms/data-table'
+import FlashMessages from '@/components/organisms/flash-messages'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -115,9 +116,10 @@ export default function AvatarsPage({ avatars }: any) {
 
   return (
     <AppLayout>
-      <div className='container mx-auto p-6'>
-        <Head title='Gestión de Avatar' />
+      <FlashMessages />
+      <Head title='Gestión de Avatar' />
 
+      <div className='relative flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
         <div className='mb-6 flex items-center justify-between'>
           <h1 className='text-2xl font-bold text-gray-900 dark:text-gray-100'>Gestión de Avatar</h1>
           <div className='flex items-center space-x-4'>

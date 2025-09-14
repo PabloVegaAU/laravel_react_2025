@@ -1,5 +1,6 @@
 // components/organisms/data-table.tsx
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { cn } from '@/lib/utils'
 import { PaginatedResponse } from '@/types/core'
 import { Link } from '@inertiajs/react'
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
@@ -25,8 +26,8 @@ export default function DataTable<TData>({ data, columns }: DataTableProps<TData
   })
 
   return (
-    <div className='space-y-4'>
-      <Table>
+    <div className='space-y-4 rounded-lg border p-0.5'>
+      <Table className='w-full table-auto'>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
@@ -41,7 +42,11 @@ export default function DataTable<TData>({ data, columns }: DataTableProps<TData
             table.getRowModel().rows.map((row) => (
               <TableRow key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                  <TableCell key={cell.id}>
+                    <div className={cn('line-clamp-2 break-words text-ellipsis whitespace-normal', cell.column.columnDef.meta?.className)}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </div>
+                  </TableCell>
                 ))}
               </TableRow>
             ))

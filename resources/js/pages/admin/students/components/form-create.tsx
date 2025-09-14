@@ -56,7 +56,7 @@ export function CreateStudentDialog({ isOpen, onOpenChange }: CreateStudentDialo
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
+      <DialogTrigger asChild className='w-fit'>
         <Button variant='outline-info'>Agregar estudiante</Button>
       </DialogTrigger>
       <DialogContent className='sm:max-w-[700px]'>

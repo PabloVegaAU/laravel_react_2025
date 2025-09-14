@@ -21,7 +21,7 @@ export type ApiBackground = Omit<Background, 'level_required' | 'level_name'> & 
 }
 
 export type EditModalBackground = Omit<Background, 'level_required'> & {
-  level_required: Level // In the edit modal, we'll always have a full Level object
+  level_required: number | Level
   activo: boolean
 }
 

@@ -1,3 +1,4 @@
+import FlashMessages from '@/components/organisms/flash-messages'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import AppLayout from '@/layouts/app-layout'
@@ -111,7 +112,9 @@ export default function Dashboard() {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title='Tienda de Puntos - Premios' />
-      <div className='container mx-auto px-4 py-6'>
+      <FlashMessages />
+
+      <div className='relative flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
         {/* Header Section */}
         <div className='mb-8 flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0'>
           <div className='bg-background rounded-lg border p-6 shadow-sm'>

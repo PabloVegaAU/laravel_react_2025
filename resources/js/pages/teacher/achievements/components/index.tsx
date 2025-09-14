@@ -1,3 +1,4 @@
+import FlashMessages from '@/components/organisms/flash-messages'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -71,7 +72,8 @@ export default function AchievementsListPage() {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title='Listado de Logros' />
-      <div className='container mx-auto p-6'>
+      <FlashMessages />
+      <div className='relative flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
         <div className='mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between'>
           <h1 className='text-2xl font-bold text-gray-800'>Listado de Logros</h1>
           <div className='flex gap-4'>

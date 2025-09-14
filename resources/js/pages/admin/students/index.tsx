@@ -59,9 +59,10 @@ export default function Students({ users }: PageProps) {
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title='Docentes' />
       <FlashMessages />
-      <CreateStudentDialog isOpen={isCreateModalOpen} onOpenChange={setIsCreateModalOpen} />
 
       <div className='flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
+        <CreateStudentDialog isOpen={isCreateModalOpen} onOpenChange={setIsCreateModalOpen} />
+
         <DataTable columns={columns} data={users} />
       </div>
     </AppLayout>

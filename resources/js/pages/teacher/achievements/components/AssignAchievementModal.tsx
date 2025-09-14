@@ -82,7 +82,7 @@ export function AssignAchievementModal({ isOpen, onClose, achievementId, teacher
                 <TableHead></TableHead>
                 <TableHead>Puntos</TableHead>
                 <TableHead>Nombre</TableHead>
-                <TableHead>Apellido</TableHead>
+                <TableHead>Puntos</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
