@@ -1,3 +1,4 @@
+import type { BaseEntity } from '@/types/core'
 import type { ApplicationForm } from '../application-form'
 import type { Teacher } from '../user'
 import type { Classroom } from './classroom'
@@ -11,15 +12,12 @@ import type { TeacherClassroomCurricularAreaCycle } from './teacher-classroom-cu
  * @see database/migrations/2025_06_22_100060_create_curricular_areas_table.php
  * @see app/Models/CurricularArea.php
  */
-export interface CurricularArea {
-  id: number
+export type CurricularArea = BaseEntity & {
   name: string
   description: string
   color: string
-  created_at: string
-  updated_at: string
 
-  // Relationships
+  // Relaciones
   competencies?: Competency[]
   application_forms?: ApplicationForm[]
   cycles?: Cycle[]
@@ -28,27 +26,3 @@ export interface CurricularArea {
   curricular_area_cycles?: CurricularAreaCycle[]
   teacher_classroom_curricular_area_cycles?: TeacherClassroomCurricularAreaCycle[]
 }
-
-/**
- * Tipo para crear un área curricular
- * Basado en el modelo CurricularArea
- */
-export type CreateCurricularArea = Omit<
-  CurricularArea,
-  | 'id'
-  | 'created_at'
-  | 'updated_at'
-  | 'competencies'
-  | 'application_forms'
-  | 'cycles'
-  | 'classrooms'
-  | 'teachers'
-  | 'curricular_area_cycles'
-  | 'teacher_classroom_curricular_area_cycles'
->
-
-/**
- * Tipo para actualizar un área curricular
- * Basado en el modelo CurricularArea
- */
-export type UpdateCurricularArea = Partial<CreateCurricularArea>

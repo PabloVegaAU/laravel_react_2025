@@ -1,17 +1,19 @@
 import DataTable from '@/components/organisms/data-table'
 import FlashMessages from '@/components/organisms/flash-messages'
+import { Button } from '@/components/ui/button'
 import AppLayout from '@/layouts/app-layout'
 import { Profile } from '@/types/auth'
 import { BreadcrumbItem, PaginatedResponse, ResourcePageProps } from '@/types/core'
-import { User } from '@/types/user'
+import { Student } from '@/types/user'
 import { Head } from '@inertiajs/react'
 import { ColumnDef } from '@tanstack/react-table'
-import { useState } from 'react'
+import { PencilIcon } from 'lucide-react'
+import { useCallback, useState } from 'react'
 import { CreateStudentDialog } from './components/form-create'
 import { EditStudentDialog } from './components/form-edit'
 
-type PageProps = Omit<ResourcePageProps<User>, 'data'> & {
-  users: PaginatedResponse<User>
+type PageProps = Omit<ResourcePageProps<Student>, 'data'> & {
+  students: PaginatedResponse<Student>
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -21,17 +23,31 @@ const breadcrumbs: BreadcrumbItem[] = [
   }
 ]
 
-export default function Students({ users }: PageProps) {
+export default function Students({ students }: PageProps) {
+  console.log(students)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [editingStudentId, setEditingStudentId] = useState<number | null>(null)
 
-  const columns: ColumnDef<User>[] = [
+  // Memoizar la función de edición
+  const handleEditClick = useCallback((studentId: number) => {
+    setEditingStudentId(studentId)
+  }, [])
+
+  // Resetear el estado cuando se cierra el diálogo
+  const handleDialogOpenChange = useCallback((open: boolean) => {
+    if (!open) {
+      setEditingStudentId(null)
+    }
+  }, [])
+
+  const columns: ColumnDef<Student>[] = [
     {
       header: 'ID',
-      accessorKey: 'id'
+      accessorKey: 'user_id'
     },
     {
       header: 'Usuario',
-      accessorKey: 'name'
+      accessorKey: 'user.name'
     },
     {
       header: 'Nombres y apellidos',
@@ -43,12 +59,16 @@ export default function Students({ users }: PageProps) {
     },
     {
       header: 'Acciones',
-      accessorKey: 'id',
+      accessorKey: 'user_id',
       cell(row) {
         const userId = row.cell.getValue() as number
+        const isEditingThisStudent = editingStudentId === userId
+
         return (
-          <div className='flex gap-2' id={userId.toString()}>
-            <EditStudentDialog userId={userId} />
+          <div className='flex gap-2'>
+            <Button variant={isEditingThisStudent ? 'info' : 'outline-info'} onClick={() => handleEditClick(userId)}>
+              <PencilIcon className='size-4' />
+            </Button>
           </div>
         )
       }
@@ -59,12 +79,12 @@ export default function Students({ users }: PageProps) {
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title='Docentes' />
       <FlashMessages />
-
-      <div className='flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
+      <div className='flex flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
         <CreateStudentDialog isOpen={isCreateModalOpen} onOpenChange={setIsCreateModalOpen} />
 
-        <DataTable columns={columns} data={users} />
+        <DataTable columns={columns} data={students} />
       </div>
+      {editingStudentId && <EditStudentDialog isOpen={!!editingStudentId} onOpenChange={handleDialogOpenChange} studentId={editingStudentId} />}{' '}
     </AppLayout>
   )
 }

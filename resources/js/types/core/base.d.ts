@@ -1,89 +1,26 @@
-import type { AxiosRequestConfig, AxiosResponse } from 'axios'
+// Tipos base comunes para toda la aplicación
+// Estos tipos aseguran consistencia entre entidades
 
-/**
- * Standard timestamp fields for database models
- */
+export type ID = number
+
+export type DateString = string
+
 export interface Timestamps {
-  created_at: string
-  updated_at: string
-  deleted_at?: string | null
+  created_at: DateString
+  updated_at: DateString
+  deleted_at: DateString | null
 }
 
-/**
- * Standard pagination response from Laravel
- */
-export interface PaginatedResponse<T> {
-  data: T[]
-  links: {
-    first: string | null
-    last: string | null
-    prev: string | null
-    next: string | null
-  }
-  meta: {
-    current_page: number
-    from: number
-    last_page: number
-    path: string
-    per_page: number
-    to: number
-    total: number
-  }
+export interface BaseEntity extends Timestamps {
+  id: ID
 }
 
-/**
- * Standard API response wrapper
- */
-export interface ApiResponse<T = any> {
-  data: T
-  message?: string
-  status: number
-}
+// Tipos auxiliares para operaciones comunes
+export type Nullable<T> = T | null
 
-/**
- * Type for API error responses
- */
-export interface ApiError {
-  message: string
-  errors?: Record<string, string[]>
-  status: number
-}
+export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
-/**
- * Type for pagination parameters
- */
-export interface PaginationParams {
-  page?: number
-  per_page?: number
-  sort_by?: string
-  sort_order?: 'asc' | 'desc'
-}
+// Estados comunes
+export type Status = 'active' | 'inactive'
 
-/**
- * Type for filter parameters
- */
-export interface FilterParams {
-  [key: string]: string | number | boolean | null | undefined
-}
-
-/**
- * Combined type for query parameters
- */
-export type QueryParams = PaginationParams & FilterParams
-
-/**
- * Type for API request configuration
- */
-export interface ApiRequestConfig extends AxiosRequestConfig {
-  // Add any custom request config here
-}
-
-/**
- * Type for API response
- */
-export type ApiResponseWrapper<T> = AxiosResponse<ApiResponse<T>>
-
-/**
- * Type for paginated API response
- */
-export type PaginatedApiResponse<T> = ApiResponse<PaginatedResponse<T>>
+export type UserRole = 'admin' | 'teacher' | 'student'

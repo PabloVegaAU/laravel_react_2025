@@ -29,20 +29,22 @@ export default function DataTable<TData>({ data, columns }: DataTableProps<TData
     <div className='space-y-4 rounded-lg border p-0.5'>
       <Table className='w-full table-auto'>
         <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}</TableHead>
+          {table.getHeaderGroups().map((headerGroup, index) => (
+            <TableRow key={`${headerGroup.id}-${index}`}>
+              {headerGroup.headers.map((header, headerIndex) => (
+                <TableHead key={`header-${header.id}-${headerIndex}`}>
+                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                </TableHead>
               ))}
             </TableRow>
           ))}
         </TableHeader>
         <TableBody>
           {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
+            table.getRowModel().rows.map((row, rowIndex) => (
+              <TableRow key={`row-${row.id}-${rowIndex}`}>
+                {row.getVisibleCells().map((cell, cellIndex) => (
+                  <TableCell key={`cell-${cell.id}-${cellIndex}-${rowIndex}`}>
                     <div className={cn('line-clamp-2 break-words text-ellipsis whitespace-normal', cell.column.columnDef.meta?.className)}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </div>

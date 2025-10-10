@@ -3,21 +3,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import AppLayout from '@/layouts/app-layout'
+import { Background } from '@/types/background'
 import { Head } from '@inertiajs/react'
 import { Edit, Plus, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { CreateBackgroundModal } from './create-background-modal'
 import { EditBackgroundModal } from './edit-background-modal'
-
-type Background = {
-  id: number
-  name: string
-  image: string
-  activo: boolean
-  level_required: number
-  points_store: number
-  level_required_name?: string
-}
 
 export default function BackgroundsPage() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -55,7 +46,7 @@ export default function BackgroundsPage() {
   const filteredBackgrounds = backgrounds.filter(
     (background) =>
       background.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      background.level_required_name?.toLowerCase().includes(searchTerm.toLowerCase())
+      background.level_required?.toString().toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   /* const handleDelete = async (id: number) => {
@@ -171,11 +162,15 @@ export default function BackgroundsPage() {
           }}
           background={{
             ...selectedBackground,
-            level_name: `Nivel ${selectedBackground.level_required}`, // Add level_name
-            level_required: {
+            requiredLevel: {
               id: selectedBackground.level_required,
               level: selectedBackground.level_required,
-              name: `Nivel ${selectedBackground.level_required}`
+              name: `Nivel ${selectedBackground.level_required}`,
+              experience_max: 0,
+              experience_required: 0,
+              created_at: selectedBackground.created_at,
+              updated_at: selectedBackground.updated_at,
+              deleted_at: selectedBackground.deleted_at
             }
           }}
           onSuccess={(updatedBackground) => {

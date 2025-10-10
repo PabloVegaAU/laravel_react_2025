@@ -1,4 +1,5 @@
 import { Profile } from '@/types/auth'
+import { Timestamps } from '@/types/core'
 import { Classroom } from '../../academic/classroom'
 import { Enrollment } from '../../academic/enrollment'
 import { Level } from '../../academic/level'
@@ -18,20 +19,17 @@ type StudentStatus = 'active' | 'inactive' | 'suspended' | 'graduated' | 'withdr
  * @see database/migrations/2025_06_22_100030_create_students_table.php
  * @see app/Models/Student.php
  */
-export interface Student {
+export type Student = Timestamps & {
   user_id: number
-  level_id: number | null
-  range_id: number | null
+  level_id: number
+  range_id: number
   entry_date: string
   status: StudentStatus
   experience_achieved: number
   points_store: number
   graduation_date: string | null
-  created_at: string
-  updated_at: string
-  deleted_at: string | null
 
-  // Relationships
+  // Relaciones
   user?: User
   level?: Level | null
   range?: Range | null
@@ -50,19 +48,23 @@ export interface Student {
  * Tipo para crear un nuevo estudiante
  * @see database/migrations/2025_06_22_100030_create_students_table.php
  */
-export interface CreateStudent {
-  user_id: number
-  level_id: number
-  range_id: number
-  entry_date: string
-  status?: StudentStatus
-  experience_achieved?: number
-  points_store?: number
-  graduation_date?: string | null
+export type CreateStudent = {
+  /* USER */
+  name: string
+  password: string
+  /* PROFILE */
+  email: string
+  firstName: string
+  lastName: string
+  secondLastName: string
+  birthDate: string
+  phone: string
+  /* STUDENT */
+  entryDate: string
 }
 
 /**
  * Tipo para actualizar un estudiante existente
  * @see database/migrations/2025_06_22_100030_create_students_table.php
  */
-export type UpdateStudent = Partial<Omit<CreateStudent, 'user_id'>>
+type UpdateStudent = Partial<CreateStudent>
