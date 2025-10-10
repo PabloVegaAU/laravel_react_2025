@@ -1,20 +1,18 @@
-import { User } from '../user/user'
+import type { Timestamps } from '@/types/core'
+import type { User } from '../user/user'
 
 /**
  * Representa la información extendida del perfil de un usuario
  * @see database/migrations/2025_06_22_100020_create_profiles_table.php
  * @see app/Models/Profile.php
  */
-export interface Profile {
+export type Profile = Timestamps & {
   user_id: number
   first_name: string
   last_name: string
   second_last_name: string | null
   birth_date: string | null
   phone: string | null
-  created_at: string
-  updated_at: string
-  deleted_at: string | null
 
   // Relaciones
   user?: User

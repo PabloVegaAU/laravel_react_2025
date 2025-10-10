@@ -1,42 +1,67 @@
-export type Level = {
-  id: number
-  name: string
-  level: number
-}
+import { Level } from './academic'
+import { BaseEntity } from './core'
 
-export type Background = {
-  id: number
+/**
+ * Representa un fondo en el sistema educativo
+ * @see database/migrations/2025_06_22_100440_create_backgrounds_table.php
+ * @see app/Models/Background.php
+ */
+export type Background = BaseEntity & {
   name: string
   image: string
-  level_required: number // In the component state, we'll always have a number
+  level_required: number
+  points_store: number
   activo: boolean
-  points_store: string | number
-  level_name: string // In the component state, this will always be defined
-  updated_at?: string
+
+  // Relaciones opcionales cargadas desde el controlador
+  requiredLevel?: Level
 }
 
-export type ApiBackground = Omit<Background, 'level_required' | 'level_name'> & {
-  level_required: number | Level | null
-  level_name?: string
-}
-
-export type EditModalBackground = Omit<Background, 'level_required'> & {
-  level_required: number | Level
+/**
+ * Tipo para crear un nuevo fondo
+ * @see database/migrations/2025_06_22_100440_create_backgrounds_table.php
+ */
+export interface CreateBackgroundData {
+  name: string
+  level_required: number
+  points_store: number
+  image: File
   activo: boolean
 }
 
-// Type guards
-export function isLevelObject(level: any): level is Level {
-  return level && typeof level === 'object' && 'id' in level && 'name' in level && 'level' in level
+/**
+ * Tipo para actualizar un fondo existente
+ * @see database/migrations/2025_06_22_100440_create_backgrounds_table.php
+ */
+export type UpdateBackgroundData = Partial<CreateBackgroundData>
+
+/**
+ * Datos para el formulario de edición de fondo
+ * Incluye el nivel como objeto completo para facilitar la selección en el UI
+ */
+export type EditModalBackground = Background & {
+  // El nivel ya viene cargado desde el controlador como objeto completo
+  requiredLevel: Level
 }
 
-// Normalize API background to component background
-export function normalizeBackground(apiBackground: ApiBackground): Background {
-  return {
-    ...apiBackground,
-    level_required: isLevelObject(apiBackground.level_required) ? apiBackground.level_required.level : apiBackground.level_required || 0,
-    level_name:
-      apiBackground.level_name ||
-      (isLevelObject(apiBackground.level_required) ? apiBackground.level_required.name : `Nivel ${apiBackground.level_required || 1}`)
-  }
+/**
+ * Respuesta de la API al crear/actualizar un fondo
+ */
+export interface BackgroundResponse {
+  success: boolean
+  message: string
+  background?: Background
+}
+
+/**
+ * Filtros para búsqueda de fondos
+ */
+export interface BackgroundFilters {
+  search?: string
+  level_required?: number
+  activo?: boolean
+  page?: number
+  per_page?: number
+  sort_by?: 'name' | 'created_at' | 'updated_at'
+  sort_order?: 'asc' | 'desc'
 }

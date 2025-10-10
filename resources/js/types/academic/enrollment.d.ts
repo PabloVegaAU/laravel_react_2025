@@ -17,8 +17,7 @@ export type EnrollmentStatus = 'active' | 'completed' | 'transferred' | 'inactiv
  * @see database/migrations/2025_06_22_100130_create_enrollments_table.php
  * @see app/Models/Enrollment.php
  */
-export interface Enrollment {
-  id: number
+export type Enrollment = BaseEntity & {
   academic_year: number
   status: EnrollmentStatus
   enrollment_date: string
@@ -27,23 +26,8 @@ export interface Enrollment {
   notes: string | null
   student_id: number
   classroom_id: number
-  created_by: string | null
-  updated_by: string | null
-  created_at: string
-  updated_at: string
-  deleted_at: string | null
 
   // Relaciones
   student?: Student
   classroom?: Classroom
 }
-
-/**
- * Tipo para crear una nueva matrícula.
- */
-export type CreateEnrollment = Omit<Enrollment, 'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'student' | 'classroom'>
-
-/**
- * Tipo para actualizar una matrícula existente.
- */
-export type UpdateEnrollment = Partial<CreateEnrollment>

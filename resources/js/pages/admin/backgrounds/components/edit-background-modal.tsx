@@ -2,7 +2,8 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Background, EditModalBackground, Level } from '@/types/background'
+import { Level } from '@/types/academic'
+import { Background, EditModalBackground } from '@/types/background'
 import { router, useForm } from '@inertiajs/react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -30,10 +31,7 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
 
   const [formData, setFormData] = useState<FormDataState>({
     name: initialBackground.name,
-    level_required:
-      typeof initialBackground.level_required === 'number'
-        ? initialBackground.level_required.toString()
-        : initialBackground.level_required.level.toString(),
+    level_required: initialBackground.level_required.toString(),
     activo: initialBackground.activo,
     points_store:
       typeof initialBackground.points_store === 'number' ? initialBackground.points_store.toString() : initialBackground.points_store || '0',
@@ -44,10 +42,7 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
   useEffect(() => {
     setFormData({
       name: initialBackground.name,
-      level_required:
-        typeof initialBackground.level_required === 'number'
-          ? initialBackground.level_required.toString()
-          : initialBackground.level_required.level.toString(),
+      level_required: initialBackground.level_required.toString(),
       activo: initialBackground.activo,
       points_store:
         typeof initialBackground.points_store === 'number' ? initialBackground.points_store.toString() : initialBackground.points_store || '0',
@@ -82,10 +77,7 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
 
   const [formState, setFormState] = useState({
     level_required: initialBackground.level_required,
-    calculated_level:
-      typeof initialBackground.level_required === 'number'
-        ? initialBackground.level_required.toString()
-        : initialBackground.level_required.level.toString()
+    calculated_level: initialBackground.level_required.toString()
   })
 
   // Update form data when initialBackground changes
@@ -93,10 +85,7 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
     setFormData((prev) => ({
       ...prev,
       name: initialBackground.name,
-      level_required:
-        typeof initialBackground.level_required === 'number'
-          ? initialBackground.level_required.toString()
-          : initialBackground.level_required.level.toString(),
+      level_required: initialBackground.level_required.toString(),
       activo: initialBackground.activo,
       points_store:
         typeof initialBackground.points_store === 'number' ? initialBackground.points_store.toString() : initialBackground.points_store || '0',
@@ -184,8 +173,7 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
       ...initialBackground,
       name: formData.name,
       level_required: selectedLevel.level,
-      level_name: selectedLevel.name,
-      points_store: formData.points_store,
+      points_store: parseInt(formData.points_store),
       activo: formData.activo,
       image: typeof formData.image === 'string' ? previewImage || '' : initialBackground.image || ''
     }

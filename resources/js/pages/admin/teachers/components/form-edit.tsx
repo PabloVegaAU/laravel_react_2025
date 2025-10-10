@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { formatDateForInput } from '@/lib/formats'
 import { useForm } from '@inertiajs/react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { LoaderCircle, PencilIcon } from 'lucide-react'
@@ -37,16 +36,7 @@ export function EditTeacherDialog({ userId }: EditTeacherDialogProps) {
     enabled: isOpen
   })
 
-  const { data, setData, put, processing, errors, reset } = useForm<EditTeacher>({
-    name: user?.name ?? '',
-    password: '',
-    email: user?.email ?? '',
-    firstName: user?.profile?.first_name ?? '',
-    lastName: user?.profile?.last_name ?? '',
-    secondLastName: user?.profile?.second_last_name ?? '',
-    birthDate: formatDateForInput(user?.profile?.birth_date) ?? '',
-    phone: user?.profile?.phone ?? ''
-  })
+  const { data, setData, put, processing, errors, reset } = useForm<EditTeacher>()
 
   useEffect(() => {
     queryClient.resetQueries({ queryKey: ['user', userId] })
@@ -62,7 +52,7 @@ export function EditTeacherDialog({ userId }: EditTeacherDialogProps) {
         firstName: user.profile?.first_name ?? '',
         lastName: user.profile?.last_name ?? '',
         secondLastName: user.profile?.second_last_name ?? '',
-        birthDate: formatDateForInput(user.profile?.birth_date) ?? '',
+        birthDate: user.profile?.birth_date ?? '',
         phone: user.profile?.phone ?? ''
       })
     }

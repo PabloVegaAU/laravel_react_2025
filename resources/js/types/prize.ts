@@ -8,6 +8,7 @@ export interface Prize {
   is_active: boolean
   available_until: string | null
   level_required: number
+  type?: string | null
   created_at: string
   updated_at: string
   deleted_at: string | null

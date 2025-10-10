@@ -3,178 +3,105 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Student;
-use App\Models\User;
+use App\Http\Services\Admin\StudentService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
 class StudentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct(
+        private StudentService $studentService
+    ) {}
+
     public function index()
     {
-        $users = User::with(['profile', 'student'])
-            ->role('student')
-            ->paginate(10);
+        $students = $this->studentService->getPaginatedStudents();
 
         return Inertia::render('admin/students/index', [
-            'users' => $users,
+            'students' => $students,
         ]);
     }
 
-    public function studentToEnrollments()
-    {
-        $students = Student::with(['profile'])
-            ->get();
-
-        return response()->json($students);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'password' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
             'firstName' => 'required|string|max:255',
             'lastName' => 'required|string|max:255',
             'secondLastName' => 'required|string|max:255',
-            'birthDate' => 'required|date',
-            'phone' => 'required|string|max:255',
+            'birthDate' => 'required|date|before:today',
+            'phone' => 'required|string|max:20',
             'entryDate' => 'required|date',
         ]);
 
-        DB::beginTransaction();
-
         try {
-            $user = User::create([
-                'name' => $request->name,
-                'password' => Hash::make($request->password),
-                'email' => $request->email,
-            ]);
+            $this->studentService->createStudent($validated);
 
-            $user->assignRole('student');
-
-            $user->profile()->create([
-                'first_name' => $request->firstName,
-                'last_name' => $request->lastName,
-                'second_last_name' => $request->secondLastName,
-                'birth_date' => $request->birthDate,
-                'phone' => $request->phone,
-            ]);
-
-            $user->student()->create([
-                'entry_date' => $request->entryDate,
-                'status' => 'active',
-                'experience_achieved' => 0,
-                'points_store' => 0,
-                'graduation_date' => null,
-                'user_id' => $user->id,
-                'level_id' => 1,
-                'range_id' => 1,
-            ]);
-
-            DB::commit();
-
-            return redirect()->route('admin.students.index')->with('success', 'Estudiante creado exitosamente');
+            return redirect()->route('admin.students.index')
+                ->with('success', 'Estudiante creado exitosamente');
         } catch (\Exception $e) {
-            DB::rollBack();
-
-            return redirect()->back()->with('error', 'Error al crear el estudiante: '.$e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Error al crear el estudiante: '.$e->getMessage())
+                ->withInput();
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show(int $id)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function edit(int $id)
     {
-        $user = User::with(['profile', 'student'])->findOrFail($id);
+        $student = $this->studentService->findStudent($id);
 
-        return response()->json($user);
+        return response()->json($student);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function update(Request $request, int $id)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'password' => 'nullable|string|max:255',
-            'email' => 'required|email|max:255',
+            'email' => 'required|email|max:255|unique:users,email,'.$id.',id',
+            'password' => 'nullable|string|min:8|confirmed',
             'firstName' => 'required|string|max:255',
             'lastName' => 'required|string|max:255',
             'secondLastName' => 'required|string|max:255',
-            'birthDate' => 'required|date',
-            'phone' => 'required|string|max:255',
+            'birthDate' => 'required|date|before:today',
+            'phone' => 'required|string|max:20',
             'entryDate' => 'required|date',
+            'status' => 'sometimes|in:active,inactive,graduated',
+            'level_id' => 'sometimes|exists:levels,id',
         ]);
 
-        DB::beginTransaction();
         try {
-            $user = User::findOrFail($id);
-            $user->update([
-                'name' => $request->name,
-                'password' => $request->password ? Hash::make($request->password) : $user->password,
-                'email' => $request->email,
-            ]);
-            $user->profile()->update([
-                'first_name' => $request->firstName,
-                'last_name' => $request->lastName,
-                'second_last_name' => $request->secondLastName,
-                'birth_date' => $request->birthDate,
-                'phone' => $request->phone,
-            ]);
-            $user->student()->update([
-                'entry_date' => $request->entryDate,
-                'status' => 'active',
-                'experience_achieved' => 0,
-                'points_store' => 0,
-                'graduation_date' => null,
-                'user_id' => $user->id,
-                'level_id' => 1,
-                'range_id' => 1,
-            ]);
-
-            DB::commit();
+            $this->studentService->updateStudent($id, $validated);
 
             return redirect()->route(route: 'admin.students.index')->with('success', 'Estudiante actualizado exitosamente');
         } catch (\Exception $e) {
-            DB::rollBack();
-
-            return redirect()->back()->with('error', 'Error al actualizar el estudiante: '.$e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Error al actualizar el estudiante: '.$e->getMessage())
+                ->withInput();
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy(int $id)
     {
-        //
+        try {
+            $this->studentService->deleteStudent($id);
+
+            return redirect()->route('admin.students.index')
+                ->with('success', 'Estudiante eliminado exitosamente');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error al eliminar el estudiante: '.$e->getMessage());
+        }
     }
 }

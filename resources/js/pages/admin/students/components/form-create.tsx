@@ -3,21 +3,10 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { CreateStudent } from '@/types/user'
 import { useForm } from '@inertiajs/react'
 import { LoaderCircle } from 'lucide-react'
 
-type CreateStudent = {
-  name: string
-  password: string
-  email: string
-  firstName: string
-  lastName: string
-  secondLastName: string
-  birthDate: string
-  phone: string
-  /* STUDENT */
-  entryDate: string
-}
 
 interface CreateStudentDialogProps {
   isOpen: boolean

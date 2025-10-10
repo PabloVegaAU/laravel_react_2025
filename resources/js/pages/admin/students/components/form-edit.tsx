@@ -1,189 +1,200 @@
 import InputError from '@/components/input-error'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { formatDateForInput } from '@/lib/formats'
+import { UpdateStudent } from '@/types/user'
 import { useForm } from '@inertiajs/react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { LoaderCircle, PencilIcon } from 'lucide-react'
-import { useEffect, useState } from 'react'
-
-type EditStudent = {
-  /* USER */
-  name: string
-  password: string
-  email: string
-  /* PROFILE */
-  firstName: string
-  lastName: string
-  secondLastName: string
-  birthDate: string
-  phone: string
-  /* STUDENT */
-  entryDate: string
-}
+import { LoaderCircle } from 'lucide-react'
+import { memo, useEffect } from 'react'
 
 interface EditStudentDialogProps {
-  userId: number
+  isOpen: boolean
+  onOpenChange: (open: boolean) => void
+  studentId: number
 }
-
-export function EditStudentDialog({ userId }: EditStudentDialogProps) {
-  const [isOpen, setIsOpen] = useState(false)
+const EditStudentDialogComponent = memo(({ isOpen, onOpenChange, studentId }: EditStudentDialogProps) => {
   const queryClient = useQueryClient()
 
-  const { data: user, isLoading } = useQuery({
-    queryKey: ['user', userId],
-    queryFn: () => fetch(`/admin/students/${userId}/edit`).then((res) => res.json()),
-    enabled: isOpen
+  const { data: student, isLoading } = useQuery({
+    queryKey: ['student', studentId],
+    queryFn: () => fetch(`/admin/students/${studentId}/edit`).then((res) => res.json()),
+    enabled: isOpen && !!studentId
   })
 
-  const { data, setData, put, processing, errors, reset } = useForm<EditStudent>({
-    name: user?.name ?? '',
-    password: '',
-    email: user?.email ?? '',
-    firstName: user?.profile?.first_name ?? '',
-    lastName: user?.profile?.last_name ?? '',
-    secondLastName: user?.profile?.second_last_name ?? '',
-    birthDate: formatDateForInput(user?.profile?.birth_date) ?? '',
-    phone: user?.profile?.phone ?? '',
-    entryDate: user?.student?.entry_date ?? ''
-  })
+  const { data, setData, put, processing, errors, reset } = useForm<UpdateStudent>()
 
   useEffect(() => {
-    queryClient.resetQueries({ queryKey: ['user', userId] })
-    reset()
-  }, [queryClient, userId])
-
-  useEffect(() => {
-    if (user) {
+    if (student) {
       setData({
-        name: user.name ?? '',
+        name: student.user.name ?? '',
         password: '',
-        email: user.email ?? '',
-        firstName: user.profile?.first_name ?? '',
-        lastName: user.profile?.last_name ?? '',
-        secondLastName: user.profile?.second_last_name ?? '',
-        birthDate: formatDateForInput(user.profile?.birth_date) ?? '',
-        phone: user.profile?.phone ?? '',
-        entryDate: user.student?.entry_date ?? ''
+        email: student.user.email ?? '',
+        firstName: student.profile?.first_name ?? '',
+        lastName: student.profile?.last_name ?? '',
+        secondLastName: student.profile?.second_last_name ?? '',
+        birthDate: student.profile?.birth_date ?? '',
+        phone: student.profile?.phone ?? '',
+        entryDate: student?.entry_date ?? ''
       })
     }
-  }, [user])
+  }, [student])
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!user) return
+    if (!student) return
 
-    put(route('admin.students.update', user.id), {
+    put(route('admin.students.update', studentId), {
       preserveScroll: true,
       preserveState: true,
       onSuccess: () => {
-        queryClient.resetQueries({ queryKey: ['user', userId] })
+        queryClient.resetQueries({ queryKey: ['student', studentId] })
         reset()
-        setIsOpen(false)
+        onOpenChange(false)
       }
     })
   }
 
+  const handleDialogOpenChange = (open: boolean) => {
+    if (!open) {
+      reset()
+    }
+    onOpenChange(open)
+  }
+
+  const isDisabled = isLoading || processing
+
   return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={(open) => {
-        setIsOpen(open)
-      }}
-    >
-      <DialogTrigger asChild>
-        <Button variant='outline-info'>
-          <PencilIcon className='size-4' />
-        </Button>
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
+      <DialogContent className='sm:max-w-[700px]'>
+        <DialogTitle>Editar estudiante</DialogTitle>
+        <DialogDescription>Complete el formulario para editar un estudiante.</DialogDescription>
+        <form onSubmit={handleSubmit} className='flex flex-col gap-6'>
+          {/* USER */}
+          <div className='grid grid-cols-2 gap-2'>
+            <div className='flex flex-col gap-2'>
+              <Label htmlFor='name'>Usuario</Label>
+              <Input id='name' name='name' type='text' value={data.name} onChange={(e) => setData('name', e.target.value)} disabled={isDisabled} />
+              <InputError message={errors.name} />
+            </div>
+            <div className='flex flex-col gap-2'>
+              <Label htmlFor='password'>Contraseña</Label>
+              <Input
+                id='password'
+                name='password'
+                type='password'
+                value={data.password}
+                onChange={(e) => setData('password', e.target.value)}
+                disabled={isDisabled}
+              />
+              <InputError message={errors.password} />
+            </div>
+          </div>
 
-      {user && isOpen && !isLoading && (
-        <DialogContent className='sm:max-w-[700px]'>
-          <DialogTitle>Editar estudiante</DialogTitle>
-          <DialogDescription>Complete el formulario para editar un estudiante.</DialogDescription>
-          <form onSubmit={handleSubmit} className='flex flex-col gap-6'>
-            {/* USER */}
-            <div className='grid grid-cols-2 gap-2'>
-              <div className='flex flex-col gap-2'>
-                <Label htmlFor='name'>Usuario</Label>
-                <Input id='name' name='name' type='text' value={data.name} onChange={(e) => setData('name', e.target.value)} />
-                <InputError message={errors.name} />
-              </div>
-              <div className='flex flex-col gap-2'>
-                <Label htmlFor='password'>Contraseña</Label>
-                <Input id='password' name='password' type='password' value={data.password} onChange={(e) => setData('password', e.target.value)} />
-                <InputError message={errors.password} />
-              </div>
+          <div className='flex flex-col gap-2'>
+            <Label htmlFor='email'>Correo electrónico</Label>
+            <Input id='email' name='email' type='email' value={data.email} onChange={(e) => setData('email', e.target.value)} disabled={isDisabled} />
+            <InputError message={errors.email} />
+          </div>
+
+          {/* PROFILE */}
+          <div className='grid grid-cols-3 gap-2'>
+            <div className='flex flex-col gap-2'>
+              <Label htmlFor='firstName'>Nombre</Label>
+              <Input
+                id='firstName'
+                name='firstName'
+                type='text'
+                value={data.firstName}
+                onChange={(e) => setData('firstName', e.target.value)}
+                disabled={isDisabled}
+              />
+              <InputError message={errors.firstName} />
+            </div>
+            <div className='flex flex-col gap-2'>
+              <Label htmlFor='lastName'>Apellido Paterno</Label>
+              <Input
+                id='lastName'
+                name='lastName'
+                type='text'
+                value={data.lastName}
+                onChange={(e) => setData('lastName', e.target.value)}
+                disabled={isDisabled}
+              />
+              <InputError message={errors.lastName} />
+            </div>
+            <div className='flex flex-col gap-2'>
+              <Label htmlFor='secondLastName'>Apellido Materno</Label>
+              <Input
+                id='secondLastName'
+                name='secondLastName'
+                type='text'
+                value={data.secondLastName}
+                onChange={(e) => setData('secondLastName', e.target.value)}
+                disabled={isDisabled}
+              />
+              <InputError message={errors.secondLastName} />
+            </div>
+          </div>
+
+          <div className='grid grid-cols-2 gap-2'>
+            <div className='flex flex-col gap-2'>
+              <Label htmlFor='birthDate'>Fecha de nacimiento</Label>
+              <Input
+                id='birthDate'
+                name='birthDate'
+                type='date'
+                value={data.birthDate}
+                onChange={(e) => setData('birthDate', e.target.value)}
+                disabled={isDisabled}
+              />
+              <InputError message={errors.birthDate} />
             </div>
 
             <div className='flex flex-col gap-2'>
-              <Label htmlFor='email'>Correo electrónico</Label>
-              <Input id='email' name='email' type='email' value={data.email} onChange={(e) => setData('email', e.target.value)} />
-              <InputError message={errors.email} />
+              <Label htmlFor='phone'>Teléfono</Label>
+              <Input
+                id='phone'
+                name='phone'
+                type='text'
+                value={data.phone}
+                onChange={(e) => setData('phone', e.target.value)}
+                disabled={isDisabled}
+              />
+              <InputError message={errors.phone} />
             </div>
+          </div>
 
-            {/* PROFILE */}
-            <div className='grid grid-cols-3 gap-2'>
-              <div className='flex flex-col gap-2'>
-                <Label htmlFor='firstName'>Nombre</Label>
-                <Input id='firstName' name='firstName' type='text' value={data.firstName} onChange={(e) => setData('firstName', e.target.value)} />
-                <InputError message={errors.firstName} />
-              </div>
-              <div className='flex flex-col gap-2'>
-                <Label htmlFor='lastName'>Apellido Paterno</Label>
-                <Input id='lastName' name='lastName' type='text' value={data.lastName} onChange={(e) => setData('lastName', e.target.value)} />
-                <InputError message={errors.lastName} />
-              </div>
-              <div className='flex flex-col gap-2'>
-                <Label htmlFor='secondLastName'>Apellido Materno</Label>
-                <Input
-                  id='secondLastName'
-                  name='secondLastName'
-                  type='text'
-                  value={data.secondLastName}
-                  onChange={(e) => setData('secondLastName', e.target.value)}
-                />
-                <InputError message={errors.secondLastName} />
-              </div>
-            </div>
+          {/* STUDENT */}
+          <div className='flex flex-col gap-2'>
+            <Label htmlFor='entryDate'>Fecha de ingreso</Label>
+            <Input
+              id='entryDate'
+              name='entryDate'
+              type='date'
+              value={data.entryDate}
+              onChange={(e) => setData('entryDate', e.target.value)}
+              disabled={isDisabled}
+            />
+            <InputError message={errors.entryDate} />
+          </div>
 
-            <div className='grid grid-cols-2 gap-2'>
-              <div className='flex flex-col gap-2'>
-                <Label htmlFor='birthDate'>Fecha de nacimiento</Label>
-                <Input id='birthDate' name='birthDate' type='date' value={data.birthDate} onChange={(e) => setData('birthDate', e.target.value)} />
-                <InputError message={errors.birthDate} />
-              </div>
-
-              <div className='flex flex-col gap-2'>
-                <Label htmlFor='phone'>Teléfono</Label>
-                <Input id='phone' name='phone' type='text' value={data.phone} onChange={(e) => setData('phone', e.target.value)} />
-                <InputError message={errors.phone} />
-              </div>
-            </div>
-
-            {/* STUDENT */}
-            <div className='flex flex-col gap-2'>
-              <Label htmlFor='entryDate'>Fecha de ingreso</Label>
-              <Input id='entryDate' name='entryDate' type='date' value={data.entryDate} onChange={(e) => setData('entryDate', e.target.value)} />
-              <InputError message={errors.entryDate} />
-            </div>
-
-            {/* SUBMIT */}
-            <Button type='submit' className='mt-2 w-full' disabled={processing}>
-              {processing ? (
-                <>
-                  <LoaderCircle className='mr-2 h-4 w-4 animate-spin' />
-                  Guardando...
-                </>
-              ) : (
-                'Guardar cambios'
-              )}
-            </Button>
-          </form>
-        </DialogContent>
-      )}
+          {/* SUBMIT */}
+          <Button type='submit' className='mt-2 w-full' disabled={processing}>
+            {processing ? (
+              <>
+                <LoaderCircle className='mr-2 h-4 w-4 animate-spin' />
+                Guardando...
+              </>
+            ) : (
+              'Guardar cambios'
+            )}
+          </Button>
+        </form>
+      </DialogContent>
     </Dialog>
   )
-}
+})
+
+export { EditStudentDialogComponent as EditStudentDialog }
