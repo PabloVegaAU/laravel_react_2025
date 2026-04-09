@@ -56,7 +56,7 @@ class PrizeController extends Controller
         ]);
 
         try {
-            $imagePath = $request->file('image')->store('prizes', 'public');
+            $imagePath = $request->file('image')->store('prizes', 's3');
             $imagePath = Storage::url($imagePath);
 
             $prize = Prize::create([
@@ -129,9 +129,9 @@ class PrizeController extends Controller
 
         if ($request->hasFile('image')) {
             if ($prize->image) {
-                Storage::disk('public')->delete($prize->image);
+                Storage::disk('s3')->delete($prize->image);
             }
-            $updateData['image'] = $request->file('image')->store('prizes', 'public');
+            $updateData['image'] = $request->file('image')->store('prizes', 's3');
             $updateData['image'] = Storage::url($updateData['image']);
         }
 
@@ -144,7 +144,7 @@ class PrizeController extends Controller
     public function destroy(Prize $prize)
     {
         if ($prize->image) {
-            Storage::disk('public')->delete($prize->image);
+            Storage::disk('s3')->delete($prize->image);
         }
 
         $prize->delete();

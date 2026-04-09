@@ -48,7 +48,7 @@ class PrizeController extends Controller
             if ($request->hasFile('image')) {
                 $image = $request->file('image');
                 $imageName = Str::random(20).'.'.$image->getClientOriginalExtension();
-                $path = $image->storeAs('prizes', $imageName, 'public');
+                $path = $image->storeAs('prizes', $imageName, 's3');
                 $validated['image'] = $path;
             }
 
@@ -119,13 +119,13 @@ class PrizeController extends Controller
             // Handle file upload if new image is provided
             if ($request->hasFile('image')) {
                 // Delete old image if exists
-                if ($prize->image && Storage::disk('public')->exists($prize->image)) {
-                    Storage::disk('public')->delete($prize->image);
+                if ($prize->image && Storage::disk('s3')->exists($prize->image)) {
+                    Storage::disk('s3')->delete($prize->image);
                 }
 
                 $image = $request->file('image');
                 $imageName = Str::random(20).'.'.$image->getClientOriginalExtension();
-                $path = $image->storeAs('prizes', $imageName, 'public');
+                $path = $image->storeAs('prizes', $imageName, 's3');
                 $validated['image'] = $path;
             }
 
@@ -166,8 +166,8 @@ class PrizeController extends Controller
             $prize = Prize::findOrFail($id);
 
             // Delete associated image if exists
-            if ($prize->image && Storage::disk('public')->exists($prize->image)) {
-                Storage::disk('public')->delete($prize->image);
+            if ($prize->image && Storage::disk('s3')->exists($prize->image)) {
+                Storage::disk('s3')->delete($prize->image);
             }
 
             $prize->delete();

@@ -42,7 +42,7 @@ class AvatarController extends Controller
 
             // Handle file upload
             if ($request->hasFile('image')) {
-                $path = $request->file('image')->store('public/avatars');
+                $path = $request->file('image')->store('avatars', 's3');
                 $validated['image_url'] = Storage::url($path);
             }
 
@@ -111,11 +111,10 @@ class AvatarController extends Controller
             if ($request->hasFile('image')) {
                 // Delete old image if exists
                 if ($avatar->image_url) {
-                    $oldImage = str_replace('/storage', 'public', $avatar->image_url);
-                    Storage::delete($oldImage);
+                    Storage::disk('s3')->delete($avatar->image_url);
                 }
 
-                $path = $request->file('image')->store('public/avatars');
+                $path = $request->file('image')->store('avatars', 's3');
                 $validated['image_url'] = Storage::url($path);
             }
 
@@ -157,8 +156,7 @@ class AvatarController extends Controller
 
             // Delete associated image file
             if ($avatar->image_url) {
-                $imagePath = str_replace('/storage', 'public', $avatar->image_url);
-                Storage::delete($imagePath);
+                Storage::disk('s3')->delete($avatar->image_url);
             }
 
             $avatar->delete();

@@ -56,7 +56,7 @@ class AchievementController extends Controller
 
         if ($request->hasFile('image')) {
             // Guardar la nueva imagen
-            $path = $request->file('image')->store('achievements', 'public');
+            $path = $request->file('image')->store('achievements', 's3');
             $validated['image'] = Storage::url($path);
         }
 
@@ -108,12 +108,11 @@ class AchievementController extends Controller
             if ($request->hasFile('image')) {
                 // Si existe una imagen anterior, la eliminamos
                 if ($achievement->image) {
-                    $oldImage = str_replace('/storage', 'public', $achievement->image);
-                    Storage::delete($oldImage);
+                    Storage::disk('s3')->delete($achievement->image);
                 }
 
                 // Guardar la nueva imagen
-                $path = $request->file('image')->store('achievements', 'public');
+                $path = $request->file('image')->store('achievements', 's3');
                 $validated['image'] = Storage::url($path);
             }
 

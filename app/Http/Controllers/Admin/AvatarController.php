@@ -50,7 +50,7 @@ class AvatarController extends Controller
         ]);
 
         try {
-            $imagePath = $request->file('image_url')->store('avatars', 'public');
+            $imagePath = $request->file('image_url')->store('avatars', 's3');
             $imagePath = Storage::url($imagePath);
 
             $avatar = Avatar::create([
@@ -117,9 +117,9 @@ class AvatarController extends Controller
 
         if ($request->hasFile('image_url')) {
             if ($avatar->image_url) {
-                Storage::disk('public')->delete($avatar->image_url);
+                Storage::disk('s3')->delete($avatar->image_url);
             }
-            $path = $request->file('image_url')->store('avatars', 'public');
+            $path = $request->file('image_url')->store('avatars', 's3');
             $updateData['image_url'] = Storage::url($path);
         }
 
@@ -132,7 +132,7 @@ class AvatarController extends Controller
     public function destroy(Avatar $avatar)
     {
         if ($avatar->image_url) {
-            Storage::disk('public')->delete($avatar->image_url);
+            Storage::disk('s3')->delete($avatar->image_url);
         }
 
         $avatar->delete();

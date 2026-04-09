@@ -155,6 +155,33 @@ class QuestionController extends Controller
     /**
      * Determina si una opción es correcta según el tipo de pregunta
      */
+    /**
+     * Elimina una imagen de pregunta de S3
+     */
+    private function deleteQuestionImage(string $imageUrl): void
+    {
+        try {
+            // Extraer el path relativo de la URL completa
+            $path = parse_url($imageUrl, PHP_URL_PATH);
+
+            // Eliminar el prefijo /storage/ si existe
+            if ($path && str_starts_with($path, '/storage/')) {
+                $path = substr($path, 9); // Remover '/storage/'
+            }
+
+            // Eliminar el archivo de S3 si existe
+            if ($path && Storage::disk('s3')->exists($path)) {
+                Storage::disk('s3')->delete($path);
+            }
+        } catch (\Exception $e) {
+            // Log error but don't fail the operation
+            \Log::warning('No se pudo eliminar la imagen de S3: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Determina si una opción es correcta según el tipo de pregunta
+     */
     private function determineIfOptionIsCorrect(array $optionData, int $questionTypeId): bool
     {
         // Para preguntas de selección múltiple, usa el valor proporcionado o false por defecto
@@ -224,11 +251,11 @@ class QuestionController extends Controller
                 $path = $validated['image']->storeAs(
                     'questions',
                     $filename,
-                    'public'
+                    's3'
                 );
 
-                // Actualizar la pregunta con la ruta completa de la imagen
-                $question->update(['image' => '/storage/'.$path]);
+                // Actualizar la pregunta con la URL completa de la imagen
+                $question->update(['image' => Storage::url($path)]);
             }
 
             // Procesar opciones según el tipo de pregunta
@@ -337,8 +364,7 @@ class QuestionController extends Controller
             if ($request->hasFile('image')) {
                 // Eliminar la imagen anterior si existe
                 if ($question->image) {
-                    $relativePath = str_replace('/storage/', '', $question->image);
-                    Storage::disk('public')->delete($relativePath);
+                    $this->deleteQuestionImage($question->image);
                 }
 
                 // Guardar la nueva imagen con el formato: YYYY-MM-DD_questionID.extension
@@ -348,13 +374,12 @@ class QuestionController extends Controller
                 $path = $request->file('image')->storeAs(
                     'questions',
                     $filename,
-                    'public'
+                    's3'
                 );
-                $updateData['image'] = '/storage/'.$path;
+                $updateData['image'] = Storage::url($path);
             } elseif (is_null($request->input('image')) && $question->image) {
                 // Si se envía null o vacío para la imagen, eliminarla
-                $relativePath = str_replace('/storage/', '', $question->image);
-                Storage::disk('public')->delete($relativePath);
+                $this->deleteQuestionImage($question->image);
                 $updateData['image'] = null;
             }
 

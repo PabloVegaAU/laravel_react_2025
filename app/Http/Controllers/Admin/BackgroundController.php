@@ -57,7 +57,7 @@ class BackgroundController extends Controller
         ]);
 
         try {
-            $imagePath = $request->file('image')->store('backgrounds', 'public');
+            $imagePath = $request->file('image')->store('backgrounds', 's3');
             $imagePath = Storage::url($imagePath);
 
             $background = Background::create([
@@ -150,9 +150,9 @@ class BackgroundController extends Controller
 
         if ($request->hasFile('image')) {
             if ($background->image) {
-                Storage::disk('public')->delete($background->image);
+                Storage::disk('s3')->delete($background->image);
             }
-            $updateData['image'] = $request->file('image')->store('backgrounds', 'public');
+            $updateData['image'] = $request->file('image')->store('backgrounds', 's3');
             $updateData['image'] = Storage::url($updateData['image']);
         }
 
@@ -168,7 +168,7 @@ class BackgroundController extends Controller
     public function destroy(Background $background)
     {
         if ($background->image) {
-            Storage::disk('public')->delete($background->image);
+            Storage::disk('s3')->delete($background->image);
         }
 
         $background->delete();
