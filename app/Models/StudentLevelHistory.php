@@ -9,6 +9,14 @@ class StudentLevelHistory extends Model
 {
     protected $table = 'student_level_histories';
 
+    protected $fillable = [
+        'experience',
+        'achieved_at',
+        'student_id',
+        'level_id',
+        'range_id',
+    ];
+
     protected $casts = [
         'experience' => 'decimal:2',
         'achieved_at' => 'datetime',

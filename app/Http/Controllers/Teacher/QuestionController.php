@@ -252,7 +252,19 @@ class QuestionController extends Controller
 
     public function show(int $id)
     {
-        //
+        // Cargar las relaciones necesarias
+        $question = Question::findOrFail($id);
+        $question->load([
+            'questionType',
+            'capability.competency.curricularAreaCycle',
+            'capability.competency.curricularAreaCycle.curricularArea',
+            'options' => function ($query) {
+                $query->orderBy('order');
+            },
+        ]);
+
+        // Transformar la respuesta al formato esperado por el frontend
+        return response()->json($question);
     }
 
     public function edit(int $id)

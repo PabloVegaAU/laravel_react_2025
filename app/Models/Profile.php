@@ -20,6 +20,7 @@ class Profile extends Model
         'second_last_name',
         'birth_date',
         'phone',
+        'user_id',
     ];
 
     protected $casts = [

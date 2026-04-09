@@ -1,6 +1,7 @@
 import InputError from '@/components/input-error'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 import { Check, X } from 'lucide-react'
 import { QuestionTypeProps } from './types'
 
@@ -85,7 +86,7 @@ export function BaseQuestionType({
         ))}
       </div>
 
-      <div className='mt-2'>
+      <div className={cn('mt-2', disabled && 'hidden')}>
         <Button type='button' variant='outline' size='sm' onClick={onAddOption} disabled={!canAddMore || disabled}>
           {addButtonText}
         </Button>

@@ -46,7 +46,7 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
 
   const dateLocale = es
 
-  const { data, setData, put, hasErrors, processing, errors } = useForm({
+  const { data, setData, put, hasErrors, processing, errors, clearErrors } = useForm({
     redirect: (learning_session?.application_form ?? 0) === 0,
     educational_institution_id: educational_institution?.id,
     status: learning_session.status,
@@ -185,11 +185,14 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
           <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
             {/* Campo: Título */}
             <div className='space-y-2'>
-              <Label htmlFor='name'>Título</Label>
+              <Label htmlFor='name'>{t('Learning Session Name')}</Label>
               <Input
                 id='name'
                 value={data.name}
-                onChange={(e) => setData('name', e.target.value)}
+                onChange={(e) => {
+                  setData('name', e.target.value)
+                  clearErrors('name')
+                }}
                 placeholder='Ej: Evaluación de Matemáticas - Unidad 1'
               />
               <InputError message={errors.name} className='mt-1' />
@@ -197,7 +200,7 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
 
             {/* Campo: Fecha de la sesión */}
             <div className='space-y-2'>
-              <Label htmlFor='application_date'>Fecha de la sesión</Label>
+              <Label htmlFor='application_date'>{t('Application Date')}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -214,6 +217,7 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
                     selected={data.application_date ? new Date(data.application_date) : undefined}
                     onSelect={(date) => {
                       setData('application_date', date || new Date())
+                      clearErrors('application_date')
                     }}
                     disabled={{ before: new Date() }}
                     startMonth={new Date()}
@@ -226,7 +230,7 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
             {/* Campo: Aula */}
             <div className='space-y-2'>
               <Label htmlFor='classroom_id'>Aula</Label>
-              <Select value={data.classroom_id} onValueChange={(value) => setData('classroom_id', value)}>
+              <Select value={data.classroom_id} disabled>
                 <SelectTrigger>
                   <SelectValue placeholder='Selecciona un aula' />
                 </SelectTrigger>
@@ -248,7 +252,7 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
             {/* Campo: Área Curricular */}
             <div className='space-y-2'>
               <Label htmlFor='curricular_area_cycle_id'>Área Curricular</Label>
-              <Select value={data.curricular_area_cycle_id} onValueChange={(value) => setData('curricular_area_cycle_id', value)}>
+              <Select value={data.curricular_area_cycle_id} disabled>
                 <SelectTrigger>
                   <SelectValue placeholder='Selecciona una área curricular' />
                 </SelectTrigger>
@@ -266,7 +270,7 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
             {/* Campo: Competencia */}
             <div className='space-y-2'>
               <Label htmlFor='competency_id'>Competencia</Label>
-              <Select value={data.competency_id} onValueChange={(value) => setData('competency_id', value)}>
+              <Select value={data.competency_id} disabled>
                 <SelectTrigger>
                   <SelectValue placeholder='Selecciona una competencia' />
                 </SelectTrigger>
@@ -290,7 +294,10 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
                   value: capability.id.toString()
                 }))}
                 value={data.capability_ids}
-                onChange={(values) => setData('capability_ids', values)}
+                onChange={(values) => {
+                  setData('capability_ids', values)
+                  clearErrors('capability_ids')
+                }}
                 placeholder='Selecciona una o más capacidades'
                 id='capability_ids'
                 name='capability_ids'
@@ -308,7 +315,10 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
               <Textarea
                 id='performances'
                 value={data.performances}
-                onChange={(e) => setData('performances', e.target.value)}
+                onChange={(e) => {
+                  setData('performances', e.target.value)
+                  clearErrors('performances')
+                }}
                 placeholder='Ej: Desempeños'
               />
               <InputError message={errors.performances} className='mt-1' />
@@ -320,7 +330,10 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
               <Textarea
                 id='purpose_learning'
                 value={data.purpose_learning}
-                onChange={(e) => setData('purpose_learning', e.target.value)}
+                onChange={(e) => {
+                  setData('purpose_learning', e.target.value)
+                  clearErrors('purpose_learning')
+                }}
                 placeholder='Ej: Evaluación de Matemáticas - Unidad 1'
               />
               <InputError message={errors.purpose_learning} className='mt-1' />
@@ -338,7 +351,10 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
                 <Textarea
                   id='start_sequence'
                   value={data.start_sequence}
-                  onChange={(e) => setData('start_sequence', e.target.value)}
+                  onChange={(e) => {
+                    setData('start_sequence', e.target.value)
+                    clearErrors('start_sequence')
+                  }}
                   placeholder='Ej: Secuencia de inicio'
                 />
                 <InputError message={errors.start_sequence} className='mt-1' />
@@ -384,11 +400,13 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
                                 Ver
                               </Button>
                             </Link>
-                            <Link href={`/teacher/application-forms/${learning_session.application_form.id}/edit`}>
-                              <Button variant='warning' size='sm'>
-                                Editar
-                              </Button>
-                            </Link>
+                            {learning_session.application_form.status !== 'inactive' && learning_session.application_form.status !== 'archived' && (
+                              <Link href={`/teacher/application-forms/${learning_session.application_form.id}/edit`}>
+                                <Button variant='warning' size='sm'>
+                                  Editar
+                                </Button>
+                              </Link>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -396,7 +414,14 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
                   )}
 
                   <div className={cn('flex items-center space-x-2', data.application_form_id ? 'hidden' : '')}>
-                    <Switch id='redirect-to-form' checked={data.redirect} onCheckedChange={(checked) => setData('redirect', checked)} />
+                    <Switch
+                      id='redirect-to-form'
+                      checked={data.redirect}
+                      onCheckedChange={(checked) => {
+                        setData('redirect', checked)
+                        clearErrors('redirect')
+                      }}
+                    />
                     <Label htmlFor='redirect-to-form'>Crear Ficha luego de guardar</Label>
                   </div>
                 </div>
@@ -411,7 +436,10 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
                 <Textarea
                   id='end_sequence'
                   value={data.end_sequence}
-                  onChange={(e) => setData('end_sequence', e.target.value)}
+                  onChange={(e) => {
+                    setData('end_sequence', e.target.value)
+                    clearErrors('end_sequence')
+                  }}
                   placeholder='Ej: Secuencia de cierre'
                 />
                 <InputError message={errors.end_sequence} className='mt-1' />

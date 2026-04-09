@@ -20,9 +20,9 @@ return new class extends Migration
                 ->comment('Propósito de aprendizaje de la sesión');
             $table->date('application_date')
                 ->comment('Fecha de aplicación de la sesión');
-            $table->enum('status', ['draft', 'active', 'inactive'])
+            $table->enum('status', ['draft', 'active', 'inactive', 'archived'])
                 ->default('draft')
-                ->comment('Estado de la sesión: borrador, activa, inactiva');
+                ->comment('Estado de la sesión: borrador, activa, inactiva, archivada');
 
             // Contenido de la sesión
             $table->text('performances')
@@ -33,6 +33,7 @@ return new class extends Migration
                 ->comment('Secuencia de cierre de la sesión');
 
             // Metadatos
+            $table->dateTime('deactivated_at')->nullable()->comment('Fecha de archivado de la sesión');
             $table->timestamps();
             $table->softDeletes();
 

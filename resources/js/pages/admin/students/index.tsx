@@ -24,7 +24,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 export default function Students({ students }: PageProps) {
-  console.log(students)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [editingStudentId, setEditingStudentId] = useState<number | null>(null)
 
@@ -84,7 +83,7 @@ export default function Students({ students }: PageProps) {
 
         <DataTable columns={columns} data={students} />
       </div>
-      {editingStudentId && <EditStudentDialog isOpen={!!editingStudentId} onOpenChange={handleDialogOpenChange} studentId={editingStudentId} />}{' '}
+      {editingStudentId && <EditStudentDialog isOpen={!!editingStudentId} onOpenChange={handleDialogOpenChange} studentId={editingStudentId} />}
     </AppLayout>
   )
 }

@@ -74,7 +74,7 @@ export function CreateEnrollmentDialog({ isOpen, onOpenChange }: CreateEnrollmen
     const searchTerm = normalizeString(classroomSearch)
     if (!searchTerm) return true
 
-    const classroomInfo = [classroom.grade, classroom.section, classroom.level].filter(Boolean).join(' ').toLowerCase()
+    const classroomInfo = [classroom.grade, t(classroom.grade), classroom.section, classroom.level].filter(Boolean).join(' ').toLowerCase()
 
     return classroomInfo.includes(searchTerm)
   })

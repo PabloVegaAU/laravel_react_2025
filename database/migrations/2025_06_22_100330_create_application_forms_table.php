@@ -41,6 +41,8 @@ return new class extends Migration
                 ->comment('Fecha y hora de finalización de disponibilidad del formulario');
 
             // Metadatos
+            $table->dateTime('deactivated_at')->nullable()
+                ->comment('Fecha de desactivación del formulario');
             $table->timestamps();
             $table->softDeletes();
 

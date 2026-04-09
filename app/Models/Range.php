@@ -11,6 +11,15 @@ class Range extends Model
 
     protected $table = 'ranges';
 
+    protected $fillable = [
+        'name',
+        'color',
+        'image',
+        'description',
+        'order',
+        'level_required',
+    ];
+
     protected $casts = [
         'order' => 'integer',
         'created_at' => 'datetime',

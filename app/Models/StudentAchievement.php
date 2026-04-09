@@ -12,6 +12,8 @@ class StudentAchievement extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'student_id',
+        'achievement_id',
         'achieved_at',
     ];
 

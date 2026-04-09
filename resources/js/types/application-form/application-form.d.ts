@@ -28,6 +28,7 @@ export interface ApplicationForm {
   created_at: string
   updated_at: string
   deleted_at: string | null
+  deactivated_at: string | null
 
   // Relaciones
   teacher: Teacher

@@ -20,6 +20,7 @@ export interface LearningSession {
   created_at: string
   updated_at: string
   deleted_at: string | null
+  deactivated_at: string | null
 
   // Relaciones
   educational_institution?: EducationalInstitution

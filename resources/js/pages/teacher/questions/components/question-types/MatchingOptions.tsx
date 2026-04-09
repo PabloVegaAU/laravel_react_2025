@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 import { Link2, X } from 'lucide-react'
 import { QuestionTypeProps } from './types'
 
@@ -105,7 +106,7 @@ export function MatchingOptions({ options, onChange, disabled = false }: Questio
         ))}
       </div>
 
-      <div>
+      <div className={cn('mt-2', disabled && 'hidden')}>
         <Button
           type='button'
           variant='outline'

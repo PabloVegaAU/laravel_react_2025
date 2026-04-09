@@ -23,6 +23,7 @@ class ApplicationForm extends Model
         'score_max',
         'teacher_id',
         'learning_session_id',
+        'deactivated_at',
     ];
 
     protected $casts = [
@@ -32,6 +33,7 @@ class ApplicationForm extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
+        'deactivated_at' => 'datetime',
     ];
 
     protected $attributes = [

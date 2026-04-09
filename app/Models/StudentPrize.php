@@ -12,6 +12,15 @@ class StudentPrize extends Model
 
     protected $table = 'student_prizes';
 
+    protected $fillable = [
+        'points_store',
+        'exchange_date',
+        'claimed',
+        'claimed_at',
+        'student_id',
+        'prize_id',
+    ];
+
     public $timestamps = false;
 
     protected $casts = [

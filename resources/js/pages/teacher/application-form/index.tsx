@@ -120,7 +120,7 @@ export default function ApplicationForms({ applicationForms, filters: initialFil
       accessorFn: (row) => row.id,
       cell: (row) => (
         <div className='flex space-x-2'>
-          <Link href={`/teacher/application-forms/${row.getValue()}/edit`}>
+          <Link href={`/teacher/application-forms/${row.getValue()}/edit`} className={cn(row.row.original.status === 'archived' && 'hidden')}>
             <Button variant='outline' size='sm'>
               Editar
             </Button>

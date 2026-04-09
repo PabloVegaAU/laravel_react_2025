@@ -13,6 +13,13 @@ class StudentController extends Controller
         private StudentService $studentService
     ) {}
 
+    public function studentToEnrollments()
+    {
+        $students = $this->studentService->getStudentsToEnrollments();
+
+        return response()->json($students);
+    }
+
     public function index()
     {
         $students = $this->studentService->getPaginatedStudents();

@@ -17,6 +17,7 @@ class Prize extends Model
     protected $fillable = [
         'name',
         'description',
+        'type',
         'image',
         'level_required',
         'stock',

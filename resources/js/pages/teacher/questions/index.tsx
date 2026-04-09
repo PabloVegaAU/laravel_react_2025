@@ -12,10 +12,11 @@ import { BreadcrumbItem } from '@/types/core'
 import { PaginatedResponse, ResourcePageProps } from '@/types/core/api-types'
 import { Head, router } from '@inertiajs/react'
 import { ColumnDef } from '@tanstack/react-table'
-import { Pencil } from 'lucide-react'
+import { Eye, Pencil } from 'lucide-react'
 import { useState } from 'react'
 import { CreateQuestionDialog } from './components/form-create'
 import { EditQuestionDialog } from './components/form-edit'
+import { ViewQuestionDialog } from './components/form-view'
 
 type PageProps = Omit<ResourcePageProps<Question>, 'data'> & {
   curricular_areas: CurricularArea[]
@@ -43,6 +44,7 @@ export default function Questions({ questions, filters, question_types, capabili
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [questionId, setQuestionId] = useState<number>()
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
 
   const defaultFilters = {
     search: '',
@@ -105,6 +107,15 @@ export default function Questions({ questions, filters, question_types, capabili
               }}
             >
               <Pencil />
+            </Button>
+            <Button
+              variant='outline'
+              onClick={() => {
+                setQuestionId(row.getValue() as number)
+                setIsViewModalOpen(true)
+              }}
+            >
+              <Eye />
             </Button>
           </div>
         )
@@ -231,6 +242,8 @@ export default function Questions({ questions, filters, question_types, capabili
           onSuccess={() => setIsEditModalOpen(false)}
         />
       )}
+
+      {questionId && <ViewQuestionDialog isOpen={isViewModalOpen} id={questionId} onOpenChange={setIsViewModalOpen} />}
     </AppLayout>
   )
 }

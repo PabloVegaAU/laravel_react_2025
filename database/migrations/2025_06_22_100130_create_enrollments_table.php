@@ -36,6 +36,7 @@ return new class extends Migration
                 ->comment('Fecha en que se realizó la matrícula');
 
             // Metadatos
+            $table->date('deactivated_at')->nullable()->comment('Fecha de desactivación de la matrícula');
             $table->timestamps();
             $table->softDeletes();
 

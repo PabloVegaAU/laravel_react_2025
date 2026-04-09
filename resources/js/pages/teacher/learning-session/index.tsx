@@ -2,6 +2,7 @@ import DataTable from '@/components/organisms/data-table'
 import FlashMessages from '@/components/organisms/flash-messages'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import AppLayout from '@/layouts/app-layout'
 import { formatDate } from '@/lib/formats'
 import { useTranslations } from '@/lib/translator'
@@ -12,7 +13,7 @@ import { PaginatedResponse, ResourcePageProps } from '@/types/core/api-types'
 import { LearningSession } from '@/types/learning-session'
 import { Head, Link, router } from '@inertiajs/react'
 import { ColumnDef } from '@tanstack/react-table'
-import { FileText } from 'lucide-react'
+import { MoreHorizontalIcon } from 'lucide-react'
 
 type PageProps = Omit<ResourcePageProps<LearningSession>, 'data'> & {
   learningSessions: PaginatedResponse<LearningSession>
@@ -66,36 +67,46 @@ export default function LearningSessionIndex({ learningSessions }: PageProps) {
       id: 'actions',
       cell: ({ row }) => {
         const learningSession = row.original
+        const statusVariant = learningSession.status === 'active' ? 'destructive' : 'default'
+        const statusText = learningSession.status === 'active' ? 'Desactivar' : 'Activar'
+        const statusAction = learningSession.status === 'active' ? 'inactive' : 'active'
+
         return (
           <div className='flex items-center space-x-2'>
-            <Link href={`/teacher/application-form-responses?learning_session_id=${learningSession.id}`} title='Ver respuestas de esta sesión'>
-              <Button variant='outline' size='sm' className='gap-2'>
-                <FileText className='h-4 w-4' />
-                <span>Revisar</span>
-              </Button>
-            </Link>
-            <div className={cn('rounded-lg p-1 font-bold', learningSession.application_form ? 'bg-green-500' : 'bg-red-500')}>
+            <Button className={cn('rounded-lg p-1 font-bold', learningSession.application_form ? 'bg-green-500' : 'bg-red-500')}>
               {learningSession.application_form ? 'Con ficha' : 'Sin ficha'}
-            </div>
-            <Link href={`/teacher/learning-sessions/${learningSession.id}/edit`}>
-              <Button variant='info' size='sm'>
-                Editar
-              </Button>
-            </Link>
-            <Link href={`/teacher/learning-sessions/${learningSession.id}`}>
-              <Button variant='outline' size='sm'>
-                Ver
-              </Button>
-            </Link>
-            {learningSession.status === 'active' ? (
-              <Button variant='destructive' size='sm' onClick={() => handleStatusChange(learningSession.id, 'inactive')}>
-                Desactivar
-              </Button>
-            ) : (
-              <Button variant='default' size='sm' onClick={() => handleStatusChange(learningSession.id, 'active')}>
-                Activar
-              </Button>
-            )}
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant='outline' size='icon' aria-label='More Options'>
+                  <MoreHorizontalIcon />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align='end' className='w-40'>
+                <DropdownMenuGroup>
+                  <Link href={`/teacher/learning-sessions/${learningSession.id}`}>
+                    <DropdownMenuItem>Ver</DropdownMenuItem>
+                  </Link>
+                  <Link href={`/teacher/learning-sessions/${learningSession.id}/table-calification`}>
+                    <DropdownMenuItem>Ver tabla de puntuaciones</DropdownMenuItem>
+                  </Link>
+                  <Link href={`/teacher/learning-sessions/${learningSession.id}/edit`}>
+                    <DropdownMenuItem>Editar</DropdownMenuItem>
+                  </Link>
+                  <DropdownMenuItem variant={statusVariant} onClick={() => handleStatusChange(learningSession.id, statusAction)}>
+                    {statusText}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link
+                      href={`/teacher/application-form-responses?learning_session_id=${learningSession.id}`}
+                      title='Ver respuestas de esta sesión'
+                    >
+                      Revisar Ficha
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )
       }

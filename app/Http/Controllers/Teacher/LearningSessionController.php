@@ -138,13 +138,44 @@ class LearningSessionController extends Controller
             'teacherClassroomCurricularAreaCycle.classroom',
             'teacherClassroomCurricularAreaCycle.curricularAreaCycle.curricularArea',
             'teacherClassroomCurricularAreaCycle.curricularAreaCycle.cycle',
+            'competency',
+            'capabilities',
+            'applicationForm',
+        ])->findOrFail($id);
+
+        $teacherClassroomCurricularAreaCycles = TeacherClassroomCurricularAreaCycle::with([
+            'classroom',
+            'curricularAreaCycle.curricularArea', 'curricularAreaCycle.cycle',
+            'curricularAreaCycle.curricularArea.competencies',
+            'curricularAreaCycle.curricularArea.competencies.capabilities',
+        ])
+            ->where('teacher_id', auth()->id())
+            ->where('academic_year', now()->year)
+            ->get();
+
+        return Inertia::render('teacher/learning-session/show/index', [
+            'learning_session' => $learningSession,
+            'teacher_classroom_curricular_area_cycles' => $teacherClassroomCurricularAreaCycles,
+        ]);
+    }
+
+    /**
+     * Display the table calification for the specified resource.
+     */
+    public function getTableCalification(int $id)
+    {
+        $learningSession = LearningSession::with([
+            'educationalInstitution',
+            'teacherClassroomCurricularAreaCycle.classroom',
+            'teacherClassroomCurricularAreaCycle.curricularAreaCycle.curricularArea',
+            'teacherClassroomCurricularAreaCycle.curricularAreaCycle.cycle',
             'applicationForm',
             'applicationForm.responses',
             'applicationForm.responses.student',
             'applicationForm.responses.student.profile',
         ])->findOrFail($id);
 
-        return Inertia::render('teacher/learning-session/show/index', [
+        return Inertia::render('teacher/learning-session/table-calification/index', [
             'learning_session' => $learningSession,
         ]);
     }
@@ -190,7 +221,7 @@ class LearningSessionController extends Controller
                 'redirect' => 'nullable|boolean',
                 'name' => 'required|string|max:255',
                 'purpose_learning' => 'required|string',
-                'application_date' => 'required|date',
+                'application_date' => 'required|date|after_or_equal:today',
                 'status' => 'required|in:draft,active,inactive',
                 'performances' => 'required|string',
                 'start_sequence' => 'required|string',
@@ -234,6 +265,10 @@ class LearningSessionController extends Controller
                 $learningSession->capabilities()->attach($validated['capability_ids']);
             }
 
+            if (isset($validated['status']) && $validated['status'] === 'inactive') {
+                $learningSession->changeStatus('inactive');
+            }
+
             DB::commit();
 
             if ($request->boolean('redirect')) {
@@ -266,21 +301,41 @@ class LearningSessionController extends Controller
     {
         try {
             $validated = $request->validate([
-                'status' => 'required|in:draft,active,inactive',
+                'status' => 'required|in:draft,active,inactive,archived',
             ]);
 
             $learningSession = LearningSession::with('applicationForm')->findOrFail($id);
 
             DB::beginTransaction();
 
-            // Validar y manejar la activación de la sesión
+            // Manejar la activación de la sesión
             if ($validated['status'] === 'active') {
+                // Validar que la ficha de aplicación esté activa
                 if (! $learningSession->applicationForm || $learningSession->applicationForm->status !== 'active') {
-                    throw new \Exception('La ficha de aplicación debe estar activo para poder activar la sesión de aprendizaje.');
+                    throw new \Exception('La ficha de aplicación debe estar activa para poder activar la sesión de aprendizaje.');
                 }
+
+                // Generar respuestas del formulario para los estudiantes
                 $this->generateApplicationFormResponses($learningSession);
             }
 
+            // Manejar el archivado de la sesión (solo si viene de active a archived)
+            if ($learningSession->status === 'active' && $validated['status'] === 'archived') {
+                // Archivar la ficha de aplicación relacionada
+                if ($learningSession->applicationForm) {
+                    $learningSession->applicationForm->update([
+                        'status' => 'archived',
+                        'deactivated_at' => now(),
+                    ]);
+                }
+
+                // Establecer fecha de archivado
+                $learningSession->update([
+                    'deactivated_at' => now(),
+                ]);
+            }
+
+            // Actualizar el estado de la sesión
             $learningSession->update([
                 'status' => $validated['status'],
             ]);

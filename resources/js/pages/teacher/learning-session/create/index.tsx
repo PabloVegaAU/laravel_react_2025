@@ -46,7 +46,7 @@ export default function LearningSessionCreate({ educational_institution, teacher
 
   const dateLocale = es
 
-  const { data, setData, post, processing, errors, hasErrors } = useForm({
+  const { data, setData, post, processing, errors, hasErrors, clearErrors } = useForm({
     redirect: true as boolean,
     educational_institution_id: educational_institution.id,
     status: 'draft',
@@ -147,7 +147,10 @@ export default function LearningSessionCreate({ educational_institution, teacher
               <Input
                 id='name'
                 value={data.name}
-                onChange={(e) => setData('name', e.target.value)}
+                onChange={(e) => {
+                  setData('name', e.target.value)
+                  clearErrors('name')
+                }}
                 placeholder='Ej: Evaluación de Matemáticas - Unidad 1'
               />
               <InputError message={errors.name} className='mt-1' />
@@ -172,6 +175,7 @@ export default function LearningSessionCreate({ educational_institution, teacher
                     selected={data.application_date}
                     onSelect={(date) => {
                       setData('application_date', date || new Date())
+                      clearErrors('application_date')
                     }}
                     disabled={{ before: new Date() }}
                     startMonth={new Date()}
@@ -184,7 +188,13 @@ export default function LearningSessionCreate({ educational_institution, teacher
             {/* Campo: Aula */}
             <div className='space-y-2'>
               <Label htmlFor='classroom_id'>{t('Classroom')}</Label>
-              <Select value={data.classroom_id} onValueChange={(value) => setData('classroom_id', value)}>
+              <Select
+                value={data.classroom_id}
+                onValueChange={(value) => {
+                  setData('classroom_id', value)
+                  clearErrors('classroom_id')
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder={t('Select a Classroom')} />
                 </SelectTrigger>
@@ -206,7 +216,13 @@ export default function LearningSessionCreate({ educational_institution, teacher
             {/* Campo: Área Curricular */}
             <div className='space-y-2'>
               <Label htmlFor='curricular_area_cycle_id'>{t('Curricular Area')}</Label>
-              <Select value={data.curricular_area_cycle_id} onValueChange={(value) => setData('curricular_area_cycle_id', value)}>
+              <Select
+                value={data.curricular_area_cycle_id}
+                onValueChange={(value) => {
+                  setData('curricular_area_cycle_id', value)
+                  clearErrors('curricular_area_cycle_id')
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder={t('Select a Curricular Area')} />
                 </SelectTrigger>
@@ -224,7 +240,13 @@ export default function LearningSessionCreate({ educational_institution, teacher
             {/* Campo: Competencia */}
             <div className='space-y-2'>
               <Label htmlFor='competency_id'>{t('Competency')}</Label>
-              <Select value={data.competency_id} onValueChange={(value) => setData('competency_id', value)}>
+              <Select
+                value={data.competency_id}
+                onValueChange={(value) => {
+                  setData('competency_id', value)
+                  clearErrors('competency_id')
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder={t('Select a Competency')} />
                 </SelectTrigger>
@@ -248,7 +270,10 @@ export default function LearningSessionCreate({ educational_institution, teacher
                   value: capability.id.toString()
                 }))}
                 value={data.capability_ids}
-                onChange={(values) => setData('capability_ids', values)}
+                onChange={(values) => {
+                  setData('capability_ids', values)
+                  clearErrors('capability_ids')
+                }}
                 placeholder={t('Select one or more capabilities')}
                 id='capability_ids'
                 name='capability_ids'
@@ -266,7 +291,10 @@ export default function LearningSessionCreate({ educational_institution, teacher
               <Textarea
                 id='performances'
                 value={data.performances}
-                onChange={(e) => setData('performances', e.target.value)}
+                onChange={(e) => {
+                  setData('performances', e.target.value)
+                  clearErrors('performances')
+                }}
                 placeholder='Ej: Desempeños'
               />
               <InputError message={errors.performances} className='mt-1' />
@@ -278,7 +306,10 @@ export default function LearningSessionCreate({ educational_institution, teacher
               <Textarea
                 id='purpose_learning'
                 value={data.purpose_learning}
-                onChange={(e) => setData('purpose_learning', e.target.value)}
+                onChange={(e) => {
+                  setData('purpose_learning', e.target.value)
+                  clearErrors('purpose_learning')
+                }}
                 placeholder='Ej: Evaluación de Matemáticas - Unidad 1'
               />
               <InputError message={errors.purpose_learning} className='mt-1' />
@@ -296,7 +327,10 @@ export default function LearningSessionCreate({ educational_institution, teacher
                 <Textarea
                   id='start_sequence'
                   value={data.start_sequence}
-                  onChange={(e) => setData('start_sequence', e.target.value)}
+                  onChange={(e) => {
+                    setData('start_sequence', e.target.value)
+                    clearErrors('start_sequence')
+                  }}
                   placeholder='Ej: Secuencia de inicio'
                 />
                 <InputError message={errors.start_sequence} className='mt-1' />
@@ -312,7 +346,14 @@ export default function LearningSessionCreate({ educational_institution, teacher
                 <Label htmlFor='application_form_ids'>{t('Application Form')}</Label>
                 <div className='flex gap-6'>
                   <div className='flex items-center space-x-2'>
-                    <Switch id='redirect-to-form' checked={data.redirect} onCheckedChange={(checked) => setData('redirect', checked)} />
+                    <Switch
+                      id='redirect-to-form'
+                      checked={data.redirect}
+                      onCheckedChange={(checked) => {
+                        setData('redirect', checked)
+                        clearErrors('redirect')
+                      }}
+                    />
                     <Label htmlFor='redirect-to-form'>{t('Create Form after saving')}</Label>
                   </div>
                 </div>
@@ -327,7 +368,10 @@ export default function LearningSessionCreate({ educational_institution, teacher
                 <Textarea
                   id='end_sequence'
                   value={data.end_sequence}
-                  onChange={(e) => setData('end_sequence', e.target.value)}
+                  onChange={(e) => {
+                    setData('end_sequence', e.target.value)
+                    clearErrors('end_sequence')
+                  }}
                   placeholder='Ej: Secuencia de cierre'
                 />
                 <InputError message={errors.end_sequence} className='mt-1' />

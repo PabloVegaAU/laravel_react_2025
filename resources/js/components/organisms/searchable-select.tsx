@@ -1,8 +1,8 @@
 import * as SelectPrimitive from '@radix-ui/react-select'
-import { SearchIcon } from 'lucide-react'
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
+import { SearchIcon } from 'lucide-react'
 import { Select, SelectTrigger, SelectValue } from '../ui/select'
 
 type SearchableSelectProps = React.ComponentProps<typeof SelectPrimitive.Root> & {
@@ -64,61 +64,60 @@ function SearchableSelect({
       <SelectTrigger className='w-full'>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
-      <SelectPrimitive.Portal>
-        <SelectPrimitive.Content
-          className={cn(
-            'bg-popover text-popover-foreground animate-in fade-in-80 z-50 max-h-40 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-md border shadow-md',
-            className
-          )}
-          position='popper'
-          sideOffset={4}
-          onPointerDownOutside={(e) => {
-            if (searchValue) {
-              e.preventDefault()
-            }
-          }}
-          onEscapeKeyDown={(e) => {
-            if (searchValue) {
-              e.preventDefault()
-              onSearchChange?.('')
-            } else {
-              setIsOpen(false)
-            }
-          }}
-          // Deshabilitar la navegación por teclado del menú
+      <SelectPrimitive.Content
+        className={cn(
+          'bg-popover text-popover-foreground animate-in fade-in-80 z-50 max-h-40 min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-md border shadow-md',
+          className
+        )}
+        position='popper'
+        sideOffset={4}
+        onPointerDownOutside={(e) => {
+          if (searchValue) {
+            e.preventDefault()
+          }
+        }}
+        onEscapeKeyDown={(e) => {
+          if (searchValue) {
+            e.preventDefault()
+            onSearchChange?.('')
+          } else {
+            setIsOpen(false)
+          }
+        }}
+        // Deshabilitar la navegación por teclado del menú
+        onKeyDown={(e) => {
+          if (searchValue) {
+            e.stopPropagation()
+          }
+        }}
+      >
+        <div className='relative px-3 py-2' onClick={(e) => e.stopPropagation()}>
+          <SearchIcon className='text-muted-foreground absolute top-1/2 left-5 h-4 w-4 -translate-y-1/2' />
+          <input
+            ref={searchInputRef}
+            type='text'
+            placeholder={searchPlaceholder}
+            value={searchValue}
+            onChange={handleSearchChange}
+            onKeyDown={handleInputKeyDown}
+            className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-8 w-full rounded-md border px-8 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+
+        <SelectPrimitive.Viewport
+          className='p-1'
+          onClick={(e) => e.stopPropagation()}
+          // Prevenir eventos de teclado en el viewport
           onKeyDown={(e) => {
             if (searchValue) {
               e.stopPropagation()
             }
           }}
         >
-          <div className='relative px-3 py-2' onClick={(e) => e.stopPropagation()}>
-            <SearchIcon className='text-muted-foreground absolute top-1/2 left-5 h-4 w-4 -translate-y-1/2' />
-            <input
-              ref={searchInputRef}
-              type='text'
-              placeholder={searchPlaceholder}
-              value={searchValue}
-              onChange={handleSearchChange}
-              onKeyDown={handleInputKeyDown}
-              className='border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-8 w-full rounded-md border px-8 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none'
-              onClick={(e) => e.stopPropagation()}
-            />
-          </div>
-          <SelectPrimitive.Viewport
-            className='p-1'
-            onClick={(e) => e.stopPropagation()}
-            // Prevenir eventos de teclado en el viewport
-            onKeyDown={(e) => {
-              if (searchValue) {
-                e.stopPropagation()
-              }
-            }}
-          >
-            {children}
-          </SelectPrimitive.Viewport>
-        </SelectPrimitive.Content>
-      </SelectPrimitive.Portal>
+          {children}
+        </SelectPrimitive.Viewport>
+      </SelectPrimitive.Content>
     </Select>
   )
 }

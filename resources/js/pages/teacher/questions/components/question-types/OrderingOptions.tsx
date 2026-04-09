@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 import { GripVertical, X } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { QuestionTypeProps } from './types'
@@ -121,7 +122,7 @@ export function OrderingOptions({ options, onChange, disabled = false }: Questio
         ))}
       </div>
 
-      <div>
+      <div className={cn('mt-2', disabled && 'hidden')}>
         <Button
           type='button'
           variant='outline'

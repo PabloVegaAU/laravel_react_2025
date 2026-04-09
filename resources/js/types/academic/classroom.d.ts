@@ -1,4 +1,4 @@
-import type { BaseEntity, Timestamps } from '@/types/core'
+import type { BaseEntity } from '@/types/core'
 import type { ApplicationForm } from '../application-form/application-form'
 import type { LearningSession } from '../learning-session'
 import type { Student } from '../user/student'

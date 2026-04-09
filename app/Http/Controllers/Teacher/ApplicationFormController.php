@@ -37,7 +37,6 @@ class ApplicationFormController extends Controller
             ->join('curricular_area_cycles as cac', 'cac.id', '=', 'tccac.curricular_area_cycle_id')
             ->join('curricular_areas', 'curricular_areas.id', '=', 'cac.curricular_area_id')
             ->where('tccac.teacher_id', auth()->id())
-            ->where('tccac.academic_year', $currentYear)
             ->with([
                 'learningSession' => function ($query) {
                     $query->select('id', 'name', 'application_date');
@@ -380,7 +379,7 @@ class ApplicationFormController extends Controller
         $validated = validator($input, [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'start_date' => 'required|date',
+            'start_date' => 'required|date|after:today',
             'end_date' => 'required|date|after:start_date',
             'status' => 'required|in:draft,scheduled,active,inactive,archived',
             'score_max' => 'required|numeric|min:20|max:20',

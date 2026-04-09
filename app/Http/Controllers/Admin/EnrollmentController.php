@@ -89,6 +89,7 @@ class EnrollmentController extends Controller
             if ($previousEnrollment && ($previousEnrollment->status == 'active' || $previousEnrollment->status == 'inactive')) {
                 $previousEnrollment->update([
                     'status' => $request->status_previous,
+                    'deactivated_at' => $request->enrollment_date,
                 ]);
             }
 

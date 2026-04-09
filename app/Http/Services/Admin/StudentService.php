@@ -21,6 +21,11 @@ class StudentService
         return Student::with(['user', 'profile', 'level'])->findOrFail($id);
     }
 
+    public function getStudentsToEnrollments()
+    {
+        return Student::with(['user', 'profile', 'level'])->get();
+    }
+
     public function createStudent(array $data): Student
     {
         return DB::transaction(function () use ($data) {

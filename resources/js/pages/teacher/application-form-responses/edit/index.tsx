@@ -25,7 +25,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 ]
 
 export default function ApplicationFormResponseEdit({ application_form_response }: PageProps) {
-  console.log(application_form_response)
   const { t } = useTranslations()
 
   const hasValidQuestionData = (responseQuestion: ApplicationFormResponseQuestion) => {

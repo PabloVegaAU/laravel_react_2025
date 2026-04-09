@@ -51,7 +51,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('teacher/dashboard', [TeacherDashboardController::class, 'index'])->name('teacher.dashboard');
 
     // Rutas para la gestión de logros
-    // REALIZADO POR CARLOS
     Route::prefix('teacher/achievements')->name('teacher.achievements.')->group(function () {
         Route::get('/', [TeacherAchievementController::class, 'index'])->name('index');
         Route::post('/', [TeacherAchievementController::class, 'store'])->name('store');
@@ -60,6 +59,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::resource('teacher/learning-sessions', TeacherLearningSessionController::class)->names('teacher.learning-sessions');
+    Route::get('teacher/learning-sessions/{id}/table-calification', [TeacherLearningSessionController::class, 'getTableCalification'])->name('teacher.learning-sessions.table-calification');
     Route::put('teacher/learning-sessions/{id}/change-status', [TeacherLearningSessionController::class, 'changeStatus'])->name('teacher.learning-sessions.change-status');
 
     Route::resource('teacher/application-forms', TeacherApplicationFormController::class)->names('teacher.application-forms');

@@ -11,7 +11,8 @@ import { Textarea } from '@/components/ui/textarea'
 import AppLayout from '@/layouts/app-layout'
 import { parseDateString } from '@/lib/date'
 import { useTranslations } from '@/lib/translator'
-import { cn, getNestedError } from '@/lib/utils'
+import { cn, getNestedError, normalizeString } from '@/lib/utils'
+import { ViewQuestionDialog } from '@/pages/teacher/questions/components/form-view'
 import { Question, QuestionWithScore } from '@/types/application-form'
 import { ApplicationForm, ApplicationFormStatus } from '@/types/application-form/application-form'
 import { getQuestionTypeBadge } from '@/types/application-form/question/question-type-c'
@@ -20,7 +21,7 @@ import { Head, Link, useForm } from '@inertiajs/react'
 import { endOfDay, format, startOfDay } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Calendar as CalendarIcon } from 'lucide-react'
-import { useEffect } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -40,11 +41,24 @@ interface ApplicationFormProps {
 
 export default function ApplicationFormEdit({ application_form, questions }: ApplicationFormProps) {
   const { t } = useTranslations()
+  const [searchQuestion, setSearchQuestion] = useState('')
+  const [questionsFiltered, setQuestionsFiltered] = useState(questions)
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+  const [questionId, setQuestionId] = useState<number | null>(null)
   const defaultStartDate = new Date()
   const defaultEndDate = new Date()
   defaultEndDate.setDate(defaultStartDate.getDate() + 7)
 
   const dateLocale = es
+
+  useEffect(() => {
+    const filteredQuestions = questions.filter(
+      (question) =>
+        normalizeString(question?.name || '').includes(normalizeString(searchQuestion)) ||
+        normalizeString(question?.description || '').includes(normalizeString(searchQuestion))
+    )
+    setQuestionsFiltered(filteredQuestions)
+  }, [searchQuestion, questions])
 
   const { data, setData, put, processing, errors } = useForm<{
     name: string
@@ -222,6 +236,11 @@ export default function ApplicationFormEdit({ application_form, questions }: App
     )
   }
 
+  const handleViewQuestion = (id: number) => {
+    setQuestionId(id)
+    setIsViewModalOpen(true)
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -269,13 +288,14 @@ export default function ApplicationFormEdit({ application_form, questions }: App
                   ' ' +
                   application_form?.learning_session?.teacher_classroom_curricular_area_cycle?.classroom?.section
                 }
+                disabled
               />
             </div>
 
             {/* Campo: Competencia */}
             <div className='space-y-2'>
               <Label htmlFor='competency_id'>Competencia</Label>
-              <Input defaultValue={application_form?.learning_session?.competency?.name} />
+              <Input defaultValue={application_form?.learning_session?.competency?.name} disabled />
             </div>
           </div>
 
@@ -310,7 +330,11 @@ export default function ApplicationFormEdit({ application_form, questions }: App
                     mode='single'
                     selected={data.start_date ? new Date(data.start_date) : undefined}
                     onSelect={(date) => setData('start_date', date?.toISOString() || '')}
-                    disabled={{ before: new Date() }}
+                    disabled={{
+                      before: application_form?.learning_session?.application_date
+                        ? parseDateString(application_form.learning_session.application_date)
+                        : new Date()
+                    }}
                     startMonth={
                       application_form?.learning_session?.application_date
                         ? parseDateString(application_form?.learning_session?.application_date)
@@ -400,9 +424,14 @@ export default function ApplicationFormEdit({ application_form, questions }: App
 
           {/* Campo: Preguntas */}
           <div className='space-y-4'>
-            <h2 className='text-xl font-bold'>Preguntas</h2>
+            <div className='flex items-center justify-between'>
+              <h2 className='text-xl font-bold'>Preguntas</h2>
+              <div>
+                <Input value={searchQuestion} onChange={(e) => setSearchQuestion(e.target.value)} placeholder='Buscar pregunta' />
+              </div>
+            </div>
             <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-              {questions.map((question, index) => {
+              {questionsFiltered.map((question, index) => {
                 const questionInForm = data.questions.find((q) => q.id === question.id)
                 const isChecked = !!questionInForm
 
@@ -455,51 +484,59 @@ export default function ApplicationFormEdit({ application_form, questions }: App
                           )}
                         </div>
                       )}
-
-                      {isChecked && (
-                        <div className='mt-2 grid grid-cols-1 gap-4 md:grid-cols-3'>
-                          <div className='space-y-2'>
-                            <Label htmlFor={`order-${question.id}`}>Orden</Label>
-                            <Input
-                              id={`order-${question.id}`}
-                              type='number'
-                              min='1'
-                              value={questionInForm?.order || ''}
-                              onChange={(e) => {
-                                const newOrder = parseInt(e.target.value) || 1
-                                handleOrderChange(question.id, newOrder)
-                              }}
-                              className='w-20'
-                            />
-                            <InputError message={getNestedError(errors, `questions.${index}.order`)} className='mt-1' />
-                          </div>
-                          <div className='space-y-2'>
-                            <Label htmlFor={`score-${question.id}`}>Puntaje</Label>
-                            <Input
-                              id={`score-${question.id}`}
-                              type='number'
-                              min='0'
-                              step='0.25'
-                              value={questionInForm?.score || 1}
-                              onChange={(e) => handleScoreChange(question, e.target.value)}
-                              className='w-24'
-                            />
-                            <InputError message={getNestedError(errors, `questions.${index}.score`)} className='mt-1' />
-                          </div>
-                          <div className='space-y-2'>
-                            <Label htmlFor={`points-${question.id}`}>P. tienda</Label>
-                            <Input
-                              id={`points-${question.id}`}
-                              type='number'
-                              min='0'
-                              step='0.25'
-                              value={questionInForm?.points_store || 0}
-                              className='w-24'
-                            />
-                            <InputError message={getNestedError(errors, `questions.${index}.points_store`)} className='mt-1' />{' '}
-                          </div>
+                      <div className='mt-2 flex w-full flex-col gap-4 sm:flex-row sm:justify-between'>
+                        <div className='grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+                          {isChecked && (
+                            <Fragment>
+                              <div className='space-y-2'>
+                                <Label htmlFor={`order-${question.id}`}>Orden</Label>
+                                <Input
+                                  id={`order-${question.id}`}
+                                  type='number'
+                                  min='1'
+                                  value={questionInForm?.order || ''}
+                                  onChange={(e) => {
+                                    const newOrder = parseInt(e.target.value) || 1
+                                    handleOrderChange(question.id, newOrder)
+                                  }}
+                                  className='w-20'
+                                />
+                                <InputError message={getNestedError(errors, `questions.${index}.order`)} className='mt-1' />
+                              </div>
+                              <div className='space-y-2'>
+                                <Label htmlFor={`score-${question.id}`}>Puntaje</Label>
+                                <Input
+                                  id={`score-${question.id}`}
+                                  type='number'
+                                  min='0'
+                                  step='0.25'
+                                  value={questionInForm?.score || 1}
+                                  onChange={(e) => handleScoreChange(question, e.target.value)}
+                                  className='w-24'
+                                />
+                                <InputError message={getNestedError(errors, `questions.${index}.score`)} className='mt-1' />
+                              </div>
+                              <div className='space-y-2'>
+                                <Label htmlFor={`points-${question.id}`}>P. tienda</Label>
+                                <Input
+                                  id={`points-${question.id}`}
+                                  type='number'
+                                  min='0'
+                                  step='0.25'
+                                  value={questionInForm?.points_store || 0}
+                                  className='w-24'
+                                />
+                                <InputError message={getNestedError(errors, `questions.${index}.points_store`)} className='mt-1' />
+                              </div>
+                            </Fragment>
+                          )}
                         </div>
-                      )}
+                        <div className='space-y-2'>
+                          <Button type='button' onClick={() => handleViewQuestion(question.id)} variant='outline'>
+                            Ver
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )
@@ -520,6 +557,8 @@ export default function ApplicationFormEdit({ application_form, questions }: App
           </div>
         </form>
       </div>
+
+      {isViewModalOpen && questionId && <ViewQuestionDialog isOpen={isViewModalOpen} id={questionId} onOpenChange={setIsViewModalOpen} />}
     </AppLayout>
   )
 }

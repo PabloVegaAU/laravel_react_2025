@@ -7,7 +7,6 @@ import { CreateStudent } from '@/types/user'
 import { useForm } from '@inertiajs/react'
 import { LoaderCircle } from 'lucide-react'
 
-
 interface CreateStudentDialogProps {
   isOpen: boolean
   onOpenChange: React.Dispatch<React.SetStateAction<boolean>>

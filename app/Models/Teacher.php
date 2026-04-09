@@ -21,6 +21,7 @@ class Teacher extends Model
     public $incrementing = false;
 
     protected $fillable = [
+        'user_id',
         'status',
     ];
 

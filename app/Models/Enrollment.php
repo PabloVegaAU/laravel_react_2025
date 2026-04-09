@@ -19,15 +19,18 @@ class Enrollment extends Model
         'enrollment_date',
         'student_id',
         'classroom_id',
+        'deactivated_at',
     ];
 
     protected $casts = [
         'academic_year' => 'integer',
         'enrollment_date' => 'date',
+        'deactivated_at' => 'date',
     ];
 
     protected $dates = [
         'enrollment_date',
+        'deactivated_at',
         'created_at',
         'updated_at',
         'deleted_at',

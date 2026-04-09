@@ -25,6 +25,7 @@ class LearningSession extends Model
         'educational_institution_id',
         'teacher_classroom_curricular_area_cycle_id',
         'competency_id',
+        'deactivated_at',
     ];
 
     protected $casts = [
@@ -33,6 +34,7 @@ class LearningSession extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
+        'deactivated_at' => 'datetime',
     ];
 
     protected $dates = [
@@ -40,6 +42,7 @@ class LearningSession extends Model
         'created_at',
         'updated_at',
         'deleted_at',
+        'deactivated_at',
     ];
 
     public function educationalInstitution(): BelongsTo

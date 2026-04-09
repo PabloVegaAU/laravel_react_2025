@@ -13,6 +13,7 @@ import AppLayout from '@/layouts/app-layout'
 import { parseDateString, toUTCDateString } from '@/lib/date'
 import { useTranslations } from '@/lib/translator'
 import { cn, getNestedError, normalizeString } from '@/lib/utils'
+import { ViewQuestionDialog } from '@/pages/teacher/questions/components/form-view'
 import { TeacherClassroomCurricularAreaCycle } from '@/types/academic/teacher-classroom-curricular-area-cycle'
 import { Question, QuestionWithScore } from '@/types/application-form'
 import { ApplicationFormStatus } from '@/types/application-form/application-form'
@@ -23,7 +24,7 @@ import { Head, useForm } from '@inertiajs/react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Calendar as CalendarIcon } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 
 interface CreateApplicationFormProps {
   learning_session: LearningSession
@@ -35,6 +36,8 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
   const { t } = useTranslations()
   const [searchQuestion, setSearchQuestion] = useState('')
   const [questionsFiltered, setQuestionsFiltered] = useState(questions)
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+  const [questionId, setQuestionId] = useState<number | null>(null)
 
   const today = new Date()
   const startDate = today
@@ -216,6 +219,11 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
       'questions',
       data.questions.map((q) => (q.id === question.id ? { ...q, score: scoreValue, points_store: pointsStoreValue } : q))
     )
+  }
+
+  const handleViewQuestion = (id: number) => {
+    setQuestionId(id)
+    setIsViewModalOpen(true)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -454,51 +462,59 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
                           )}
                         </div>
                       )}
-
-                      {isChecked && (
-                        <div className='mt-2 grid grid-cols-1 gap-4 md:grid-cols-3'>
-                          <div className='space-y-2'>
-                            <Label htmlFor={`order-${question.id}`}>Orden</Label>
-                            <Input
-                              id={`order-${question.id}`}
-                              type='number'
-                              min='1'
-                              value={questionInForm?.order || ''}
-                              onChange={(e) => {
-                                const newOrder = parseInt(e.target.value) || 1
-                                handleOrderChange(question.id, newOrder)
-                              }}
-                              className='w-20'
-                            />
-                            <InputError message={getNestedError(errors, `questions.${index}.order`)} className='mt-1' />
-                          </div>
-                          <div className='space-y-2'>
-                            <Label htmlFor={`score-${question.id}`}>Puntaje</Label>
-                            <Input
-                              id={`score-${question.id}`}
-                              type='number'
-                              min='0'
-                              step='0.25'
-                              value={questionInForm?.score || 1}
-                              onChange={(e) => handleScoreChange(question, e.target.value)}
-                              className='w-24'
-                            />
-                            <InputError message={getNestedError(errors, `questions.${index}.score`)} className='mt-1' />
-                          </div>
-                          <div className='space-y-2'>
-                            <Label htmlFor={`points-${question.id}`}>P. tienda</Label>
-                            <Input
-                              id={`points-${question.id}`}
-                              type='number'
-                              min='0'
-                              step='0.25'
-                              value={questionInForm?.points_store || 0}
-                              className='w-24'
-                            />
-                            <InputError message={getNestedError(errors, `questions.${index}.points_store`)} className='mt-1' />{' '}
-                          </div>
+                      <div className='mt-2 flex w-full flex-col gap-4 sm:flex-row sm:justify-between'>
+                        <div className='grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
+                          {isChecked && (
+                            <Fragment>
+                              <div className='space-y-2'>
+                                <Label htmlFor={`order-${question.id}`}>Orden</Label>
+                                <Input
+                                  id={`order-${question.id}`}
+                                  type='number'
+                                  min='1'
+                                  value={questionInForm?.order || ''}
+                                  onChange={(e) => {
+                                    const newOrder = parseInt(e.target.value) || 1
+                                    handleOrderChange(question.id, newOrder)
+                                  }}
+                                  className='w-20'
+                                />
+                                <InputError message={getNestedError(errors, `questions.${index}.order`)} className='mt-1' />
+                              </div>
+                              <div className='space-y-2'>
+                                <Label htmlFor={`score-${question.id}`}>Puntaje</Label>
+                                <Input
+                                  id={`score-${question.id}`}
+                                  type='number'
+                                  min='0'
+                                  step='0.25'
+                                  value={questionInForm?.score || 1}
+                                  onChange={(e) => handleScoreChange(question, e.target.value)}
+                                  className='w-24'
+                                />
+                                <InputError message={getNestedError(errors, `questions.${index}.score`)} className='mt-1' />
+                              </div>
+                              <div className='space-y-2'>
+                                <Label htmlFor={`points-${question.id}`}>P. tienda</Label>
+                                <Input
+                                  id={`points-${question.id}`}
+                                  type='number'
+                                  min='0'
+                                  step='0.25'
+                                  value={questionInForm?.points_store || 0}
+                                  className='w-24'
+                                />
+                                <InputError message={getNestedError(errors, `questions.${index}.points_store`)} className='mt-1' />
+                              </div>
+                            </Fragment>
+                          )}
                         </div>
-                      )}
+                        <div className='space-y-2'>
+                          <Button type='button' onClick={() => handleViewQuestion(question.id)} variant='outline'>
+                            Ver
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )
@@ -517,6 +533,8 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
           </div>
         </form>
       </div>
+
+      {isViewModalOpen && questionId && <ViewQuestionDialog isOpen={isViewModalOpen} id={questionId} onOpenChange={setIsViewModalOpen} />}
     </AppLayout>
   )
 }
