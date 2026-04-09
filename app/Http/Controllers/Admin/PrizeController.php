@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Prize;
+use App\Traits\HandlesImageStorage;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class PrizeController extends Controller
 {
+    use HandlesImageStorage;
+
     public function index(Request $request)
     {
         $perPage = $request->input('per_page', 10);
@@ -56,8 +58,7 @@ class PrizeController extends Controller
         ]);
 
         try {
-            $imagePath = $request->file('image')->store('prizes', 's3');
-            $imagePath = Storage::url($imagePath);
+            $imagePath = $this->storeImage($request->file('image'), 'prizes', null, 's3');
 
             $prize = Prize::create([
                 'name' => $validated['name'],
@@ -73,7 +74,11 @@ class PrizeController extends Controller
             return redirect()->route('admin.prizes.index')
                 ->with('success', 'Premio actualizado exitosamente.');
         } catch (\Exception $e) {
-            \Log::error('Error creando premio: '.$e->getMessage());
+            \Log::error('Error creando premio', [
+                'message' => $e->getMessage(),
+                'user_id' => auth()->id(),
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             return redirect()->route('admin.prizes.index')
                 ->with('error', 'Error al crear el premio.');
@@ -129,10 +134,9 @@ class PrizeController extends Controller
 
         if ($request->hasFile('image')) {
             if ($prize->image) {
-                Storage::disk('s3')->delete($prize->image);
+                $this->deleteImage($prize->image);
             }
-            $updateData['image'] = $request->file('image')->store('prizes', 's3');
-            $updateData['image'] = Storage::url($updateData['image']);
+            $updateData['image'] = $this->storeImage($request->file('image'), 'prizes', null, 's3');
         }
 
         $prize->update($updateData);
@@ -144,7 +148,7 @@ class PrizeController extends Controller
     public function destroy(Prize $prize)
     {
         if ($prize->image) {
-            Storage::disk('s3')->delete($prize->image);
+            $this->deleteImage($prize->image);
         }
 
         $prize->delete();

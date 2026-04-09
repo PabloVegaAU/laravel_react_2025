@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Avatar;
+use App\Traits\HandlesImageStorage;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class AvatarController extends Controller
 {
+    use HandlesImageStorage;
+
     public function index()
     {
         $query = Avatar::query();
@@ -50,8 +52,7 @@ class AvatarController extends Controller
         ]);
 
         try {
-            $imagePath = $request->file('image_url')->store('avatars', 's3');
-            $imagePath = Storage::url($imagePath);
+            $imagePath = $this->storeImage($request->file('image_url'), 'avatars', null, 's3');
 
             $avatar = Avatar::create([
                 'name' => $validated['name'],
@@ -64,7 +65,11 @@ class AvatarController extends Controller
             return redirect()->route('admin.avatars.index')
                 ->with('success', 'Avatar creado exitosamente.');
         } catch (\Exception $e) {
-            \Log::error('Error creando avatar: '.$e->getMessage());
+            \Log::error('Error creando avatar', [
+                'message' => $e->getMessage(),
+                'user_id' => auth()->id(),
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             return response()->json([
                 'success' => false,
@@ -117,10 +122,9 @@ class AvatarController extends Controller
 
         if ($request->hasFile('image_url')) {
             if ($avatar->image_url) {
-                Storage::disk('s3')->delete($avatar->image_url);
+                $this->deleteImage($avatar->image_url);
             }
-            $path = $request->file('image_url')->store('avatars', 's3');
-            $updateData['image_url'] = Storage::url($path);
+            $updateData['image_url'] = $this->storeImage($request->file('image_url'), 'avatars', null, 's3');
         }
 
         $avatar->update($updateData);
@@ -132,7 +136,7 @@ class AvatarController extends Controller
     public function destroy(Avatar $avatar)
     {
         if ($avatar->image_url) {
-            Storage::disk('s3')->delete($avatar->image_url);
+            $this->deleteImage($avatar->image_url);
         }
 
         $avatar->delete();

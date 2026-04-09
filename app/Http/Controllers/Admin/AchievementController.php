@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Achievement;
+use App\Traits\HandlesImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -12,6 +13,8 @@ use Inertia\Inertia;
 
 class AchievementController extends Controller
 {
+    use HandlesImageStorage;
+
     /**
      * Display a listing of the achievements.
      */
@@ -56,8 +59,7 @@ class AchievementController extends Controller
 
         if ($request->hasFile('image')) {
             // Guardar la nueva imagen
-            $path = $request->file('image')->store('achievements', 's3');
-            $validated['image'] = Storage::url($path);
+            $validated['image'] = $this->storeImage($request->file('image'), 'achievements', null, 's3');
         }
 
         $achievement = Achievement::create($validated);
@@ -108,12 +110,11 @@ class AchievementController extends Controller
             if ($request->hasFile('image')) {
                 // Si existe una imagen anterior, la eliminamos
                 if ($achievement->image) {
-                    Storage::disk('s3')->delete($achievement->image);
+                    $this->deleteImage($achievement->image);
                 }
 
                 // Guardar la nueva imagen
-                $path = $request->file('image')->store('achievements', 's3');
-                $validated['image'] = Storage::url($path);
+                $validated['image'] = $this->storeImage($request->file('image'), 'achievements', null, 's3');
             }
 
             DB::beginTransaction();
@@ -146,6 +147,10 @@ class AchievementController extends Controller
     public function destroy(int $id)
     {
         $achievement = Achievement::findOrFail($id);
+
+        if ($achievement->image) {
+            $this->deleteImage($achievement->image);
+        }
 
         $achievement->delete();
 

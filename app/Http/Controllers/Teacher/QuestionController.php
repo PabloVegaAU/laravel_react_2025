@@ -9,14 +9,16 @@ use App\Models\CurricularArea;
 use App\Models\Question;
 use App\Models\QuestionOption;
 use App\Models\QuestionType;
+use App\Traits\HandlesImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class QuestionController extends Controller
 {
+    use HandlesImageStorage;
+
     private const DIFFICULTIES = ['easy', 'medium', 'hard'];
 
     private function emptyPagination(): array
@@ -155,33 +157,6 @@ class QuestionController extends Controller
     /**
      * Determina si una opción es correcta según el tipo de pregunta
      */
-    /**
-     * Elimina una imagen de pregunta de S3
-     */
-    private function deleteQuestionImage(string $imageUrl): void
-    {
-        try {
-            // Extraer el path relativo de la URL completa
-            $path = parse_url($imageUrl, PHP_URL_PATH);
-
-            // Eliminar el prefijo /storage/ si existe
-            if ($path && str_starts_with($path, '/storage/')) {
-                $path = substr($path, 9); // Remover '/storage/'
-            }
-
-            // Eliminar el archivo de S3 si existe
-            if ($path && Storage::disk('s3')->exists($path)) {
-                Storage::disk('s3')->delete($path);
-            }
-        } catch (\Exception $e) {
-            // Log error but don't fail the operation
-            \Log::warning('No se pudo eliminar la imagen de S3: '.$e->getMessage());
-        }
-    }
-
-    /**
-     * Determina si una opción es correcta según el tipo de pregunta
-     */
     private function determineIfOptionIsCorrect(array $optionData, int $questionTypeId): bool
     {
         // Para preguntas de selección múltiple, usa el valor proporcionado o false por defecto
@@ -248,14 +223,10 @@ class QuestionController extends Controller
                 $date = now()->format('Y-m-d');
                 $extension = $validated['image']->getClientOriginalExtension();
                 $filename = "{$date}_{$question->id}.{$extension}";
-                $path = $validated['image']->storeAs(
-                    'questions',
-                    $filename,
-                    's3'
-                );
+                $imageUrl = $this->storeImage($validated['image'], 'questions', $filename, 's3');
 
                 // Actualizar la pregunta con la URL completa de la imagen
-                $question->update(['image' => Storage::url($path)]);
+                $question->update(['image' => $imageUrl]);
             }
 
             // Procesar opciones según el tipo de pregunta
@@ -362,24 +333,14 @@ class QuestionController extends Controller
             ];
 
             if ($request->hasFile('image')) {
-                // Eliminar la imagen anterior si existe
-                if ($question->image) {
-                    $this->deleteQuestionImage($question->image);
-                }
-
                 // Guardar la nueva imagen con el formato: YYYY-MM-DD_questionID.extension
                 $date = now()->format('Y-m-d');
                 $extension = $request->file('image')->getClientOriginalExtension();
                 $filename = "{$date}_{$question->id}.{$extension}";
-                $path = $request->file('image')->storeAs(
-                    'questions',
-                    $filename,
-                    's3'
-                );
-                $updateData['image'] = Storage::url($path);
+                $updateData['image'] = $this->updateImage($question->image, $request->file('image'), 'questions', $filename, 's3');
             } elseif (is_null($request->input('image')) && $question->image) {
                 // Si se envía null o vacío para la imagen, eliminarla
-                $this->deleteQuestionImage($question->image);
+                $this->deleteImage($question->image);
                 $updateData['image'] = null;
             }
 

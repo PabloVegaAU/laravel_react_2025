@@ -5,12 +5,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Background;
 use App\Models\Level;
+use App\Traits\HandlesImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class BackgroundController extends Controller
 {
+    use HandlesImageStorage;
+
     /**
      * Display a listing of the resource.
      */
@@ -57,8 +60,7 @@ class BackgroundController extends Controller
         ]);
 
         try {
-            $imagePath = $request->file('image')->store('backgrounds', 's3');
-            $imagePath = Storage::url($imagePath);
+            $imagePath = $this->storeImage($request->file('image'), 'backgrounds', null, 's3');
 
             $background = Background::create([
                 'name' => $validated['name'],
@@ -80,7 +82,11 @@ class BackgroundController extends Controller
                 ->with('success', 'Fondo creado exitosamente.');
 
         } catch (\Exception $e) {
-            \Log::error('Error creating background: '.$e->getMessage());
+            \Log::error('Error creating background', [
+                'message' => $e->getMessage(),
+                'user_id' => auth()->id(),
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             if ($request->wantsJson()) {
                 return response()->json([
@@ -150,10 +156,9 @@ class BackgroundController extends Controller
 
         if ($request->hasFile('image')) {
             if ($background->image) {
-                Storage::disk('s3')->delete($background->image);
+                $this->deleteImage($background->image);
             }
-            $updateData['image'] = $request->file('image')->store('backgrounds', 's3');
-            $updateData['image'] = Storage::url($updateData['image']);
+            $updateData['image'] = $this->storeImage($request->file('image'), 'backgrounds', null, 's3');
         }
 
         $background->update($updateData);
@@ -168,7 +173,7 @@ class BackgroundController extends Controller
     public function destroy(Background $background)
     {
         if ($background->image) {
-            Storage::disk('s3')->delete($background->image);
+            $this->deleteImage($background->image);
         }
 
         $background->delete();

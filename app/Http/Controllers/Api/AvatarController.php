@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Avatar;
+use App\Traits\HandlesImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class AvatarController extends Controller
 {
+    use HandlesImageStorage;
+
     /**
      * Display a listing of the resource.
      */
@@ -42,8 +45,7 @@ class AvatarController extends Controller
 
             // Handle file upload
             if ($request->hasFile('image')) {
-                $path = $request->file('image')->store('avatars', 's3');
-                $validated['image_url'] = Storage::url($path);
+                $validated['image_url'] = $this->storeImage($request->file('image'), 'avatars', null, 's3');
             }
 
             $avatar = Avatar::create($validated);
@@ -111,11 +113,10 @@ class AvatarController extends Controller
             if ($request->hasFile('image')) {
                 // Delete old image if exists
                 if ($avatar->image_url) {
-                    Storage::disk('s3')->delete($avatar->image_url);
+                    $this->deleteImage($avatar->image_url);
                 }
 
-                $path = $request->file('image')->store('avatars', 's3');
-                $validated['image_url'] = Storage::url($path);
+                $validated['image_url'] = $this->storeImage($request->file('image'), 'avatars', null, 's3');
             }
 
             $avatar->update($validated);
@@ -156,7 +157,7 @@ class AvatarController extends Controller
 
             // Delete associated image file
             if ($avatar->image_url) {
-                Storage::disk('s3')->delete($avatar->image_url);
+                $this->deleteImage($avatar->image_url);
             }
 
             $avatar->delete();

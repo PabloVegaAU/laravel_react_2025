@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Prize;
+use App\Traits\HandlesImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class PrizeController extends Controller
 {
+    use HandlesImageStorage;
+
     /**
      * Display a listing of the resource.
      */
@@ -119,8 +122,8 @@ class PrizeController extends Controller
             // Handle file upload if new image is provided
             if ($request->hasFile('image')) {
                 // Delete old image if exists
-                if ($prize->image && Storage::disk('s3')->exists($prize->image)) {
-                    Storage::disk('s3')->delete($prize->image);
+                if ($prize->image) {
+                    $this->deleteImage($prize->image);
                 }
 
                 $image = $request->file('image');
@@ -166,8 +169,8 @@ class PrizeController extends Controller
             $prize = Prize::findOrFail($id);
 
             // Delete associated image if exists
-            if ($prize->image && Storage::disk('s3')->exists($prize->image)) {
-                Storage::disk('s3')->delete($prize->image);
+            if ($prize->image) {
+                $this->deleteImage($prize->image);
             }
 
             $prize->delete();
