@@ -39,7 +39,7 @@ class CurricularArea extends Model
             'teacher_classroom_curricular_area_cycles',
             'curricular_area_id',
             'classroom_id'
-        )->withPivot(['teacher_id', 'academic_year']);
+        )->withPivot(['teacher_id']);
     }
 
     public function teachers(): BelongsToMany

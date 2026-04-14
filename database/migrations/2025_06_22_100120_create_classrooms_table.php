@@ -22,8 +22,6 @@ return new class extends Migration
                 'primary',     // Educación primaria
                 'secondary',   // Educación secundaria
             ])->comment('Nivel educativo del aula');
-            $table->year('academic_year')
-                ->comment('Año académico al que pertenece el aula');
 
             // Metadatos
             $table->timestamps();
@@ -34,11 +32,6 @@ return new class extends Migration
 
             // Índices
             $table->index(['level', 'grade', 'section'], 'idx_classroom_level_grade_section');
-            $table->index('academic_year', 'idx_classroom_academic_year');
-            $table->index(
-                ['academic_year', 'level'],
-                'idx_classroom_year_level'
-            );
         });
     }
 

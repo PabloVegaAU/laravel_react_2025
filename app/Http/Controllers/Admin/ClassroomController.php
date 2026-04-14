@@ -18,7 +18,7 @@ class ClassroomController extends Controller
 
     public function getClassrooms()
     {
-        $classrooms = Classroom::where('academic_year', now()->year)->get();
+        $classrooms = Classroom::get();
 
         return response()->json($classrooms);
     }

@@ -68,7 +68,7 @@ export default function Dashboard({ teacher_classroom_curricular_area_cycles }: 
                     <TableCell>{t(item?.classroom?.grade)}</TableCell>
                     <TableCell>{item?.classroom?.section}</TableCell>
                     <TableCell>{t(item?.classroom?.level)}</TableCell>
-                    <TableCell>{item?.classroom?.academic_year}</TableCell>
+                    <TableCell>{item?.academic_year}</TableCell>
                   </TableRow>
                 )
               })}

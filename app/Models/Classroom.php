@@ -17,11 +17,11 @@ class Classroom extends Model
         'grade',
         'section',
         'level',
-        'academic_year',
+        'year',
     ];
 
     protected $casts = [
-        'academic_year' => 'integer',
+        'year' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -42,7 +42,7 @@ class Classroom extends Model
             'teacher_id',
             'id',
             'user_id'
-        )->withPivot(['curricular_area_cycle_id', 'academic_year']);
+        )->withPivot(['curricular_area_cycle_id']);
     }
 
     public function enrollments(): HasMany
@@ -74,7 +74,7 @@ class Classroom extends Model
             'teacher_classroom_curricular_area_cycles',
             'classroom_id',
             'curricular_area_cycle_id'
-        )->withPivot(['teacher_id', 'academic_year']);
+        )->withPivot(['teacher_id']);
     }
 
     public function learningSessions(): HasMany
