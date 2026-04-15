@@ -1,7 +1,5 @@
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Capability, Competency } from '@/types/academic'
-import { CurricularArea } from '@/types/academic/curricular-area'
-import { Question, QuestionDifficulty, QuestionType } from '@/types/application-form/question'
+import { Question } from '@/types/application-form/question'
 import { EyeIcon } from 'lucide-react'
 import { MatchingOptions, OrderingOptions, SingleChoiceOptions, TrueFalseOptions } from './question-types'
 
@@ -15,11 +13,7 @@ interface ViewQuestionDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
-export function ViewQuestionDialog({
-  isOpen,
-  id,
-  onOpenChange
-}: ViewQuestionDialogProps) {
+export function ViewQuestionDialog({ isOpen, id, onOpenChange }: ViewQuestionDialogProps) {
   // Hook de traducciones
   const { t } = useTranslations()
 
@@ -32,22 +26,22 @@ export function ViewQuestionDialog({
     refetchOnWindowFocus: false
   })
 
-  const getCurricularAreaName = (areaId: string) => {
+  const getCurricularAreaName = () => {
     const area = question?.capability.competency?.curricular_area_cycle?.curricular_area?.name
     return area || 'No especificada'
   }
 
-  const getCompetencyName = (competencyId: string) => {
+  const getCompetencyName = () => {
     const competency = question?.capability.competency?.name
     return competency || 'No especificada'
   }
 
-  const getCapabilityName = (capabilityId: string) => {
+  const getCapabilityName = () => {
     const capability = question?.capability.name
     return capability || 'No especificada'
   }
 
-  const getQuestionTypeName = (typeId: string) => {
+  const getQuestionTypeName = () => {
     const type = question?.question_type.name
     return type || 'No especificado'
   }
@@ -76,21 +70,19 @@ export function ViewQuestionDialog({
                   {/* Área Curricular */}
                   <div className='flex flex-col gap-1'>
                     <span className='text-sm font-medium text-gray-700'>Área Curricular:</span>
-                    <span className='text-sm text-gray-900'>
-                      {getCurricularAreaName(question.capability?.competency?.curricular_area_cycle_id?.toString() || '')}
-                    </span>
+                    <span className='text-sm text-gray-900'>{getCurricularAreaName()}</span>
                   </div>
 
                   {/* Competencia */}
                   <div className='flex flex-col gap-1'>
                     <span className='text-sm font-medium text-gray-700'>Competencia:</span>
-                    <span className='text-sm text-gray-900'>{getCompetencyName(question.capability?.competency_id?.toString() || '')}</span>
+                    <span className='text-sm text-gray-900'>{getCompetencyName()}</span>
                   </div>
 
                   {/* Capacidad */}
                   <div className='flex flex-col gap-1'>
                     <span className='text-sm font-medium text-gray-700'>Capacidad:</span>
-                    <span className='text-sm text-gray-900'>{getCapabilityName(question.capability_id?.toString() || '')}</span>
+                    <span className='text-sm text-gray-900'>{getCapabilityName()}</span>
                   </div>
                 </div>
 
@@ -100,7 +92,7 @@ export function ViewQuestionDialog({
                     {/* Tipo de pregunta */}
                     <div className='flex flex-col gap-1'>
                       <span className='text-sm font-medium text-gray-700'>Tipo de Pregunta:</span>
-                      <span className='text-sm text-gray-900'>{getQuestionTypeName(question.question_type_id?.toString() || '')}</span>
+                      <span className='text-sm text-gray-900'>{getQuestionTypeName()}</span>
                     </div>
 
                     {/* Dificultad */}

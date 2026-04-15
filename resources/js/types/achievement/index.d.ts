@@ -17,3 +17,18 @@ export type Achievement = BaseEntity & {
   studentAchievements?: StudentAchievement[]
   students?: Array<Student & { pivot: { achieved_at: string } }>
 }
+
+export type CreateAchievementData = {
+  name: string
+  description: string
+  image: string | File
+  activo: boolean
+}
+
+export type UpdateAchievementData = {
+  name: string
+  description: string
+  image: string | File
+  activo: boolean
+  _method: 'PUT'
+}

@@ -14,8 +14,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Image from '@/components/ui/image'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import AppLayout from '@/layouts/app-layout'
 import { useTranslations } from '@/lib/translator'
 import { getNestedError } from '@/lib/utils'
@@ -25,7 +25,6 @@ import { BreadcrumbItem } from '@/types/core'
 import { Head, useForm } from '@inertiajs/react'
 import * as React from 'react'
 import { QuestionResponse } from '../components/QuestionResponse'
-import { Textarea } from '@/components/ui/textarea'
 
 type PageProps = {
   application_form_response: ApplicationFormResponse

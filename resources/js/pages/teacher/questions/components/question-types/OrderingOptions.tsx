@@ -60,7 +60,7 @@ export function OrderingOptions({ options, onChange, disabled = false }: Questio
   }
 
   // Handle drop
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
 
     if (draggedItem === null || dragOverItem.current === null) return
@@ -95,7 +95,7 @@ export function OrderingOptions({ options, onChange, disabled = false }: Questio
             draggable={!disabled}
             onDragStart={(e) => handleDragStart(e, index)}
             onDragOver={(e) => handleDragOver(e, index)}
-            onDrop={(e) => handleDrop(e, index)}
+            onDrop={(e) => handleDrop(e)}
             className={`flex items-center gap-2 rounded-md border p-2 transition-colors ${draggedItem === index ? 'opacity-50' : ''} dark:border-gray-700 dark:bg-gray-800/50 dark:hover:bg-gray-800/70`}
           >
             <GripVertical className='text-muted-foreground dark:text-foreground/70 h-4 w-4 cursor-move' />

@@ -9,8 +9,8 @@ import axios from 'axios'
 import { Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { AssignAchievementModal } from './components/assign-achievement-modal'
-import { StudentSearchModal } from './components/student-search-modal'
 import { StudentAchievementsModal } from './components/student-achievements-modal'
+import { StudentSearchModal } from './components/student-search-modal'
 
 type Achievement = {
   id: number

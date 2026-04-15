@@ -34,7 +34,6 @@ export function TrueFalseOptions({ options, onChange, disabled = false }: Questi
   }
 
   const trueOption = options.find((opt) => opt.value === 'Verdadero')
-  const falseOption = options.find((opt) => opt.value === 'Falso')
   const currentCorrect = trueOption?.is_correct ? 'true' : 'false'
 
   return (

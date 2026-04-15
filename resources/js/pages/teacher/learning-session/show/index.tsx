@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import AppLayout from '@/layouts/app-layout'
 import { useTranslations } from '@/lib/translator'
-import { TeacherClassroomCurricularAreaCycle } from '@/types/academic'
 import { BreadcrumbItem, SharedData } from '@/types/core'
 import { LearningSession } from '@/types/learning-session'
 import { Head, Link, usePage } from '@inertiajs/react'
@@ -12,7 +11,6 @@ import { es } from 'date-fns/locale'
 
 type PageProps = {
   learning_session: LearningSession
-  teacher_classroom_curricular_area_cycles: TeacherClassroomCurricularAreaCycle[]
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -22,8 +20,8 @@ const breadcrumbs: BreadcrumbItem[] = [
   }
 ]
 
-export default function LearningSessionShow({ learning_session, teacher_classroom_curricular_area_cycles }: PageProps) {
-  const { educational_institution, teacher_classroom_curricular_area_cycle } = learning_session
+export default function LearningSessionShow({ learning_session }: PageProps) {
+  const { educational_institution } = learning_session
   const { auth } = usePage<SharedData>().props
   const { t } = useTranslations()
 
