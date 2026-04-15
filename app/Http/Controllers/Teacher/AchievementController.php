@@ -20,28 +20,28 @@ class AchievementController extends Controller
             ->select([
                 'users.id',
                 'users.name',
-                DB::raw('(SELECT c.grade 
-                          FROM enrollments e 
-                          JOIN classrooms c ON c.id = e.classroom_id 
-                          WHERE e.student_id = users.id 
-                          ORDER BY e.created_at DESC 
+                DB::raw('(SELECT c.grade
+                          FROM enrollments e
+                          JOIN classrooms c ON c.id = e.classroom_id
+                          WHERE e.student_id = users.id
+                          ORDER BY e.created_at DESC
                           LIMIT 1) as grade'),
-                DB::raw('(SELECT c.section 
-                          FROM enrollments e 
-                          JOIN classrooms c ON c.id = e.classroom_id 
-                          WHERE e.student_id = users.id 
-                          ORDER BY e.created_at DESC 
+                DB::raw('(SELECT c.section
+                          FROM enrollments e
+                          JOIN classrooms c ON c.id = e.classroom_id
+                          WHERE e.student_id = users.id
+                          ORDER BY e.created_at DESC
                           LIMIT 1) as section'),
-                DB::raw('(SELECT COUNT(*) 
-                          FROM student_achievements sa 
-                          JOIN students s2 ON sa.student_id = s2.user_id 
+                DB::raw('(SELECT COUNT(*)
+                          FROM student_achievements sa
+                          JOIN students s2 ON sa.student_id = s2.user_id
                           WHERE s2.user_id = users.id) as achievements_count'),
             ])
             ->latest()
             ->paginate(10)
             ->withQueryString();
 
-        return Inertia::render('teacher/achievements/components/index', [
+        return Inertia::render('teacher/achievements/index', [
             'students' => $students,
             'filters' => request()->only(['search']),
         ]);

@@ -8,21 +8,15 @@ import { Head, usePage } from '@inertiajs/react'
 import axios from 'axios'
 import { Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { AssignAchievementModal } from './AssignAchievementModal'
-import { StudentSearchModal } from './student-search-modal'
-import { StudentAchievementsModal } from './StudentAchievementsModal'
+import { AssignAchievementModal } from './components/assign-achievement-modal'
+import { StudentSearchModal } from './components/student-search-modal'
+import { StudentAchievementsModal } from './components/student-achievements-modal'
 
 type Achievement = {
   id: number
   name: string
   description: string
   activo: boolean
-}
-
-type Student = {
-  id: number
-  name: string
-  email: string
 }
 
 const breadcrumbs: BreadcrumbItem[] = [

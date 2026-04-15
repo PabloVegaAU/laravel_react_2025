@@ -25,6 +25,7 @@ import { BreadcrumbItem } from '@/types/core'
 import { Head, useForm } from '@inertiajs/react'
 import * as React from 'react'
 import { QuestionResponse } from '../components/QuestionResponse'
+import { Textarea } from '@/components/ui/textarea'
 
 type PageProps = {
   application_form_response: ApplicationFormResponse
@@ -373,8 +374,7 @@ export default function ApplicationFormResponseEdit({ application_form_response 
                         {responseQuestion.application_form_question.question.explanation_required && (
                           <div className='space-y-2'>
                             <Label>{t('Explanation')}</Label>
-                            <Input
-                              type='text'
+                            <Textarea
                               name={`responses.${responseQuestion.application_form_question_id}.explanation`}
                               value={data.responses[responseQuestion.application_form_question_id].explanation || ''}
                               onChange={(e) => handleExplanationChange(responseQuestion.application_form_question_id, e.target.value)}

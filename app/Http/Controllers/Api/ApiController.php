@@ -49,7 +49,8 @@ class ApiController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'p_achievement_id' => 'required|integer',
-            'p_student_ids' => 'required|array',
+            'p_teacher_id' => 'required|integer',
+            'p_student_ids' => 'sometimes|array',
             'p_student_ids.*' => 'integer',
         ]);
 
@@ -63,13 +64,16 @@ class ApiController extends Controller
 
         try {
             $p_achievement_id = (int) $request->input('p_achievement_id');
-            $p_student_ids = $request->input('p_student_ids');
+            $p_teacher_id = (int) $request->input('p_teacher_id');
+            $p_student_ids = $request->input('p_student_ids', []);
 
             // Convertir el array a formato PostgreSQL literal: {1,2,3}
-            $studentIdsPgArray = '{'.implode(',', $p_student_ids).'}';
+            // Si el array está vacío, usar array vacío {}
+            $studentIdsPgArray = empty($p_student_ids) ? '{}' : '{'.implode(',', $p_student_ids).'}';
 
-            $results = DB::select('SELECT * FROM public.spu_achievement_assign_two(?, ?)', [
+            $results = DB::select('SELECT * FROM public.spu_achievement_sync(?, ?, ?)', [
                 $p_achievement_id,
+                $p_teacher_id,
                 $studentIdsPgArray,
             ]);
 
@@ -80,7 +84,7 @@ class ApiController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al asignar logro(s)',
+                'message' => 'Error al sincronizar logro(s)',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -196,6 +200,9 @@ class ApiController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'p_achievement_id' => 'nullable|integer',
+            'p_with_achievement' => 'nullable|boolean',
+            'p_page' => 'nullable|integer|min:1',
+            'p_per_page' => 'nullable|integer|min:1|max:100',
         ]);
 
         if ($validator->fails()) {
@@ -207,12 +214,30 @@ class ApiController extends Controller
         }
 
         try {
-            $result = DB::select('SELECT * FROM public.spu_get_student_by_achievement_teacher(?,?)', [
+            $page = $request->p_page ?? 1;
+            $perPage = $request->p_per_page ?? 10;
+            $withAchievement = $request->p_with_achievement ?? false;
+
+            $result = DB::select('SELECT * FROM public.spu_get_student_by_achievement_teacher(?,?,?,?,?)', [
                 $request->p_achievement_id ?? 0,
                 $request->p_teacher_id ?? 0,
+                $withAchievement,
+                $page,
+                $perPage,
             ]);
 
-            return response()->json($result);
+            // Extract total count from first result if available
+            $totalCount = isset($result[0]) ? $result[0]->total_count ?? 0 : 0;
+
+            return response()->json([
+                'data' => $result,
+                'pagination' => [
+                    'page' => $page,
+                    'per_page' => $perPage,
+                    'total_count' => $totalCount,
+                    'total_pages' => ceil($totalCount / $perPage),
+                ],
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

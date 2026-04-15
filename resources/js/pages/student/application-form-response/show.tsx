@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Image from '@/components/ui/image'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import AppLayout from '@/layouts/app-layout'
 import { useTranslations } from '@/lib/translator'
 import type { ApplicationFormResponse } from '@/types/application-form/form/response/application-form-response'
@@ -77,8 +78,7 @@ export default function ApplicationFormResponseShow({ application_form_response 
                       {responseQuestion.application_form_question.question.explanation_required && (
                         <div className='space-y-2'>
                           <Label>{t('Your') + ' ' + t('Explanation')}: </Label>
-                          <Input
-                            type='text'
+                          <Textarea
                             name={`responses.${responseQuestion.application_form_question_id}.explanation`}
                             defaultValue={responseQuestion.explanation || ''}
                             className='w-full'

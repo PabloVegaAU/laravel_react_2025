@@ -1,9 +1,8 @@
 // /resources/js/Pages/student-search-modal.tsx
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-
-import axios from 'axios'
-import { Search } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { LoaderCircle, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 type Student = {
@@ -21,40 +20,36 @@ type Props = {
 
 export function StudentSearchModal({ teacherId, isOpen, onClose, onSelect }: Props) {
   const [query, setQuery] = useState('')
-  const [students, setStudents] = useState<Student[]>([])
-  const [loading, setLoading] = useState(false)
+  const queryClient = useQueryClient()
+
+  const { data: response = [], isLoading } = useQuery({
+    queryKey: ['teacher-students-search', teacherId, query],
+    queryFn: () =>
+      fetch('/api/teacherstudentssearch', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          p_teacher_id: teacherId,
+          p_search: query
+        })
+      }).then((res) => res.json()),
+    enabled: isOpen && query.length >= 3
+  })
+
+  const students = response?.data || []
 
   useEffect(() => {
-    if (query.length >= 3) {
-      searchStudents(query)
-    } else {
-      setStudents([])
+    if (!isOpen) {
+      queryClient.resetQueries({ queryKey: ['teacher-students-search', teacherId] })
+      setQuery('')
     }
-  }, [query])
-
-  const searchStudents = async (search: string) => {
-    try {
-      setLoading(true)
-      const response = await axios.post('/api/teacherstudentssearch', {
-        p_teacher_id: teacherId,
-        p_search: search
-      })
-
-      if (response.data.success) {
-        setStudents(response.data.data)
-      } else {
-        setStudents([])
-      }
-    } catch (error) {
-      console.error('❌ Error al buscar estudiantes:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [isOpen, teacherId, queryClient])
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className='max-w-md'>
+      <DialogContent className='max-h-[90vh] w-full !max-w-4xl overflow-y-auto'>
         <DialogHeader>
           <DialogTitle>Logros de estudiantes</DialogTitle>
         </DialogHeader>
@@ -64,10 +59,14 @@ export function StudentSearchModal({ teacherId, isOpen, onClose, onSelect }: Pro
           <Input type='text' placeholder='Buscar por nombre o correo...' className='pl-8' value={query} onChange={(e) => setQuery(e.target.value)} />
         </div>
 
-        <div className='h-64 overflow-auto pr-2'>
-          {students.length > 0 ? (
+        <div className='h-96 overflow-auto pr-2'>
+          {isLoading ? (
+            <div className='flex items-center justify-center py-8'>
+              <LoaderCircle className='size-8 animate-spin text-gray-500' />
+            </div>
+          ) : students.length > 0 ? (
             <ul className='space-y-3'>
-              {students.map((student) => (
+              {students.map((student: Student) => (
                 <li
                   key={student.student_id}
                   className='cursor-pointer rounded-md px-3 py-2 hover:bg-gray-100'
@@ -82,9 +81,7 @@ export function StudentSearchModal({ teacherId, isOpen, onClose, onSelect }: Pro
               ))}
             </ul>
           ) : (
-            <div className='px-2 text-sm text-gray-500'>
-              {loading ? 'Buscando...' : query.length >= 3 ? 'No se encontraron estudiantes' : 'Ingresa al menos 3 letras'}
-            </div>
+            <div className='px-2 text-sm text-gray-500'>{query.length >= 3 ? 'No se encontraron estudiantes' : 'Ingresa al menos 3 letras'}</div>
           )}
         </div>
       </DialogContent>
