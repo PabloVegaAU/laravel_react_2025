@@ -19,11 +19,11 @@ export type Classroom = BaseEntity & {
   level: 'primary' | 'secondary'
 
   // Relaciones
-  teachers?: Array<Teacher & { pivot: { curricular_area_cycle_id: number } }>
+  teachers?: Teacher[]
   enrollments?: Enrollment[]
   students?: Student[]
   teacherClassroomCurricularAreaCycles?: TeacherClassroomCurricularAreaCycle[]
-  curricularAreaCycles?: Array<CurricularAreaCycle & { pivot: { teacher_id: number } }>
+  curricularAreaCycles?: CurricularAreaCycle[]
   learningSessions?: LearningSession[]
   applicationForms?: ApplicationForm[]
 }
