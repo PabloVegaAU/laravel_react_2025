@@ -1,4 +1,3 @@
-import { BaseEntity } from '../core'
 import type { LearningSession } from '../learning-session'
 import type { Capability } from './capability'
 import type { CurricularAreaCycle } from './curricular-area-cycle'
@@ -9,10 +8,13 @@ import type { Question } from './question'
  * @see database/migrations/2025_06_22_100070_create_competencies_table.php
  * @see app/Models/Competency.php
  */
-export type Competency = BaseEntity & {
+export type Competency = {
+  id: number
   name: string
   curricular_area_cycle_id: number
   color: string
+  created_at: string
+  updated_at: string
 
   // Relaciones
   curricular_area_cycle?: CurricularAreaCycle
@@ -40,9 +42,8 @@ export type UpdateCompetency = Partial<Omit<CreateCompetency, 'curricular_area_c
 export interface CompetencyFilters {
   search?: string
   curricular_area_cycle_id?: number | number[]
-  with_trashed?: boolean
   page?: number
   per_page?: number
-  sort_by?: 'name' | 'created_at' | 'updated_at'
+  sort_by?: 'name' | 'created_at'
   sort_order?: 'asc' | 'desc'
 }

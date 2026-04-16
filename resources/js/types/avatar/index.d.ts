@@ -25,9 +25,6 @@ export interface Avatar {
   /** Nivel requerido para desbloquear este avatar */
   level_required: number
 
-  /** Puntos necesarios para desbloquear este avatar en la tienda */
-  points_store: number
-
   /** Fechas de creación y actualización */
   created_at: string
   updated_at: string
@@ -66,10 +63,6 @@ export interface StudentAvatar {
   /** Identificador del avatar */
   avatar_id: number
 
-  /** Fechas de creación y actualización */
-  created_at: string
-  updated_at: string
-
   // Relaciones
   /** Estudiante que ha desbloqueado este avatar */
   student?: Student
@@ -91,8 +84,8 @@ export interface CreateAvatarData {
   /** Nivel requerido para desbloquear este avatar */
   level_required: number
 
-  /** Puntos necesarios para desbloquear este avatar en la tienda */
-  points_store: number
+  /** Precio en puntos del avatar */
+  price: number
 }
 
 /**
@@ -108,8 +101,8 @@ export interface UpdateAvatarData {
   /** Nivel requerido para desbloquear este avatar */
   level_required?: number
 
-  /** Puntos necesarios para desbloquear este avatar en la tienda */
-  points_store?: number
+  /** Precio en puntos del avatar */
+  price?: number
 }
 
 /**

@@ -1,11 +1,13 @@
 # Estructura de la Base de Datos - Laravel 12 + React + Inertia.js
 
 ## 1. Visión General
+
 La base de datos está diseñada siguiendo las convenciones de Laravel 12 Eloquent ORM y utiliza migraciones para el control de versiones. El esquema está organizado en módulos lógicos que representan las diferentes áreas funcionales del sistema educativo.
 
 ## 2. Arquitectura General
 
 ### 2.1 Convenciones
+
 - Todas las tablas usan `id` como clave primaria (bigint autoincremental)
 - Las claves foráneas siguen el patrón `nombre_tabla_singular_id`
 - Todas las tablas incluyen `created_at` y `updated_at` (timestamps)
@@ -16,6 +18,7 @@ La base de datos está diseñada siguiendo las convenciones de Laravel 12 Eloque
 - Los campos numéricos usan `decimal(10,2)` para valores monetarios o de puntuación
 
 ### Estructura de Carpetas
+
 ```
 database/
   migrations/    # Migraciones de la base de datos
@@ -28,14 +31,17 @@ database/
 A continuación se listan todos los archivos de migración del sistema, organizados por orden de ejecución:
 
 ### Migraciones del Framework
+
 1. `0001_01_01_000000_create_users_table.php` - Tabla de usuarios
 2. `0001_01_01_000001_create_cache_table.php` - Tabla de caché
 3. `0001_01_01_000002_create_jobs_table.php` - Tabla de trabajos en cola
 
 ### Migraciones de Autenticación y Permisos
+
 4. `2025_06_19_044210_create_permission_tables.php` - Tablas de roles y permisos
 
 ### Migraciones del Sistema Educativo
+
 5. `2025_06_22_100000_create_levels_table.php` - Niveles académicos
 6. `2025_06_22_100010_create_ranges_table.php` - Rangos de nivel
 7. `2025_06_22_100020_create_profiles_table.php` - Perfiles de usuario
@@ -65,6 +71,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 31. `2025_06_22_100370_create_application_form_response_question_options_table.php` - Opciones de respuestas
 
 ### Migraciones de Recompensas y Tienda
+
 32. `2025_06_22_100400_create_prizes_table.php` - Recompensas de tienda
 33. `2025_06_22_100410_create_student_prizes_table.php` - Recompensas de estudiantes
 34. `2025_06_22_100420_create_avatars_table.php` - Avatares
@@ -75,7 +82,9 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 ## Módulos Principales
 
 ### 1. Autenticación y Usuarios
+
 **Archivos relacionados:**
+
 - `[1] 0001_01_01_000000_create_users_table.php` - Tabla principal de usuarios
 - `[4] 2025_06_19_044210_create_permission_tables.php` - Roles y permisos
 - `[7] 2025_06_22_100020_create_profiles_table.php` - Perfiles de usuario
@@ -83,6 +92,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 - `[9] 2025_06_22_100040_create_teachers_table.php` - Datos de profesores
 
 #### users
+
 - **Descripción**: Tabla principal de usuarios del sistema
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -93,7 +103,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `remember_token`: Token para "recordar sesión" (string, 100, nullable)
   - `created_at`, `updated_at`: Marcas de tiempo (timestamp)
   - `deleted_at`: Eliminación lógica (timestamp, nullable)
-- **Índices**: 
+- **Índices**:
   - Índice único en `email`
   - Índice en `deleted_at` para soft deletes
 - **Relaciones**:
@@ -104,6 +114,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `permissions`: Permisos directos del usuario
 
 #### profiles
+
 - **Relación**: 1:1 con users
 - **Campos clave**:
   - `user_id`: FK a users (bigint, primary key)
@@ -119,6 +130,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - Índice en `user_id`
 
 #### students
+
 - **Relación**: 1:1 con users
 - **Campos clave**:
   - `user_id`: FK a users (bigint, primary key)
@@ -137,6 +149,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - Índice en `status`
 
 #### teachers
+
 - **Relación**: 1:1 con users
 - **Campos clave**:
   - `user_id`: FK a users (bigint, primary key)
@@ -148,6 +161,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - Índice en `specialization`
 
 #### password_reset_tokens
+
 - **Propósito**: Almacena tokens para restablecimiento de contraseñas
 - **Campos clave**:
   - `email`: Correo del usuario (string, 255, primary key)
@@ -158,6 +172,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - Índice en `token`
 
 #### personal_access_tokens
+
 - **Propósito**: Almacena tokens de acceso para la API (Sanctum)
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -174,10 +189,13 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - Índice único en `token`
 
 ### 2. Roles y Permisos (Spatie Laravel Permission)
+
 **Archivos relacionados:**
+
 - `[4] 2025_06_19_044210_create_permission_tables.php` - Tablas de roles y permisos
 
 #### roles
+
 - **Propósito**: Definición de roles del sistema
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -189,6 +207,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - Índice en `guard_name`
 
 #### permissions
+
 - **Propósito**: Definición de permisos del sistema
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -200,6 +219,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - Índice en `guard_name`
 
 #### model_has_roles
+
 - **Propósito**: Relación muchos a muchos entre modelos y roles
 - **Campos clave**:
   - `role_id`: FK a roles (bigint)
@@ -210,6 +230,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - Índice en `model_type` y `model_id`
 
 #### role_has_permissions
+
 - **Propósito**: Relación muchos a muchos entre roles y permisos
 - **Campos clave**:
   - `permission_id`: FK a permissions (bigint)
@@ -219,6 +240,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - Índice en `role_id`
 
 #### model_has_permissions
+
 - **Propósito**: Permisos directos a modelos
 - **Campos clave**:
   - `permission_id`: FK a permissions (bigint)
@@ -234,7 +256,9 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `role_has_permissions`: Asigna permisos a roles
 
 ### 3. Estructura Académica
+
 **Archivos relacionados:**
+
 - `[5] 2025_06_22_100000_create_levels_table.php` - Niveles académicos
 - `[6] 2025_06_22_100010_create_ranges_table.php` - Rangos de nivel
 - `[10] 2025_06_22_100050_create_cycles_table.php` - Ciclos académicos
@@ -248,6 +272,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 - `[21] 2025_06_22_100150_create_teacher_classroom_curricular_area_cycles_table.php` - Asignación docente
 
 #### cycles
+
 - **Propósito**: Ciclos académicos del sistema
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -261,6 +286,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `curricularAreas`: Áreas curriculares ofrecidas en este ciclo
 
 #### levels
+
 - **Descripción**: Niveles educativos (ej: Primaria, Secundaria)
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -276,6 +302,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `students`: Estudiantes actuales en este nivel
 
 #### cycles
+
 - **Descripción**: Ciclos académicos (ej: Ciclo I, Ciclo II)
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -286,6 +313,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `created_at`, `updated_at`: Marcas de tiempo
 
 #### classrooms
+
 - **Descripción**: Aulas o grupos de estudiantes
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -304,6 +332,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 ### 4. Estudiantes y Profesores
 
 #### enrollments
+
 - **Descripción**: Matrículas de estudiantes en aulas
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -321,6 +350,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 ### 5. Sesiones de Aprendizaje
 
 #### learning_sessions
+
 - **Propósito**: Sesiones de aprendizaje creadas por los docentes
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental, comentado como 'Identificador único de la sesión de aprendizaje')
@@ -354,6 +384,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - Clave foránea a `teacher_classroom_curricular_area_cycles` (índice implícito)
 
 #### learning_session_capabilities
+
 - **Propósito**: Relación muchos a muchos entre sesiones de aprendizaje y capacidades
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -371,6 +402,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 ### 6. Formularios de Aplicación
 
 #### application_forms
+
 - **Descripción**: Formularios de aplicación para evaluaciones
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -396,6 +428,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `responses`: Respuestas de estudiantes (HasMany, restrict on delete)
 
 #### application_form_questions
+
 - **Descripción**: Relación entre formularios y preguntas con configuración específica
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -418,6 +451,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `responseQuestions`: Respuestas a esta pregunta
 
 #### application_form_responses
+
 - **Descripción**: Respuestas de estudiantes a formularios de evaluación
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -464,6 +498,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `applicationFormQuestions`: Relación con formularios
 
 #### application_form_response_questions
+
 - **Descripción**: Respuestas individuales a preguntas dentro de un formulario respondido
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -483,6 +518,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `questionOption`: Opción seleccionada (BelongsTo, nullable)
 
 #### question_options
+
 - **Propósito**: Opciones de respuesta para preguntas
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -500,7 +536,9 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `responseQuestions`: Respuestas que seleccionaron esta opción
 
 ### 9. Sistema de Recompensas y Tienda
+
 **Archivos relacionados:**
+
 - `[32] 2025_06_22_100400_create_prizes_table.php` - Recompensas de tienda
 - `[33] 2025_06_22_100410_create_student_prizes_table.php` - Recompensas de estudiantes
 - `[34] 2025_06_22_100420_create_avatars_table.php` - Avatares
@@ -509,6 +547,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 - `[37] 2025_06_22_100450_create_student_backgrounds_table.php` - Fondos de estudiantes
 
 #### prizes
+
 - **Propósito**: Recompensas disponibles en la tienda
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -516,7 +555,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `description`: Descripción (text, nullable)
   - `type`: Tipo de recompensa (enum: 'avatar', 'background', 'badge', 'other')
   - `image_url`: URL de la imagen (string, 255, nullable)
-  - `points_required`: Puntos necesarios (decimal 10,2)
+  - `points_cost`: Puntos necesarios (decimal 10,2)
   - `level_required`: Nivel mínimo requerido (integer, nullable)
   - `is_active`: Si está disponible (boolean, default: true)
   - `created_at`, `updated_at`: Marcas de tiempo (timestamp)
@@ -529,6 +568,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `studentRewards`: Relación con recompensas canjeadas por estudiantes
 
 #### student_prizes
+
 - **Propósito**: Recompensas canjeadas por estudiantes
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -550,6 +590,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 ### 7. Sistema de Avatares y Fondos
 
 #### avatars
+
 - **Propósito**: Avatares personalizables
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -561,12 +602,13 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `created_at`, `updated_at`: Marcas de tiempo (timestamp)
 - **Índices**:
   - Índice en `level_required`
-  - Índice en `points_required`
+  - Índice en `price`
   - Índice en `is_active`
 - **Relaciones**:
   - `studentAvatars`: Relación con avatares adquiridos por estudiantes
 
 #### student_avatars
+
 - **Propósito**: Avatares adquiridos por estudiantes
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -584,25 +626,27 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `avatar`: Avatar adquirido
 
 #### backgrounds
+
 - **Propósito**: Fondos de pantalla personalizables
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
   - `name`: Nombre del fondo (string, 100)
   - `image_url`: URL de la imagen (string, 255)
   - `level_required`: Nivel mínimo requerido (integer, default: 1)
-  - `points_required`: Puntos requeridos (decimal 10,2, default: 0)
+  - `points_store`: Puntos requeridos (decimal 10,2, default: 0)
   - `screen`: Pantalla de aplicación (string, 50, nullable)
   - `is_active`: Si está disponible (boolean, default: true)
   - `created_at`, `updated_at`: Marcas de tiempo (timestamp)
 - **Índices**:
   - Índice en `level_required`
-  - Índice en `points_required`
+  - Índice en `points_store`
   - Índice en `screen`
   - Índice en `is_active`
 - **Relaciones**:
   - `studentBackgrounds`: Relación con fondos adquiridos por estudiantes
 
 #### student_backgrounds
+
 - **Propósito**: Fondos adquiridos por estudiantes
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -622,6 +666,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `background`: Fondo adquirido
 
 #### students
+
 - **Relación**: 1:1 con users
 - **Campos clave**:
   - `user_id`: FK a users (bigint, primary key)
@@ -646,10 +691,10 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `backgrounds`: Fondos desbloqueados
 
 #### teachers
+
 - **Relación**: 1:1 con users
 - **Campos clave**:
   - `user_id`: FK a users (bigint, primary key)
-  - `status`: Estado (enum: 'active', 'inactive', 'on_leave', 'retired')
   - `created_at`, `updated_at`, `deleted_at`: Marcas de tiempo
 - **Relaciones**:
   - `user`: Datos de autenticación
@@ -662,6 +707,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 ### 3. Plan de Estudios y Contenidos
 
 #### teacher_classroom_curricular_area_cycles
+
 - **Descripción**: Asignación de profesores a aulas y áreas curriculares
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -678,6 +724,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `applicationForms`: Evaluaciones relacionadas
 
 #### curricular_areas
+
 - **Descripción**: Áreas curriculares o asignaturas
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -694,6 +741,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `questions`: Preguntas relacionadas
 
 #### competencies
+
 - **Descripción**: Competencias generales por área curricular
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -709,6 +757,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `applicationForms`: Evaluaciones que la miden
 
 #### capabilities
+
 - **Descripción**: Capacidades específicas dentro de cada competencia
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -725,6 +774,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 ### 4. Sistema de Evaluación y Aprendizaje
 
 #### learning_sessions
+
 - **Descripción**: Sesiones de aprendizaje que agrupan actividades relacionadas
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -748,6 +798,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `idx_learning_session_competency` (competency_id)
 
 #### questions
+
 - **Descripción**: Preguntas para evaluaciones
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -763,6 +814,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `created_at`, `updated_at`, `deleted_at`: Marcas de tiempo
 
 #### question_types
+
 - **Descripción**: Tipos de preguntas disponibles
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -771,6 +823,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `created_at`, `updated_at`: Marcas de tiempo
 
 #### question_options
+
 - **Descripción**: Opciones para preguntas de selección
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -784,6 +837,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 ### 5. Sistema de Gamificación
 
 #### ranges
+
 - **Descripción**: Rangos o niveles de logro
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -798,6 +852,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `studentLevelHistories`: Historial de estudiantes que alcanzaron este rango
 
 #### achievements
+
 - **Descripción**: Logros o insignias que los estudiantes pueden obtener
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -811,6 +866,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `students`: Estudiantes que obtuvieron este logro
 
 #### prizes
+
 - **Descripción**: Recompensas disponibles en la tienda
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -825,6 +881,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `students`: Estudiantes que canjearon esta recompensa
 
 #### student_achievements
+
 - **Descripción**: Relación muchos a muchos entre estudiantes y logros
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -836,6 +893,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `idx_student_achievement` (student_id, achievement_id) único
 
 #### student_prizes
+
 - **Descripción**: Historial de recompensas canjeadas por estudiantes
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -850,6 +908,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `prize`: Recompensa canjeada
 
 #### student_level_histories
+
 - **Descripción**: Historial de progreso de niveles de estudiantes
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -868,6 +927,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 ### 6. Personalización
 
 #### avatars
+
 - **Descripción**: Avatares disponibles para personalización
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -878,6 +938,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `created_at`, `updated_at`: Marcas de tiempo
 
 #### student_avatars
+
 - **Descripción**: Relación entre estudiantes y avatares
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -888,6 +949,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `created_at`, `updated_at`: Marcas de tiempo
 
 #### backgrounds
+
 - **Descripción**: Fondos de perfil disponibles
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -898,6 +960,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `created_at`, `updated_at`: Marcas de tiempo
 
 #### student_backgrounds
+
 - **Descripción**: Relación entre estudiantes y fondos
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -910,6 +973,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 ### 8. Formularios y Respuestas
 
 #### application_forms
+
 - **Descripción**: Formularios de evaluación asociados a sesiones de aprendizaje
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -934,6 +998,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - Se optimizaron los índices para mejorar el rendimiento
 
 #### application_form_response_questions
+
 - **Propósito**: Almacena la respuesta de un estudiante a una pregunta individual dentro de un formulario. Esta tabla actúa como un nexo entre la respuesta general y las opciones específicas seleccionadas.
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -949,6 +1014,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `selectedOptions()`: Relación 1:N con `application_form_response_question_options`, que contiene las opciones específicas seleccionadas por el estudiante para esta pregunta.
 
 #### application_form_response_question_options
+
 - **Propósito**: Almacena las opciones que un estudiante ha seleccionado para una pregunta específica en su respuesta a un formulario. Es una tabla pivot clave que también maneja la lógica para preguntas complejas.
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -961,9 +1027,10 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `created_at`, `updated_at`: Marcas de tiempo
 
 #### application_form_responses
+
 - **Descripción**: Respuestas de los estudiantes a los formularios
 - **Campos clave**:
-{{ ... }}
+  {{ ... }}
   - `application_form_id`: FK a application_forms (bigint)
   - `student_id`: FK a users (bigint)
   - `score`: Puntuación obtenida (decimal 10,2, nullable)
@@ -974,6 +1041,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 ### 5.1 Sistema de Logros y Recompensas (subsección de Gamificación)
 
 #### achievements
+
 - **Descripción**: Logros que pueden obtener los estudiantes
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -984,6 +1052,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `created_at`, `updated_at`: Marcas de tiempo
 
 #### student_achievements
+
 - **Propósito**: Relación muchos a muchos entre estudiantes y logros
 - **Campos clave**:
   - `student_id`: FK a students (bigint)
@@ -993,6 +1062,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - Clave primaria compuesta: (student_id, achievement_id)
 
 #### prizes
+
 - **Descripción**: Recompensas disponibles en la tienda
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -1007,6 +1077,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 ### 6.1 Personalización de Perfil (subsección de Personalización)
 
 #### avatars
+
 - **Descripción**: Avatares disponibles para los estudiantes
 - **Campos clave**:
   - `id`: Identificador único (bigint, autoincremental)
@@ -1017,6 +1088,7 @@ A continuación se listan todos los archivos de migración del sistema, organiza
   - `created_at`, `updated_at`: Marcas de tiempo
 
 #### student_avatars
+
 - **Propósito**: Relación muchos a muchos entre estudiantes y avatares
 - **Campos clave**:
   - `student_id`: FK a students (bigint)
@@ -1029,37 +1101,45 @@ A continuación se listan todos los archivos de migración del sistema, organiza
 ## Relaciones Clave
 
 ### Relaciones de Usuario
+
 - Un `User` tiene un `Profile` (1:1)
 - Un `User` puede ser `Student` o `Teacher` (1:1 a través de user_id)
 - Un `User` puede tener múltiples roles (muchos a muchos a través de `model_has_roles`)
 
 ### Relaciones Académicas
+
 - Un `Level` pertenece a un `Cycle` (muchos a uno)
 - Un `Classroom` tiene muchos `Student` a través de `enrollments` (muchos a muchos)
 - Un `Teacher` puede estar en múltiples `Classroom` a través de `teacher_classroom_curricular_areas`
 
 ### Relaciones de Evaluación
+
 - Un `Question` pertenece a un `QuestionType` y una `Capability`
 - Un `ApplicationForm` tiene muchas `Question` a través de `application_form_questions`
 - Un `Student` puede tener múltiples `ApplicationFormResponse`
 
 ## Convenciones de Nombrado
+
 - Nombres de tablas en inglés y en plural (ej: `users`, `classrooms`)
 - Claves foráneas en formato `singular_table_name_id` (ej: `user_id`, `classroom_id`)
 - Nombres de relaciones en camelCase en los modelos
 - Tablas pivot nombradas en orden alfabético (ej: `question_question_tag`)
 
 ## Índices y Optimización
+
 - Índices en claves foráneas
 - Índices compuestos para consultas frecuentes
 - Índices para búsquedas por texto
 - Uso de `deleted_at` para soft deletes
 
 ## Migraciones
+
 Todas las tablas tienen migraciones correspondientes en `database/migrations/` con el formato `YYYY_MM_DD_HHMMSS_create_table_name_table.php`.
 
 ## Semillas
+
 Los datos iniciales se cargan mediante seeders en `database/seeders/` para:
+
 - Roles y permisos básicos
 - Tipos de preguntas
 - Niveles y ciclos académicos

@@ -1,12 +1,14 @@
 # 🎓 Teacher
 
-> **IMPORTANTE**: 
+> **IMPORTANTE**:
+>
 > 1. **Verificar siempre** los archivos relacionados:
 >    - `database/migrations/2025_06_22_100040_create_teachers_table.php` (estructura de la tabla)
 >    - `app/Models/Teacher.php` (implementación del modelo)
 >    - `resources/js/types/user/teacher.d.ts` (tipos TypeScript)
 
 ## 📌 Ubicación
+
 - **Tipo**: Modelo (extiende User)
 - **Archivo Principal**: `app/Models/Teacher.php`
 - **Tabla**: `teachers`
@@ -14,19 +16,22 @@
 ## 📦 Archivos Relacionados
 
 ### Migraciones
+
 - `database/migrations/2025_06_22_100040_create_teachers_table.php`
   - Estructura de la tabla de profesores
   - Relación con la tabla users
   - Índices para optimización
 
 ### Modelos Relacionados
+
 - `app/Models/User.php` (extiende)
 - `app/Models/Classroom.php` (BelongsToMany)
 - `app/Models/LearningSession.php` (HasMany)
 - `app/Models/ApplicationForm.php` (HasMany)
 
 ### Tipos TypeScript
-- `resources/js/types/user/teacher.d.ts`
+
+- `resources/js/types/user/teacher/index.d.ts`
   - Interfaz `Teacher` extendiendo `User`
   - Tipos para estados y relaciones
 - `resources/js/types/application-form/application-form.d.ts`
@@ -35,24 +40,30 @@
 ## 🏗️ Estructura
 
 ### Base de Datos (Migraciones)
+
 - **Tabla**: `teachers`
 - **Campos Clave**:
-  - `user_id`: int - Clave primaria y foránea a users
-  - `status`: enum - Estado actual (active, inactive, on_leave, retired)
-  - `timestamps`: created_at, updated_at, deleted_at
+  - `user_id`: bigint - Clave primaria y foránea a users (foreignId)
+  - `status`: enum - Estado actual (active, inactive, on leave, retired)
+  - `timestamps`: created_at, updated_at
+  - `softDeletes`: deleted_at
 
 ### Relaciones
+
 - **user** (BelongsTo):
+
   - Modelo: `User`
   - Clave: `user_id`
-  - Comportamiento: cascadeOnDelete
+  - Comportamiento: cascadeOnDelete (referencia users.id)
 
 - **classrooms** (BelongsToMany):
+
   - Modelo: `Classroom`
   - Tabla intermedia: `classroom_teacher`
   - Claves: `teacher_id`, `classroom_id`
 
 - **learningSessions** (HasMany):
+
   - Modelo: `LearningSession`
   - Clave: `teacher_id`
   - Comportamiento: cascadeOnDelete
@@ -65,6 +76,7 @@
 ## 🎯 Estados del Modelo
 
 ### Diagrama de Estados
+
 ```mermaid
 stateDiagram
     [*] --> active
@@ -79,22 +91,25 @@ stateDiagram
 ```
 
 ### Transiciones y Endpoints
+
 > **NOTA**: Los endpoints mostrados son sugerencias basadas en las mejores prácticas de REST.
 
-| Estado Actual | Evento | Nuevo Estado | Endpoint | Método |
-|---------------|--------|--------------|----------|--------|
-| active | deactivate | inactive | `/api/teachers/{id}/deactivate` (sugerido) | PUT |
-| inactive | activate | active | `/api/teachers/{id}/activate` (sugerido) | PUT |
-| active | leave | on_leave | `/api/teachers/{id}/leave` (sugerido) | PUT |
-| on_leave | return | active | `/api/teachers/{id}/return` (sugerido) | PUT |
-| active | retire | retired | `/api/teachers/{id}/retire` (sugerido) | PUT |
-| any | delete | - | `/api/teachers/{id}` (sugerido) | DELETE |
+| Estado Actual | Evento     | Nuevo Estado | Endpoint                                   | Método |
+| ------------- | ---------- | ------------ | ------------------------------------------ | ------ |
+| active        | deactivate | inactive     | `/api/teachers/{id}/deactivate` (sugerido) | PUT    |
+| inactive      | activate   | active       | `/api/teachers/{id}/activate` (sugerido)   | PUT    |
+| active        | leave      | on_leave     | `/api/teachers/{id}/leave` (sugerido)      | PUT    |
+| on_leave      | return     | active       | `/api/teachers/{id}/return` (sugerido)     | PUT    |
+| active        | retire     | retired      | `/api/teachers/{id}/retire` (sugerido)     | PUT    |
+| any           | delete     | -            | `/api/teachers/{id}` (sugerido)            | DELETE |
 
 **Leyenda**:
+
 - Sin prefijo: Endpoint existente en el código
 - `(sugerido)`: Endpoint recomendado pero no implementado
 
 ### 🎯 Scopes
+
 - **active()**: Filtra profesores activos
 - **inactive()**: Filtra profesores inactivos
 - **onLeave()**: Filtra profesores en licencia
@@ -103,11 +118,13 @@ stateDiagram
 ## 🤝 Relaciones
 
 ### user (BelongsTo)
+
 - **Método**: `user()`
 - **Retorna**: `BelongsTo<User>`
 - **Descripción**: Relación con el modelo User al que pertenece este profesor
 
 ### classrooms (BelongsToMany)
+
 - **Método**: `classrooms()`
 - **Retorna**: `BelongsToMany<Classroom>`
 - **Tabla intermedia**: `teacher_classroom_curricular_area_cycles`
@@ -115,6 +132,7 @@ stateDiagram
 - **Descripción**: Aulas asignadas al profesor a través de la tabla de relación con áreas curriculares y ciclos
 
 ### curricularAreas (BelongsToMany)
+
 - **Método**: `curricularAreas()`
 - **Retorna**: `BelongsToMany<CurricularArea>`
 - **Tabla intermedia**: `teacher_classroom_curricular_area_cycles`
@@ -123,6 +141,7 @@ stateDiagram
 - **Descripción**: Áreas curriculares que puede enseñar el profesor
 
 ### curricularAreaCycles (BelongsToMany)
+
 - **Método**: `curricularAreaCycles()`
 - **Retorna**: `BelongsToMany<CurricularAreaCycle>`
 - **Tabla intermedia**: `teacher_classroom_curricular_area_cycles`
@@ -130,6 +149,7 @@ stateDiagram
 - **Descripción**: Relación con ciclos de áreas curriculares asignados al profesor
 
 ### teacherAssignments (HasMany)
+
 - **Método**: `teacherAssignments()`
 - **Retorna**: `HasMany<TeacherClassroomCurricularAreaCycle>`
 - **Clave foránea**: `teacher_id`
@@ -137,6 +157,7 @@ stateDiagram
 - **Descripción**: Asignaciones completas del profesor (aula + área curricular + ciclo)
 
 ### applicationForms (HasMany)
+
 - **Método**: `applicationForms()`
 - **Retorna**: `HasMany<ApplicationForm>`
 - **Clave foránea**: `teacher_id`
@@ -144,6 +165,7 @@ stateDiagram
 - **Descripción**: Formularios de aplicación creados por este profesor
 
 ### learningSessions (HasMany)
+
 - **Método**: `learningSessions()`
 - **Retorna**: `HasMany<LearningSession>`
 - **Clave foránea**: `teacher_id`
@@ -153,48 +175,57 @@ stateDiagram
 ## 🛠️ Métodos de Consulta
 
 ### active()
+
 - **Tipo**: Scope
 - **Parámetros**: `Builder $query`
 - **Retorna**: `Builder`
 - **Descripción**: Filtra los profesores activos (status = 'active')
 
 ### inactive()
+
 - **Tipo**: Scope
 - **Parámetros**: `Builder $query`
 - **Retorna**: `Builder`
 - **Descripción**: Filtra los profesores inactivos (status = 'inactive')
 
 ### onLeave()
+
 - **Tipo**: Scope
 - **Parámetros**: `Builder $query`
 - **Retorna**: `Builder`
 - **Descripción**: Filtra los profesores en licencia (status = 'on leave')
 
 ### retired()
+
 - **Tipo**: Scope
 - **Parámetros**: `Builder $query`
 - **Retorna**: `Builder`
 - **Descripción**: Filtra los profesores retirados (status = 'retired')
 
 ### isActive()
+
 - **Retorna**: `bool`
 - **Descripción**: Verifica si el profesor está activo
 
 ### isInactive()
+
 - **Retorna**: `bool`
 - **Descripción**: Verifica si el profesor está inactivo
 
 ### isOnLeave()
+
 - **Retorna**: `bool`
 - **Descripción**: Verifica si el profesor está en licencia
 
 ### isRetired()
+
 - **Retorna**: `bool`
 - **Descripción**: Verifica si el profesor está retirado
 
 ## 📦 Tipos TypeScript
 
 ### TeacherStatus Type
+
 ```typescript
 /**
  * Estados posibles de un profesor
@@ -223,22 +254,22 @@ export interface Teacher {
   // Relaciones
   /** Usuario asociado a este profesor */
   user?: User;
-  
+
   /** Aulas asignadas a este profesor */
   classrooms?: Classroom[];
-  
+
   /** Áreas curriculares que puede enseñar */
   curricularAreas?: CurricularArea[];
-  
+
   /** Ciclos de áreas curriculares asignados */
   curricularAreaCycles?: CurricularAreaCycle[];
-  
+
   /** Asignaciones completas (aula + área + ciclo) */
   teacherAssignments?: TeacherClassroomCurricularAreaCycle[];
-  
+
   /** Formularios de aplicación creados */
   applicationForms?: ApplicationForm[];
-  
+
   /** Sesiones de aprendizaje creadas */
   learningSessions?: LearningSession[];
 }
@@ -286,3 +317,4 @@ export interface Teacher {
 - Relación uno a uno con el modelo User a través del campo user_id
 - Gestiona permisos y accesos específicos para profesores
 - Mantiene la integridad referencial con las aulas y áreas curriculares
+```

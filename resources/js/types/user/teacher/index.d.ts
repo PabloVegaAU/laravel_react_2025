@@ -7,7 +7,7 @@ import type { User } from '../user'
 /**
  * Defines the possible statuses for a teacher.
  */
-export type TeacherStatus = 'active' | 'inactive' | 'on_leave' | 'retired'
+export type TeacherStatus = 'active' | 'inactive' | 'on leave' | 'retired'
 
 /**
  * Represents a teacher in the system.

@@ -1,4 +1,3 @@
-import type { BaseEntity } from '@/types/core'
 import type { ApplicationForm } from '../application-form'
 import type { Teacher } from '../user'
 import type { Classroom } from './classroom'
@@ -12,10 +11,12 @@ import type { TeacherClassroomCurricularAreaCycle } from './teacher-classroom-cu
  * @see database/migrations/2025_06_22_100060_create_curricular_areas_table.php
  * @see app/Models/CurricularArea.php
  */
-export type CurricularArea = BaseEntity & {
+export type CurricularArea = {
+  id: number
   name: string
   description: string
   color: string
+  created_at: string
 
   // Relaciones
   competencies?: Competency[]

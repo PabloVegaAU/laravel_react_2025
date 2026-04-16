@@ -38,7 +38,7 @@ class ApplicationForm extends Model
     ];
 
     protected $attributes = [
-        'status' => 'draft',
+        'status' => 'scheduled',
         'score_max' => 0.00,
     ];
 

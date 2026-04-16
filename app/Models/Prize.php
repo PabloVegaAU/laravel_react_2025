@@ -35,7 +35,7 @@ class Prize extends Model
         'is_active' => 'boolean',
         'available_until' => 'datetime',
         'stock' => 'integer',
-        'points_cost' => 'integer',
+        'points_cost' => 'decimal:2',
     ];
 
     /**

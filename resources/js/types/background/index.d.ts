@@ -22,9 +22,11 @@ export interface Background {
   /** Puntos necesarios para desbloquear este fondo en la tienda */
   points_store: number
 
-  /** Fechas de creación y actualización */
+  /** Indica si el fondo está activo */
+  activo: boolean
+
+  /** Fecha de creación */
   created_at: string
-  updated_at: string
 
   // Relaciones
   /** Nivel requerido para desbloquear este fondo */
@@ -61,10 +63,6 @@ export interface StudentBackground {
 
   /** Identificador del fondo */
   background_id: number
-
-  /** Fechas de creación y actualización */
-  created_at: string
-  updated_at: string
 
   // Relaciones
   /** Estudiante que ha desbloqueado este fondo */

@@ -41,7 +41,7 @@ class Level extends Model
     public function students(): BelongsToMany
     {
         return $this->belongsToMany(Student::class, 'student_level_histories', 'level_id', 'student_id')
-            ->withPivot('reached_at', 'experience', 'range_id')
+            ->withPivot('achieved_at', 'experience', 'range_id')
             ->withTimestamps();
     }
 

@@ -1,12 +1,14 @@
 # 👤 User
 
-> **IMPORTANTE**: 
+> **IMPORTANTE**:
+>
 > 1. **Verificar siempre** los archivos relacionados:
 >    - `database/migrations/0001_01_01_000000_create_users_table.php` (estructura de la tabla)
 >    - `app/Models/User.php` (implementación del modelo)
 >    - `resources/js/types/user/user.d.ts` (tipos TypeScript)
 
 ## 📌 Ubicación
+
 - **Tipo**: Modelo de Autenticación
 - **Archivo Principal**: `app/Models/User.php`
 - **Tabla**: `users`
@@ -14,19 +16,22 @@
 ## 📦 Archivos Relacionados
 
 ### Migraciones
+
 - `database/migrations/0001_01_01_000000_create_users_table.php`
   - Estructura base de usuarios
   - Índices para email y autenticación
   - Soporte para soft delete
 
 ### Modelos Relacionados
+
 - `app/Models/Profile.php` (HasOne)
 - `app/Models/Student.php` (HasOne, opcional)
 - `app/Models/Teacher.php` (HasOne, opcional)
 - `Spatie\Permission\Traits\HasRoles` (Trait para roles)
 
 ### Tipos TypeScript
-- `resources/js/types/user/user.d.ts`
+
+- `resources/js/types/user/index.d.ts`
   - Interfaz `User` con propiedades básicas
   - Tipos para autenticación y roles
 - `resources/js/types/auth/profile.d.ts`
@@ -37,6 +42,7 @@
 ## 🏗️ Estructura
 
 ### Base de Datos (Migraciones)
+
 - **Tabla**: `users`
 - **Campos Clave**:
   - `id`: bigint - Identificador único
@@ -47,17 +53,21 @@
   - `timestamps`: created_at, updated_at, deleted_at
 
 ### Relaciones
+
 - **profile** (HasOne):
+
   - Modelo: `Profile`
   - Clave: `user_id`
   - Comportamiento: cascadeOnDelete
 
 - **student** (HasOne):
+
   - Modelo: `Student`
   - Clave: `user_id`
   - Comportamiento: cascadeOnDelete
 
 - **teacher** (HasOne):
+
   - Modelo: `Teacher`
   - Clave: `user_id`
   - Comportamiento: cascadeOnDelete
@@ -70,6 +80,7 @@
 ## 🎯 Estados del Modelo
 
 ### Diagrama de Estados
+
 ```mermaid
 stateDiagram
     [*] --> unverified
@@ -84,43 +95,49 @@ stateDiagram
 ```
 
 ### Transiciones y Endpoints
+
 > **NOTA**: Los endpoints mostrados son sugerencias basadas en las mejores prácticas de REST.
 
-| Estado Actual | Evento | Nuevo Estado | Endpoint | Método |
-|---------------|--------|--------------|----------|--------|
-| unverified | verify | active | `/api/email/verify/{id}` | GET |
-| active | suspend | suspended | `/api/users/{id}/suspend` (sugerido) | PUT |
-| suspended | unsuspend | active | `/api/users/{id}/unsuspend` (sugerido) | PUT |
-| active | deactivate | inactive | `/api/users/{id}/deactivate` (sugerido) | PUT |
-| inactive | activate | active | `/api/users/{id}/activate` (sugerido) | PUT |
-| any | delete | - | `/api/users/{id}` | DELETE |
+| Estado Actual | Evento     | Nuevo Estado | Endpoint                                | Método |
+| ------------- | ---------- | ------------ | --------------------------------------- | ------ |
+| unverified    | verify     | active       | `/api/email/verify/{id}`                | GET    |
+| active        | suspend    | suspended    | `/api/users/{id}/suspend` (sugerido)    | PUT    |
+| suspended     | unsuspend  | active       | `/api/users/{id}/unsuspend` (sugerido)  | PUT    |
+| active        | deactivate | inactive     | `/api/users/{id}/deactivate` (sugerido) | PUT    |
+| inactive      | activate   | active       | `/api/users/{id}/activate` (sugerido)   | PUT    |
+| any           | delete     | -            | `/api/users/{id}`                       | DELETE |
 
 **Leyenda**:
+
 - Sin prefijo: Endpoint existente en el código
 - `(sugerido)`: Endpoint recomendado pero no implementado
 
 ### 📊 Tabla: `profiles`
 
 #### 🔑 Claves
+
 - **Primaria**: `user_id` (bigint, foránea a users.id)
 - **Índices**:
   - `idx_profile_full_name` (first_name, last_name, second_last_name)
 
 #### 📋 Columnas
-| Columna | Tipo | Nulo | Default | Descripción |
-|---------|------|------|---------|-------------|
-| user_id | bigint | No | - | Referencia al usuario |
-| first_name | string(100) | No | - | Nombre(s) del usuario |
-| last_name | string(100) | No | - | Apellido paterno |
-| second_last_name | string(100) | Sí | NULL | Apellido materno (opcional) |
-| birth_date | date | Sí | NULL | Fecha de nacimiento |
-| phone | string(20) | Sí | NULL | Teléfono de contacto |
-| created_at | timestamp | No | CURRENT_TIMESTAMP | Fecha de creación |
-| updated_at | timestamp | No | CURRENT_TIMESTAMP | Fecha de actualización |
-| deleted_at | timestamp | Sí | NULL | Fecha de eliminación (soft delete) |
+
+| Columna          | Tipo        | Nulo | Default           | Descripción                        |
+| ---------------- | ----------- | ---- | ----------------- | ---------------------------------- |
+| user_id          | bigint      | No   | -                 | Referencia al usuario              |
+| first_name       | string(100) | No   | -                 | Nombre(s) del usuario              |
+| last_name        | string(100) | No   | -                 | Apellido paterno                   |
+| second_last_name | string(100) | Sí   | NULL              | Apellido materno (opcional)        |
+| birth_date       | date        | Sí   | NULL              | Fecha de nacimiento                |
+| phone            | string(20)  | Sí   | NULL              | Teléfono de contacto               |
+| created_at       | timestamp   | No   | CURRENT_TIMESTAMP | Fecha de creación                  |
+| updated_at       | timestamp   | No   | CURRENT_TIMESTAMP | Fecha de actualización             |
+| deleted_at       | timestamp   | Sí   | NULL              | Fecha de eliminación (soft delete) |
 
 #### 🔄 Tablas Relacionadas
+
 1. `password_reset_tokens`
+
    - **Clave primaria**: `email` (string)
    - **Propósito**: Almacena tokens para restablecimiento de contraseña
 
@@ -131,16 +148,19 @@ stateDiagram
 ## 🤝 Relaciones
 
 ### profile (HasOne)
+
 - **Modelo**: `Profile`
 - **Clave foránea**: `user_id`
 - **Descripción**: Perfil extendido del usuario
 
 ### student (HasOne)
+
 - **Modelo**: `Student`
 - **Clave foránea**: `user_id`
 - **Descripción**: Datos específicos si el usuario es estudiante
 
 ### teacher (HasOne)
+
 - **Modelo**: `Teacher`
 - **Clave foránea**: `user_id`
 - **Descripción**: Datos específicos si el usuario es profesor
@@ -151,7 +171,7 @@ stateDiagram
 
 ### Tipos Básicos
 
-```typescript
+````typescript
 type UserRole = 'admin' | 'teacher' | 'student' | 'guest';
 
 type Profile = {
@@ -237,7 +257,7 @@ import { PageProps } from '@/types';
 export default function Navbar() {
   const { auth } = usePage<PageProps>().props;
   const { user } = auth;
-  
+
   return (
     <nav className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -248,18 +268,18 @@ export default function Navbar() {
                 <img className="h-8 w-auto" src="/logo.svg" alt="Logo" />
               </Link>
             </div>
-            
+
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <Link 
-                href="/dashboard" 
+              <Link
+                href="/dashboard"
                 className="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
               >
                 Inicio
               </Link>
-              
+
               {user?.isAdmin() && (
-                <Link 
-                  href="/admin" 
+                <Link
+                  href="/admin"
                   className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
                 >
                   Administración
@@ -267,7 +287,7 @@ export default function Navbar() {
               )}
             </div>
           </div>
-          
+
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
             {user ? (
               <div className="ml-3 relative">
@@ -275,8 +295,8 @@ export default function Navbar() {
                   <span className="text-sm font-medium text-gray-700">
                     {user.profile?.first_name || user.name}
                   </span>
-                  
-                  <Link 
+
+                  <Link
                     href={route('profile.edit')}
                     className="text-gray-500 hover:text-gray-700"
                   >
@@ -285,8 +305,8 @@ export default function Navbar() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </Link>
-                  
-                  <Link 
+
+                  <Link
                     href={route('logout')}
                     method="post"
                     as="button"
@@ -301,7 +321,7 @@ export default function Navbar() {
               </div>
             ) : (
               <div className="space-x-4">
-                <Link 
+                <Link
                   href={route('login')}
                   className="text-gray-500 hover:text-gray-700 text-sm font-medium"
                 >
@@ -321,16 +341,17 @@ export default function Navbar() {
     </nav>
   );
 }
-```
+````
 
 ### Middleware de Autenticación
-```typescript
+
+````typescript
 // resources/js/middleware/auth.ts
 import { router } from '@inertiajs/react';
 
 export default function auth({ next }: { next: any }) {
   const user = usePage().props.auth.user;
-  
+
   if (!user) {
     return router.visit(route('login'), {
       only: ['errors', 'status'],
@@ -340,7 +361,7 @@ export default function auth({ next }: { next: any }) {
       },
     });
   }
-  
+
   return next();
 }
 
@@ -368,28 +389,30 @@ El sistema utiliza `Spatie Permission` para la gestión de roles y permisos:
    ```php
    // En controladores
    $user->hasRole('admin');
-   
+
    // En vistas Blade
    @role('admin')
        // Contenido solo para administradores
    @endrole
-   
+
    // En Livewire/Inertia
    if (auth()->user()->hasRole('admin')) {
        // Lógica para administradores
    }
-   ```
+````
 
 3. **Verificación de Permisos**:
+
    ```php
    // Verificar si el usuario tiene un permiso específico
    $user->can('edit users');
-   
+
    // Verificar múltiples permisos
    $user->hasAnyPermission(['edit posts', 'publish posts']);
    ```
 
 ### Middleware de Autenticación
+
 ```php
 // En rutas web.php
 Route::middleware(['auth', 'role:admin'])->group(function () {
@@ -476,3 +499,4 @@ Route::middleware(['auth', 'role:admin|teacher'])->group(function () {
 - `deleted`: Se dispara después de eliminar un usuario (soft delete)
 - `restoring`: Se dispara antes de restaurar un usuario eliminado
 - `restored`: Se dispara después de restaurar un usuario eliminado
+```

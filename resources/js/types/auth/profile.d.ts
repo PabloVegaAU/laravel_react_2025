@@ -1,5 +1,5 @@
 import type { Timestamps } from '@/types/core'
-import type { User } from '../user/user'
+import type { User } from './types'
 
 /**
  * Representa la información extendida del perfil de un usuario
@@ -13,6 +13,7 @@ export type Profile = Timestamps & {
   second_last_name: string | null
   birth_date: string | null
   phone: string | null
+  deleted_at: string | null
 
   // Relaciones
   user?: User

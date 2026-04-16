@@ -9,6 +9,8 @@ class StudentAvatar extends Model
 {
     protected $table = 'student_avatars';
 
+    public $timestamps = false;
+
     protected $fillable = [
         'student_id',
         'avatar_id',
@@ -24,8 +26,6 @@ class StudentAvatar extends Model
 
     protected $dates = [
         'exchange_date',
-        'created_at',
-        'updated_at',
     ];
 
     public function student(): BelongsTo

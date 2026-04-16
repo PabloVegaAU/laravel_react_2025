@@ -1,4 +1,3 @@
-import type { BaseEntity } from '@/types/core'
 import type { LearningSession } from '../learning-session/learning-session'
 import type { Competency } from './competency'
 import type { Question } from './question'
@@ -8,11 +7,13 @@ import type { Question } from './question'
  * @see database/migrations/2025_06_22_100080_create_capabilities_table.php
  * @see app/Models/Capability.php
  */
-export type Capability = BaseEntity & {
-  // Campos principales
+export type Capability = {
+  id: number
   competency_id: number
   name: string
   color: string
+  created_at: string
+  updated_at: string
 
   // Relaciones
   competency?: Competency

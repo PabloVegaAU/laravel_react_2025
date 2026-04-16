@@ -152,14 +152,14 @@ class Student extends Model
     public function activeAvatar(): ?Avatar
     {
         return $this->avatars()
-            ->wherePivot('is_active', true)
+            ->wherePivot('active', true)
             ->first();
     }
 
     public function activeBackground(): ?Background
     {
         return $this->backgrounds()
-            ->wherePivot('is_active', true)
+            ->wherePivot('active', true)
             ->first();
     }
 
@@ -167,7 +167,7 @@ class Student extends Model
     {
         return $this->hasMany(StudentLevelHistory::class, 'student_id', 'user_id')
             ->with(['level', 'range'])
-            ->latest('reached_at');
+            ->latest('achieved_at');
     }
 
     public function scopeStatus(Builder $query, string $status): Builder

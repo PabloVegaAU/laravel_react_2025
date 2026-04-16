@@ -22,9 +22,6 @@ export type Enrollment = BaseEntity & {
   status: EnrollmentStatus
   enrollment_date: string
   deactivated_at: string | null
-  start_date: string | null
-  end_date: string | null
-  notes: string | null
   student_id: number
   classroom_id: number
 

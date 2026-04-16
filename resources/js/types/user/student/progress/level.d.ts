@@ -9,27 +9,27 @@ export interface StudentLevelHistory {
   level_id: number
   range_id: number
   experience: number
-  reached_at: string
-  created_at: string
-  updated_at: string
+  achieved_at: string
   level: {
     id: number
+    level: number
     name: string
-    description: string | null
-    min_experience: number
-    max_experience: number
+    experience_required: number
+    experience_max: number
     created_at: string
     updated_at: string
   }
   range: {
     id: number
     name: string
+    color: string
+    image: string | null
     description: string | null
-    min_points: number
-    max_points: number
-    badge_image: string | null
+    order: number
+    level_required: number
     created_at: string
     updated_at: string
+    deleted_at: string | null
   }
 }
 
@@ -104,7 +104,7 @@ export interface LevelHistoryFilters {
   range_id?: number
   date_from?: string
   date_to?: string
-  sort_by?: 'reached_at' | 'level_id' | 'range_id'
+  sort_by?: 'achieved_at' | 'level_id' | 'range_id'
   sort_order?: 'asc' | 'desc'
   per_page?: number
   page?: number
