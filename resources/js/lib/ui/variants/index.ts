@@ -53,6 +53,12 @@ export const getBadgeColor = (s: string) => {
     case 'archived':
       getColor = 'secondary'
       break
+    case 'finished':
+      getColor = 'secondary'
+      break
+    case 'canceled':
+      getColor = 'destructive'
+      break
   }
 
   return getColor

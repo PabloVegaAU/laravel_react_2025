@@ -68,6 +68,7 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
     start_date: string
     end_date: string
     status: string
+    registration_status: string
     score_max: number
     questions: QuestionWithScore[]
     [key: string]: any
@@ -81,6 +82,7 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
     start_date: toUTCDateString(startDate),
     end_date: toUTCDateString(endDate),
     status: 'draft',
+    registration_status: 'active',
     score_max: 0,
     questions: []
   })
@@ -313,7 +315,7 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
                     autoFocus
                     locale={dateLocale}
                     disabled={(date) => date < new Date() || date < new Date('1900-01-01')}
-                    startMonth={learning_session.application_date ? parseDateString(learning_session.application_date) : undefined}
+                    startMonth={learning_session.start_date ? parseDateString(learning_session.start_date) : undefined}
                   />
                 </PopoverContent>
               </Popover>
@@ -365,11 +367,28 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
                   <SelectValue placeholder='Selecciona un estado' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value='draft'>Borrador</SelectItem>
+                  <SelectItem value='scheduled'>Programada</SelectItem>
                   <SelectItem value='active'>Activo</SelectItem>
+                  <SelectItem value='finished'>Finalizada</SelectItem>
+                  <SelectItem value='canceled'>Cancelada</SelectItem>
                 </SelectContent>
               </Select>
               <InputError message={errors.status} className='mt-1' />
+            </div>
+
+            {/* Campo: Estado Registro */}
+            <div className='space-y-2'>
+              <Label htmlFor='registration_status'>Estado de Registro</Label>
+              <Select value={data.registration_status} onValueChange={(value: 'active' | 'inactive') => setData('registration_status', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder='Selecciona un estado' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='active'>Activo</SelectItem>
+                  <SelectItem value='inactive'>Inactivo</SelectItem>
+                </SelectContent>
+              </Select>
+              <InputError message={errors.registration_status} className='mt-1' />
             </div>
           </div>
 

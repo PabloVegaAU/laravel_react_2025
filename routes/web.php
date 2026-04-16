@@ -61,8 +61,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('teacher/learning-sessions', TeacherLearningSessionController::class)->names('teacher.learning-sessions');
     Route::get('teacher/learning-sessions/{id}/table-calification', [TeacherLearningSessionController::class, 'getTableCalification'])->name('teacher.learning-sessions.table-calification');
     Route::put('teacher/learning-sessions/{id}/change-status', [TeacherLearningSessionController::class, 'changeStatus'])->name('teacher.learning-sessions.change-status');
+    Route::put('teacher/learning-sessions/{id}/change-registration-status', [TeacherLearningSessionController::class, 'changeRegistrationStatus'])->name('teacher.learning-sessions.change-registration-status');
 
     Route::resource('teacher/application-forms', TeacherApplicationFormController::class)->names('teacher.application-forms');
+    Route::put('teacher/application-forms/{id}/change-status', [TeacherApplicationFormController::class, 'changeStatus'])->name('teacher.application-forms.change-status');
+    Route::put('teacher/application-forms/{id}/change-registration-status', [TeacherApplicationFormController::class, 'changeRegistrationStatus'])->name('teacher.application-forms.change-registration-status');
     Route::prefix('teacher/questions')->name('teacher.questions.')->group(function () {
         Route::get('/', [TeacherQuestionController::class, 'index'])->name('index');
         Route::post('/', [TeacherQuestionController::class, 'store'])->name('store');

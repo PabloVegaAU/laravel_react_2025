@@ -52,7 +52,7 @@ export default function LearningSessionShow({ learning_session }: PageProps) {
           {/* Campo: Fecha de la sesión */}
           <div className='space-y-2'>
             <Label>
-              {t('Application Date')}: {format(learning_session.application_date, 'PPP', { locale: dateLocale })}
+              {t('Start Date')}: {format(learning_session.start_date, 'PPP', { locale: dateLocale })}
             </Label>
           </div>
 

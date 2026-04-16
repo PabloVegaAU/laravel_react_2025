@@ -18,6 +18,7 @@ class ApplicationForm extends Model
         'name',
         'description',
         'status',
+        'registration_status',
         'start_date',
         'end_date',
         'score_max',
@@ -85,13 +86,18 @@ class ApplicationForm extends Model
                $this->end_date >= $now;
     }
 
-    public function isUpcoming(): bool
+    public function isScheduled(): bool
     {
         return $this->status === 'scheduled' && $this->start_date > now();
     }
 
-    public function isExpired(): bool
+    public function isFinished(): bool
     {
-        return $this->end_date < now();
+        return $this->status === 'finished' || $this->end_date < now();
+    }
+
+    public function isCanceled(): bool
+    {
+        return $this->status === 'canceled';
     }
 }

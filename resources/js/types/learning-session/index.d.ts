@@ -2,15 +2,31 @@ import type { Capability, Competency, EducationalInstitution, TeacherClassroomCu
 import type { ApplicationForm } from '../application-form'
 
 /**
- * @see database/migrations/2025_06_22_100200_create_learning_sessions_table.php
+ * Estado de registro de una sesión de aprendizaje
+ * @see database/migrations/2025_06_22_100300_create_learning_sessions_table.php
+ * @see app/Models/LearningSession.php
+ */
+export type LearningSessionStatus = 'scheduled' | 'active' | 'finished' | 'canceled'
+
+/**
+ * Estado de registro de una sesión de aprendizaje
+ * @see database/migrations/2025_06_22_100300_create_learning_sessions_table.php
+ * @see app/Models/LearningSession.php
+ */
+export type LearningSessionRegistrationStatus = 'active' | 'inactive'
+
+/**
+ * @see database/migrations/2025_06_22_100300_create_learning_sessions_table.php
  * @see app/Models/LearningSession.php
  */
 export interface LearningSession {
   id: number
   name: string
   purpose_learning: string
-  application_date: string | Date
-  status: string
+  start_date: string
+  end_date: string
+  status: LearningSessionStatus
+  registration_status: LearningSessionRegistrationStatus
   performances: string
   start_sequence: string | null
   end_sequence: string | null

@@ -134,7 +134,7 @@ export default function LearningSessionTableCalification({ learning_session }: P
                 {t(learning_session.teacher_classroom_curricular_area_cycle?.classroom?.level)}
               </p>
               <p>
-                <strong>Fecha de aplicación:</strong> {formatDateTime(String(learning_session.application_date))}
+                <strong>Fecha de inicio:</strong> {formatDateTime(String(learning_session.start_date))}
               </p>
             </div>
           </CardHeader>

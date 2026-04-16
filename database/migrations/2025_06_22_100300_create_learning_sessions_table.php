@@ -18,11 +18,16 @@ return new class extends Migration
                 ->comment('Nombre de la sesión de aprendizaje');
             $table->text('purpose_learning')
                 ->comment('Propósito de aprendizaje de la sesión');
-            $table->date('application_date')
-                ->comment('Fecha de aplicación de la sesión');
-            $table->enum('status', ['draft', 'active', 'inactive', 'archived'])
-                ->default('draft')
-                ->comment('Estado de la sesión: borrador, activa, inactiva, archivada');
+            $table->dateTime('start_date')
+                ->comment('Fecha y hora de inicio de la sesión de aprendizaje');
+            $table->dateTime('end_date')
+                ->comment('Fecha y hora de finalización de la sesión de aprendizaje');
+            $table->enum('status', ['scheduled', 'active', 'finished', 'canceled'])
+                ->default('scheduled')
+                ->comment('Estado de la sesión: programada, activa, finalizada, cancelada');
+            $table->enum('registration_status', ['active', 'inactive'])
+                ->default('active')
+                ->comment('Estado de registro de la sesión: activa, inactiva');
 
             // Contenido de la sesión
             $table->text('performances')
@@ -55,8 +60,12 @@ return new class extends Migration
 
             // Índices
             $table->index('status', 'idx_learning_sessions_status');
-            $table->index('application_date', 'idx_learning_sessions_application_date');
+            $table->index('registration_status', 'idx_learning_sessions_registration_status');
+            $table->index('start_date', 'idx_learning_sessions_start_date');
+            $table->index('end_date', 'idx_learning_sessions_end_date');
+            $table->index(['status', 'start_date', 'end_date'], 'idx_learning_sessions_scheduling');
             $table->index('educational_institution_id', 'idx_learning_sessions_institution');
+            $table->index('teacher_classroom_curricular_area_cycle_id', 'idx_learning_sessions_tcca');
             $table->index('competency_id', 'idx_learning_sessions_competency');
         });
     }

@@ -10,11 +10,10 @@ export interface QuestionTypeProps {
 
 // Mapear estados a colores
 export const statusColors: Record<ApplicationFormStatus, string> = {
-  draft: 'bg-gray-100 text-gray-800',
   scheduled: 'bg-blue-100 text-blue-800',
   active: 'bg-green-100 text-green-800',
-  inactive: 'bg-yellow-100 text-yellow-800',
-  archived: 'bg-purple-100 text-purple-800'
+  finished: 'bg-gray-100 text-gray-800',
+  canceled: 'bg-red-100 text-red-800'
 }
 
 export type QuestionTypeKey = keyof typeof QUESTION_TYPES

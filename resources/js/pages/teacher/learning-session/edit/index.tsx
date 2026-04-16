@@ -2,10 +2,8 @@ import InputError from '@/components/input-error'
 import FlashMessages from '@/components/organisms/flash-messages'
 import { MultiSelect } from '@/components/organisms/multi-select'
 import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
@@ -19,7 +17,7 @@ import { LearningSession } from '@/types/learning-session'
 import { Head, Link, useForm, usePage } from '@inertiajs/react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { CalendarIcon, LoaderCircle } from 'lucide-react'
+import { LoaderCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 type PageProps = {
@@ -50,8 +48,10 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
     redirect: (learning_session?.application_form ?? 0) === 0,
     educational_institution_id: educational_institution?.id,
     status: learning_session.status,
+    registration_status: learning_session.registration_status || 'active',
     name: learning_session.name,
-    application_date: learning_session.application_date,
+    start_date: learning_session.start_date ? String(learning_session.start_date) : '',
+    end_date: learning_session.end_date ? String(learning_session.end_date) : '',
     teacher_classroom_curricular_area_cycle_id: learning_session.teacher_classroom_curricular_area_cycle_id.toString(),
     classroom_id: teacher_classroom_curricular_area_cycle?.classroom_id.toString(),
     curricular_area_cycle_id: teacher_classroom_curricular_area_cycle?.curricular_area_cycle_id.toString(),
@@ -129,7 +129,8 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
         ...data,
         name: learning_session.name,
         status: learning_session.status,
-        application_date: learning_session.application_date,
+        start_date: learning_session.start_date ? String(learning_session.start_date) : '',
+        end_date: learning_session.end_date ? String(learning_session.end_date) : '',
         purpose_learning: learning_session.purpose_learning,
         performances: learning_session.performances,
         start_sequence: learning_session.start_sequence || '',
@@ -198,33 +199,34 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
               <InputError message={errors.name} className='mt-1' />
             </div>
 
-            {/* Campo: Fecha de la sesión */}
+            {/* Campo: Fecha y hora de inicio */}
             <div className='space-y-2'>
-              <Label htmlFor='application_date'>{t('Application Date')}</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant='outline'
-                    className={cn('w-full justify-start text-left font-normal', !data.application_date && 'text-muted-foreground')}
-                  >
-                    <CalendarIcon className='mr-2 h-4 w-4' />
-                    {data.application_date ? format(data.application_date, 'PPP', { locale: dateLocale }) : <span>Selecciona una fecha</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className='w-auto p-0'>
-                  <Calendar
-                    mode='single'
-                    selected={data.application_date ? new Date(data.application_date) : undefined}
-                    onSelect={(date) => {
-                      setData('application_date', date || new Date())
-                      clearErrors('application_date')
-                    }}
-                    disabled={{ before: new Date() }}
-                    startMonth={new Date()}
-                  />
-                </PopoverContent>
-              </Popover>
-              <InputError message={errors.application_date} className='mt-1' />
+              <Label htmlFor='start_date'>{t('Start Date')}</Label>
+              <Input
+                id='start_date'
+                type='datetime-local'
+                value={data.start_date ? format(String(data.start_date), "yyyy-MM-dd'T'HH:mm") : ''}
+                onChange={(e) => {
+                  setData('start_date', e.target.value || '')
+                  clearErrors('start_date')
+                }}
+              />
+              <InputError message={errors.start_date} className='mt-1' />
+            </div>
+
+            {/* Campo: Fecha y hora de fin */}
+            <div className='space-y-2'>
+              <Label htmlFor='end_date'>{t('End Date')}</Label>
+              <Input
+                id='end_date'
+                type='datetime-local'
+                value={data.end_date ? format(String(data.end_date), "yyyy-MM-dd'T'HH:mm") : ''}
+                onChange={(e) => {
+                  setData('end_date', e.target.value || '')
+                  clearErrors('end_date')
+                }}
+              />
+              <InputError message={errors.end_date} className='mt-1' />
             </div>
 
             {/* Campo: Aula */}
@@ -379,17 +381,17 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
                         </div>
                         <div className='flex items-center space-x-2'>
                           <Label>FECHA INICIO:</Label>
-                          <p>{format(learning_session.application_form.start_date, 'dd/MM/yyyy')}</p>
+                          <p>{format(learning_session.start_date, 'dd/MM/yyyy HH:mm')}</p>
                         </div>
                         <div className='flex items-center space-x-2'>
                           <Label>FECHA FIN:</Label>
-                          <p>{format(learning_session.application_form.end_date, 'dd/MM/yyyy')}</p>
+                          <p>{format(learning_session.end_date, 'dd/MM/yyyy HH:mm')}</p>
                         </div>
                       </div>
                       <div className='flex w-full flex-col gap-2'>
                         <div className='flex items-center space-x-2'>
                           <Label>ESTADO:</Label>
-                          <div>{t(learning_session.application_form.status)}</div>
+                          <div>{t(learning_session.status)}</div>
                         </div>
 
                         <div className='flex items-center space-x-2'>
@@ -400,7 +402,7 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
                                 Ver
                               </Button>
                             </Link>
-                            {learning_session.application_form.status !== 'inactive' && learning_session.application_form.status !== 'archived' && (
+                            {!learning_session.application_form.deactivated_at && (
                               <Link href={`/teacher/application-forms/${learning_session.application_form.id}/edit`}>
                                 <Button variant='warning' size='sm'>
                                   Editar

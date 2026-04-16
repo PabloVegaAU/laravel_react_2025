@@ -87,8 +87,8 @@ export default function LearningSession({ learning_sessions, curricular_areas, f
         const applicationForm = row.original.application_form
         const response = applicationForm?.responses?.[0]
         const now = new Date()
-        const startDate = new Date(applicationForm?.start_date || '')
-        const endDate = new Date(applicationForm?.end_date || '')
+        const startDate = new Date(row.original.start_date || '')
+        const endDate = new Date(row.original.end_date || '')
         const isAvailable = (applicationForm?.responses?.length || 0) > 0
         const isOutDate = now > endDate
         const canTakeTest = (!response || response.status === 'pending' || response.status === 'in progress') && !isOutDate

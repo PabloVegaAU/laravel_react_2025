@@ -4,13 +4,6 @@ import { ApplicationFormQuestion } from './form/application-form-question'
 import { ApplicationFormResponse } from './form/response/application-form-response'
 
 /**
- * Estado de un formulario de aplicación
- * @see database/migrations/2025_06_22_100330_create_application_forms_table.php
- * @see app/Models/ApplicationForm.php
- */
-export type ApplicationFormStatus = 'draft' | 'scheduled' | 'active' | 'inactive' | 'archived'
-
-/**
  * Formulario de aplicación
  * @see database/migrations/2025_06_22_100330_create_application_forms_table.php
  * @see app/Models/ApplicationForm.php
@@ -21,8 +14,9 @@ export interface ApplicationForm {
   description: string
   start_date: string
   end_date: string
-  score_max: number
   status: ApplicationFormStatus
+  registration_status: ApplicationFormRegistrationStatus
+  score_max: number
   teacher_id: number
   learning_session_id: number | null
   created_at: string
@@ -38,6 +32,16 @@ export interface ApplicationForm {
 }
 
 /**
+ * Estados posibles de un formulario de aplicación
+ */
+export type ApplicationFormStatus = 'scheduled' | 'active' | 'finished' | 'canceled'
+
+/**
+ * Estados de registro de un formulario de aplicación
+ */
+export type ApplicationFormRegistrationStatus = 'active' | 'inactive'
+
+/**
  * Datos para crear un formulario de aplicación
  * @see database/migrations/2025_06_22_100330_create_application_forms_table.php
  * @see app/Http/Controllers/ApplicationFormController.php
@@ -45,10 +49,11 @@ export interface ApplicationForm {
 export interface CreateApplicationFormData {
   name: string
   description?: string
-  start_date: string
-  end_date: string
-  score_max?: number
+  start_date?: string
+  end_date?: string
   status?: ApplicationFormStatus
+  registration_status?: ApplicationFormRegistrationStatus
+  score_max?: number
   teacher_id: number
   learning_session_id?: number | null
   question_ids?: number[]
@@ -65,8 +70,9 @@ export interface UpdateApplicationFormData {
   description?: string
   start_date?: string
   end_date?: string
-  score_max?: number
   status?: ApplicationFormStatus
+  registration_status?: ApplicationFormRegistrationStatus
+  score_max?: number
   learning_session_id?: number | null
 }
 
@@ -76,17 +82,15 @@ export interface UpdateApplicationFormData {
  */
 export interface ApplicationFormFilters {
   search?: string
-  status?: ApplicationFormStatus | ApplicationFormStatus[]
   teacher_id?: number
   learning_session_id?: number | null
-  starts_before?: string
-  starts_after?: string
-  ends_before?: string
-  ends_after?: string
+  start_date?: string
+  end_date?: string
+  status?: ApplicationFormStatus
   with_trashed?: boolean
   only_trashed?: boolean
   include?: Array<'teacher' | 'learning_session' | 'questions' | 'responses'>
-  sort_by?: 'name' | 'start_date' | 'end_date' | 'created_at' | 'updated_at'
+  sort_by?: 'name' | 'created_at' | 'updated_at' | 'start_date' | 'end_date'
   sort_order?: 'asc' | 'desc'
 }
 
@@ -120,8 +124,4 @@ export interface DuplicateApplicationFormData {
   name: string
   description?: string
   copy_questions?: boolean
-  new_dates?: {
-    start_date: string
-    end_date: string
-  }
 }

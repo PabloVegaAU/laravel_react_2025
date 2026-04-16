@@ -17,8 +17,10 @@ class LearningSession extends Model
     protected $fillable = [
         'name',
         'purpose_learning',
-        'application_date',
+        'start_date',
+        'end_date',
         'status',
+        'registration_status',
         'performances',
         'start_sequence',
         'end_sequence',
@@ -29,7 +31,8 @@ class LearningSession extends Model
     ];
 
     protected $casts = [
-        'application_date' => 'date',
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
         'performances' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -38,7 +41,8 @@ class LearningSession extends Model
     ];
 
     protected $dates = [
-        'application_date',
+        'start_date',
+        'end_date',
         'created_at',
         'updated_at',
         'deleted_at',
@@ -73,5 +77,63 @@ class LearningSession extends Model
     public function applicationForm(): HasOne
     {
         return $this->hasOne(ApplicationForm::class, 'learning_session_id');
+    }
+
+    /**
+     * Check if the session is scheduled (before start_date)
+     */
+    public function isScheduled(): bool
+    {
+        return $this->status === 'scheduled' || now() < $this->start_date;
+    }
+
+    /**
+     * Check if the session is active (within date range and status is active)
+     */
+    public function isActive(): bool
+    {
+        return $this->status === 'active' &&
+               now() >= $this->start_date &&
+               now() <= $this->end_date;
+    }
+
+    /**
+     * Check if the session is finished (after end_date or status is finished)
+     */
+    public function isFinished(): bool
+    {
+        return $this->status === 'finished' || now() > $this->end_date;
+    }
+
+    /**
+     * Check if the session is canceled (deactivated_at is not null or status is canceled)
+     */
+    public function isCanceled(): bool
+    {
+        return $this->status === 'canceled' || $this->deactivated_at !== null;
+    }
+
+    /**
+     * Get the temporal status of the session
+     */
+    public function getTemporalStatus(): string
+    {
+        if ($this->isCanceled()) {
+            return 'canceled';
+        }
+
+        if ($this->isScheduled()) {
+            return 'scheduled';
+        }
+
+        if ($this->isActive()) {
+            return 'active';
+        }
+
+        if ($this->isFinished()) {
+            return 'finished';
+        }
+
+        return 'unknown';
     }
 }

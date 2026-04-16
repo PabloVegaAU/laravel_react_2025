@@ -8,8 +8,8 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Tarea programada para archivar learning sessions vencidas
-Schedule::command('learning-sessions:archive')
+// Tarea programada para finalizar learning sessions vencidas
+Schedule::command('learning-sessions:finalize')
     ->daily()
     ->at('00:01')
-    ->description('Archive learning sessions that have expired (application date passed)');
+    ->description('Finalize learning sessions that have expired (end date passed)');

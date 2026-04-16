@@ -2,16 +2,13 @@ import InputError from '@/components/input-error'
 import FlashMessages from '@/components/organisms/flash-messages'
 import { MultiSelect } from '@/components/organisms/multi-select'
 import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import AppLayout from '@/layouts/app-layout'
 import { useTranslations } from '@/lib/translator'
-import { cn } from '@/lib/utils'
 import { Capability, Classroom, Competency } from '@/types/academic'
 import { CurricularAreaCycle } from '@/types/academic/curricular-area-cycle'
 import { EducationalInstitution } from '@/types/academic/educational-institution'
@@ -20,7 +17,7 @@ import { BreadcrumbItem, SharedData } from '@/types/core'
 import { Head, useForm, usePage } from '@inertiajs/react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { CalendarIcon, LoaderCircle } from 'lucide-react'
+import { LoaderCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 type PageProps = {
@@ -49,9 +46,11 @@ export default function LearningSessionCreate({ educational_institution, teacher
   const { data, setData, post, processing, errors, hasErrors, clearErrors } = useForm({
     redirect: true as boolean,
     educational_institution_id: educational_institution.id,
-    status: 'draft',
+    status: 'active',
+    registration_status: 'active',
     name: '',
-    application_date: new Date(),
+    start_date: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+    end_date: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
     teacher_classroom_curricular_area_cycle_id: '',
     classroom_id: '',
     curricular_area_cycle_id: '',
@@ -156,33 +155,34 @@ export default function LearningSessionCreate({ educational_institution, teacher
               <InputError message={errors.name} className='mt-1' />
             </div>
 
-            {/* Campo: Fecha de la sesión */}
+            {/* Campo: Fecha y hora de inicio */}
             <div className='space-y-2'>
-              <Label htmlFor='application_date'>{t('Application Date')}</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant='outline'
-                    className={cn('w-full justify-start text-left font-normal', !data.application_date && 'text-muted-foreground')}
-                  >
-                    <CalendarIcon className='mr-2 h-4 w-4' />
-                    {data.application_date ? format(data.application_date, 'PPP', { locale: dateLocale }) : <span>Selecciona una fecha</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className='w-auto p-0'>
-                  <Calendar
-                    mode='single'
-                    selected={data.application_date}
-                    onSelect={(date) => {
-                      setData('application_date', date || new Date())
-                      clearErrors('application_date')
-                    }}
-                    disabled={{ before: new Date() }}
-                    startMonth={new Date()}
-                  />
-                </PopoverContent>
-              </Popover>
-              <InputError message={errors.application_date} className='mt-1' />
+              <Label htmlFor='start_date'>{t('Start Date')}</Label>
+              <Input
+                id='start_date'
+                type='datetime-local'
+                value={data.start_date}
+                onChange={(e) => {
+                  setData('start_date', e.target.value || '')
+                  clearErrors('start_date')
+                }}
+              />
+              <InputError message={errors.start_date} className='mt-1' />
+            </div>
+
+            {/* Campo: Fecha y hora de fin */}
+            <div className='space-y-2'>
+              <Label htmlFor='end_date'>{t('End Date')}</Label>
+              <Input
+                id='end_date'
+                type='datetime-local'
+                value={data.end_date}
+                onChange={(e) => {
+                  setData('end_date', e.target.value || '')
+                  clearErrors('end_date')
+                }}
+              />
+              <InputError message={errors.end_date} className='mt-1' />
             </div>
 
             {/* Campo: Aula */}

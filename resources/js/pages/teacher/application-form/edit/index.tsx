@@ -331,14 +331,12 @@ export default function ApplicationFormEdit({ application_form, questions }: App
                     selected={data.start_date ? new Date(data.start_date) : undefined}
                     onSelect={(date) => setData('start_date', date?.toISOString() || '')}
                     disabled={{
-                      before: application_form?.learning_session?.application_date
-                        ? parseDateString(application_form.learning_session.application_date)
+                      before: application_form?.learning_session?.start_date
+                        ? parseDateString(application_form.learning_session.start_date)
                         : new Date()
                     }}
                     startMonth={
-                      application_form?.learning_session?.application_date
-                        ? parseDateString(application_form?.learning_session?.application_date)
-                        : undefined
+                      application_form?.learning_session?.start_date ? parseDateString(application_form?.learning_session?.start_date) : undefined
                     }
                   />
                 </PopoverContent>
@@ -386,12 +384,28 @@ export default function ApplicationFormEdit({ application_form, questions }: App
                   <SelectValue placeholder='Selecciona un estado' />
                 </SelectTrigger>
                 <SelectContent>
-                  {data.status === 'draft' && <SelectItem value='draft'>Borrador</SelectItem>}
+                  <SelectItem value='scheduled'>Programada</SelectItem>
+                  <SelectItem value='active'>Activo</SelectItem>
+                  <SelectItem value='finished'>Finalizada</SelectItem>
+                  <SelectItem value='canceled'>Cancelada</SelectItem>
+                </SelectContent>
+              </Select>
+              <InputError message={errors.status} className='mt-1' />
+            </div>
+
+            {/* Campo: Estado Registro */}
+            <div className='space-y-2'>
+              <Label htmlFor='registration_status'>Estado de Registro</Label>
+              <Select value={data.registration_status} onValueChange={(value: 'active' | 'inactive') => setData('registration_status', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder='Selecciona un estado' />
+                </SelectTrigger>
+                <SelectContent>
                   <SelectItem value='active'>Activo</SelectItem>
                   <SelectItem value='inactive'>Inactivo</SelectItem>
                 </SelectContent>
               </Select>
-              <InputError message={errors.status} className='mt-1' />
+              <InputError message={errors.registration_status} className='mt-1' />
             </div>
           </div>
 

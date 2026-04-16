@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Teacher;
 use App\Http\Controllers\Controller;
 use App\Models\ApplicationForm;
 use App\Models\ApplicationFormQuestion;
+use App\Models\ApplicationFormResponse;
+use App\Models\ApplicationFormResponseQuestion;
 use App\Models\LearningSession;
 use App\Models\Question;
+use App\Models\TeacherClassroomCurricularAreaCycle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -22,7 +25,7 @@ class ApplicationFormController extends Controller
         $currentYear = now()->year;
 
         // Obtener parámetros de filtrado
-        $filters = $request->only(['search', 'status', 'start_date', 'end_date']);
+        $filters = $request->only(['search', 'status', 'registration_status', 'area', 'competency', 'start_date', 'end_date']);
 
         // Obtener formularios de aplicación con relaciones optimizadas
         $query = ApplicationForm::select([
@@ -39,7 +42,7 @@ class ApplicationFormController extends Controller
             ->where('tccac.teacher_id', auth()->id())
             ->with([
                 'learningSession' => function ($query) {
-                    $query->select('id', 'name', 'application_date');
+                    $query->select('id', 'name', 'start_date', 'end_date');
                 },
                 'learningSession.competency' => function ($query) {
                     $query->select('id', 'name');
@@ -60,6 +63,20 @@ class ApplicationFormController extends Controller
 
         if (! empty($filters['status'])) {
             $query->where('application_forms.status', $filters['status']);
+        }
+
+        if (! empty($filters['registration_status'])) {
+            $query->where('application_forms.registration_status', $filters['registration_status']);
+        }
+
+        if (! empty($filters['area'])) {
+            $query->where('curricular_areas.name', 'LIKE', '%'.$filters['area'].'%');
+        }
+
+        if (! empty($filters['competency'])) {
+            $query->whereHas('learningSession.competency', function ($q) use ($filters) {
+                $q->where('name', 'LIKE', '%'.$filters['competency'].'%');
+            });
         }
 
         if (! empty($filters['start_date'])) {
@@ -158,7 +175,8 @@ class ApplicationFormController extends Controller
                 'description' => 'nullable|string',
                 'start_date' => 'required|date',
                 'end_date' => 'required|date|after_or_equal:start_date',
-                'status' => 'required|in:draft,scheduled,active,inactive,archived',
+                'status' => 'required|in:scheduled,active,finished,canceled',
+                'registration_status' => 'required|in:active,inactive',
                 'score_max' => 'required|numeric|min:20|max:20',
                 'questions' => 'required|array|min:1',
                 'questions.*.id' => 'required|exists:questions,id',
@@ -184,6 +202,7 @@ class ApplicationFormController extends Controller
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
                 'status' => $validated['status'],
+                'registration_status' => $validated['registration_status'],
                 'start_date' => $validated['start_date'],
                 'end_date' => $validated['end_date'],
                 'score_max' => $validated['score_max'],
@@ -381,7 +400,8 @@ class ApplicationFormController extends Controller
             'description' => 'nullable|string',
             'start_date' => 'required|date|after:today',
             'end_date' => 'required|date|after:start_date',
-            'status' => 'required|in:draft,scheduled,active,inactive,archived',
+            'status' => 'required|in:scheduled,active,finished,canceled',
+            'registration_status' => 'required|in:active,inactive',
             'score_max' => 'required|numeric|min:20|max:20',
             'questions' => 'required|array|min:1',
             'questions.*.id' => 'required|exists:questions,id',
@@ -400,6 +420,7 @@ class ApplicationFormController extends Controller
                 'start_date' => $validated['start_date'],
                 'end_date' => $validated['end_date'],
                 'status' => $validated['status'],
+                'registration_status' => $validated['registration_status'],
                 'score_max' => floatval($validated['score_max']),
             ]);
 
@@ -485,6 +506,289 @@ class ApplicationFormController extends Controller
                 'success' => false,
                 'message' => 'Error al eliminar la ficha de aplicación: '.$e->getMessage(),
             ], 500);
+        }
+    }
+
+    /**
+     * Cambiar el estado de una ficha de aplicación
+     *
+     * El cambio de status del formulario puede afectar el status de la sesión de aprendizaje relacionada.
+     * Reglas de sincronización:
+     * - Si el formulario tiene una sesión asociada, considerar sincronización de estados
+     * - Regla de negocio: registration_status es active cuando status es scheduled o active, inactive cuando es finished o canceled
+     * - No permitir retroceder de active a scheduled
+     * - No permitir reactivar desde finished o canceled
+     * - No permitir reactivar si registration_status es inactive
+     */
+    public function changeStatus(Request $request, int $id)
+    {
+        try {
+            $validated = $request->validate([
+                'status' => 'required|in:scheduled,active,finished,canceled',
+            ]);
+
+            $applicationForm = ApplicationForm::with('learningSession')->findOrFail($id);
+
+            // Validar transición de estados
+            $currentStatus = $applicationForm->status;
+            $newStatus = $validated['status'];
+
+            // No permitir cambiar de estado una vez cancelado
+            if ($currentStatus === 'canceled') {
+                throw new \Exception('No se puede cambiar el estado de una ficha cancelada. Una vez cancelada, la ficha no puede cambiar de estado.');
+            }
+
+            // No permitir retroceder de active a scheduled
+            if ($currentStatus === 'active' && $newStatus === 'scheduled') {
+                throw new \Exception('No se puede cambiar de activo a programado. Una ficha activa no puede volver a programada.');
+            }
+
+            // No permitir reactivar desde finished
+            if ($currentStatus === 'finished' && $newStatus === 'active') {
+                throw new \Exception('No se puede reactivar una ficha finalizada.');
+            }
+
+            // No permitir reactivar si registration_status es inactive
+            if ($applicationForm->registration_status === 'inactive' && in_array($newStatus, ['scheduled', 'active'])) {
+                throw new \Exception('No se puede reactivar una ficha con estado de registro inactivo.');
+            }
+
+            DB::beginTransaction();
+
+            // Sincronizar registration_status basado en el status
+            // Regla de negocio: registration_status es active cuando status es scheduled o active, inactive cuando es finished o canceled
+            $registrationStatus = in_array($validated['status'], ['scheduled', 'active']) ? 'active' : 'inactive';
+            $updateData = [
+                'status' => $validated['status'],
+                'registration_status' => $registrationStatus,
+            ];
+
+            // Manejar la finalización o cancelación del formulario
+            if (in_array($validated['status'], ['finished', 'canceled'])) {
+                // Establecer fecha de desactivación
+                $updateData['deactivated_at'] = now();
+
+                // Manejar applicationFormResponse cuando se cancela
+                if ($validated['status'] === 'canceled') {
+                    // Eliminar applicationFormResponse en pending o in progress
+                    ApplicationFormResponse::where('application_form_id', $applicationForm->id)
+                        ->whereIn('status', ['pending', 'in progress'])
+                        ->delete(); // Soft delete
+                }
+
+                // Sincronizar con la sesión de aprendizaje relacionada
+                if ($applicationForm->learningSession) {
+                    $applicationForm->learningSession->update([
+                        'status' => $validated['status'],
+                        'registration_status' => 'inactive',
+                        'deactivated_at' => now(),
+                    ]);
+                }
+            }
+
+            // Manejar la reactivación del formulario (scheduled o active)
+            if (in_array($validated['status'], ['scheduled', 'active'])) {
+                // Limpiar fecha de desactivación
+                $updateData['deactivated_at'] = null;
+
+                // Generar applicationFormResponse si no existen cuando se activa
+                if ($validated['status'] === 'active' && $applicationForm->learningSession) {
+                    $this->generateApplicationFormResponses($applicationForm->learningSession);
+                }
+
+                // Reactivar la sesión de aprendizaje relacionada si existe
+                // Solo sincronizar si LearningSession no está cancelado o finalizado
+                if ($applicationForm->learningSession) {
+                    // Validar que LearningSession no esté cancelado o finalizado
+                    if (in_array($applicationForm->learningSession->status, ['canceled', 'finished'])) {
+                        throw new \Exception('No se puede sincronizar el estado con una sesión de aprendizaje cancelada o finalizada. Una vez cancelada o finalizada, la sesión no puede cambiar de estado.');
+                    }
+
+                    $applicationForm->learningSession->update([
+                        'status' => $validated['status'],
+                        'registration_status' => 'active',
+                        'deactivated_at' => null,
+                    ]);
+                }
+            }
+
+            // Actualizar el formulario
+            $applicationForm->update($updateData);
+
+            DB::commit();
+
+            return back()
+                ->with('success', 'Estado de la ficha de aplicación actualizado correctamente');
+        } catch (ValidationException $e) {
+            DB::rollBack();
+
+            return back()
+                ->withInput()
+                ->withErrors($e->validator)
+                ->with('error', 'Ocurrió un error inesperado al actualizar el estado de la ficha. Intenta nuevamente.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return back()
+                ->withInput()
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Cambiar el estado de registro de una ficha de aplicación
+     *
+     * El registration_status controla si el formulario está disponible para estudiantes.
+     * - active: El formulario está disponible para estudiantes
+     * - inactive: El formulario no está disponible para estudiantes (establece deactivated_at)
+     *
+     * Regla de negocio: Cuando registration_status cambia a inactive, status cambia a canceled
+     */
+    public function changeRegistrationStatus(Request $request, int $id)
+    {
+        try {
+            $validated = $request->validate([
+                'registration_status' => 'required|in:active,inactive',
+            ]);
+
+            $applicationForm = ApplicationForm::with('learningSession')->findOrFail($id);
+
+            DB::beginTransaction();
+
+            // Lógica de negocio para registration_status
+            $updateData = [
+                'registration_status' => $validated['registration_status'],
+            ];
+
+            if ($validated['registration_status'] === 'inactive') {
+                // Establecer fecha de desactivación y cancelar el formulario
+                $updateData['deactivated_at'] = now();
+                $updateData['status'] = 'canceled';
+
+                // Sincronizar con learningSession relacionado
+                if ($applicationForm->learningSession) {
+                    $applicationForm->learningSession->update([
+                        'status' => 'canceled',
+                        'registration_status' => 'inactive',
+                        'deactivated_at' => now(),
+                    ]);
+                }
+            } else {
+                // Limpiar fecha de desactivación
+                $updateData['deactivated_at'] = null;
+
+                // Calcular status basado en la fecha de LearningSession
+                if ($applicationForm->learningSession) {
+                    // Validar que LearningSession no esté cancelado o finalizado
+                    if (in_array($applicationForm->learningSession->status, ['canceled', 'finished'])) {
+                        throw new \Exception('No se puede sincronizar el estado de registro con una sesión de aprendizaje cancelada o finalizada. Una vez cancelada o finalizada, la sesión no puede cambiar de estado.');
+                    }
+
+                    // Calcular status basado en la fecha actual de LearningSession
+                    $now = now();
+                    $startDate = $applicationForm->learningSession->start_date;
+                    $endDate = $applicationForm->learningSession->end_date;
+
+                    if ($now >= $startDate && $now <= $endDate) {
+                        // Dentro del rango de fechas: activo
+                        $updateData['status'] = 'active';
+                    } elseif ($now < $startDate) {
+                        // Antes de la fecha de inicio: programado
+                        $updateData['status'] = 'scheduled';
+                    } else {
+                        // Después de la fecha de fin: mantener el status actual o cambiar a scheduled si era canceled
+                        if ($applicationForm->status === 'canceled') {
+                            $updateData['status'] = 'scheduled';
+                        }
+                    }
+
+                    // Reactivar learningSession relacionado con el mismo status
+                    $applicationForm->learningSession->update([
+                        'status' => $updateData['status'],
+                        'registration_status' => 'active',
+                        'deactivated_at' => null,
+                    ]);
+                } else {
+                    // Si no hay LearningSession vinculado, mantener el status actual o cambiar a scheduled si era canceled
+                    if ($applicationForm->status === 'canceled') {
+                        $updateData['status'] = 'scheduled';
+                    }
+                }
+            }
+
+            return back()
+                ->with('success', 'Estado de registro de la ficha de aplicación actualizado correctamente');
+        } catch (ValidationException $e) {
+            DB::rollBack();
+
+            return back()
+                ->withInput()
+                ->withErrors($e->validator)
+                ->with('error', 'Ocurrió un error inesperado al actualizar el estado de registro de la ficha. Intenta nuevamente.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return back()
+                ->withInput()
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    // Generar ApplicationFormResponses para students
+    public function generateApplicationFormResponses(LearningSession $learningSession)
+    {
+        // Revisar si existen applicationFormResponses
+        if (ApplicationFormResponse::where('application_form_id', $learningSession->applicationForm->id)->exists()) {
+            return;
+        }
+
+        $applicationForm = $learningSession->applicationForm->load('questions');
+
+        // Después de insertar las preguntas del formulario, obtenemos los IDs generados
+        $insertedQuestions = ApplicationFormQuestion::where('application_form_id', $applicationForm->id)->get();
+
+        // Creamos un mapa de question_id a application_form_question_id
+        $questionIdMap = $insertedQuestions->pluck('id', 'question_id');
+
+        // Obtener estudiantes del aula para crear respuestas
+        $teacherClassroomCurricularAreaCycle = TeacherClassroomCurricularAreaCycle::with(['classroom.students' => function ($query) {
+            $query->select('students.*')
+                ->whereHas('enrollments', function ($q) {
+                    $q->where('status', 'active');
+                });
+        }])->findOrFail($learningSession->teacher_classroom_curricular_area_cycle_id);
+
+        if ($teacherClassroomCurricularAreaCycle->classroom && $teacherClassroomCurricularAreaCycle->classroom->students->isNotEmpty()) {
+            foreach ($teacherClassroomCurricularAreaCycle->classroom->students as $student) {
+                $applicationFormResponses = [
+                    'score' => 0,
+                    'status' => 'pending',
+                    'started_at' => null,
+                    'submitted_at' => null,
+                    'graded_at' => null,
+                    'application_form_id' => $applicationForm->id,
+                    'student_id' => $student->user_id,
+                ];
+
+                $applicationFormResponse = ApplicationFormResponse::create($applicationFormResponses);
+
+                // Preparar preguntas de respuesta para inserción masiva
+                $applicationFormResponseQuestions = [];
+                foreach ($applicationForm->questions as $question) {
+                    // Usamos el mapa para obtener el ID correcto
+                    $appFormQuestionId = $questionIdMap[$question->question_id] ?? null;
+
+                    $applicationFormResponseQuestions[] = [
+                        'application_form_response_id' => $applicationFormResponse->id,
+                        'application_form_question_id' => $appFormQuestionId,
+                        'explanation' => '',
+                        'score' => $question['score'],
+                        'points_store' => $question['points_store'],
+                    ];
+                }
+
+                ApplicationFormResponseQuestion::insert($applicationFormResponseQuestions);
+            }
         }
     }
 }

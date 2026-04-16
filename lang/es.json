@@ -56,6 +56,8 @@
   "active": "Activo",
   "inactive": "Inactivo",
   "archived": "Archivado",
+  "finished": "Finalizada",
+  "canceled": "Cancelada",
 
   "easy": "Fácil",
   "medium": "Medio",
@@ -319,6 +321,7 @@
   "SSL Handshake Failed": "Protocolo de enlace SSL fallido",
   "Start": "Comenzar",
   "status": "estado",
+  "registration_status": "Estado de Registro",
   "Stop": "Detener",
   "Submit": "Enviar",
   "Subscribe": "Suscriba",

@@ -236,9 +236,9 @@ class ApplicationFormResponseQuestion extends Model
     /**
      * Sincroniza las opciones seleccionadas para esta respuesta de pregunta.
      *
-     * @param  array  $selectedOptions  Array de opciones seleccionadas. Puede ser:
-     *                                  - Un array de IDs de opción (compatibilidad hacia atrás)
-     *                                  - Un array asociativo donde la clave es el ID de opción y el valor es un array con datos de la opción
+     * @param  array  $optionsData  Array de opciones seleccionadas. Puede ser:
+     *                              - Un array de IDs de opción (compatibilidad hacia atrás)
+     *                              - Un array asociativo donde la clave es el ID de opción y el valor es un array con datos de la opción
      *
      * @throws \Exception
      */

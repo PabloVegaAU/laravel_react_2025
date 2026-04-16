@@ -24,13 +24,15 @@ return new class extends Migration
 
             // Configuración de estado
             $table->enum('status', [
-                'draft',      // Borrador (solo visible para el profesor)
                 'scheduled',  // Programada (visible pero no accesible)
                 'active',     // Activa (disponible para los estudiantes)
-                'inactive',   // Inactiva (no visible)
-                'archived',   // Archivada (solo lectura)
-            ])->default('draft')
-                ->comment('Estado del formulario: borrador, programado, activo, inactivo, archivado');
+                'finished',   // Finalizada (cierre de evaluación)
+                'canceled',   // Cancelada
+            ])->default('scheduled')
+                ->comment('Estado del formulario: programado, activo, finalizado, cancelado');
+            $table->enum('registration_status', ['active', 'inactive'])
+                ->default('active')
+                ->comment('Estado de registro del formulario: activo, inactivo');
 
             // Puntuación y fechas
             $table->decimal('score_max', 10, 2)
@@ -60,8 +62,10 @@ return new class extends Migration
 
             // Índices
             $table->index('status', 'idx_application_form_status');
+            $table->index('registration_status', 'idx_application_form_registration_status');
             $table->index('start_date', 'idx_application_form_start_date');
             $table->index('end_date', 'idx_application_form_end_date');
+            $table->index('teacher_id', 'idx_application_form_teacher');
             $table->index('learning_session_id', 'idx_application_form_learning_session');
             $table->index(
                 ['status', 'start_date', 'end_date'],

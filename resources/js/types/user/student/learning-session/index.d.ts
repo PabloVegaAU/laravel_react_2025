@@ -5,7 +5,8 @@ export interface StudentLearningSession {
   id: number
   name: string
   purpose_learning: string
-  application_date: string
+  start_date: string
+  end_date: string
   status: string
   created_at: string
   updated_at: string
