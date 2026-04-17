@@ -51,7 +51,7 @@ export default function ApplicationForms({ applicationForms, filters: initialFil
   const [filters, setFilters] = useState({
     search: initialFilters?.search || '',
     status: initialFilters?.status || '',
-    registration_status: initialFilters?.registration_status || '',
+    registration_status: initialFilters?.registration_status || 'active',
     area: initialFilters?.area || '',
     competency: initialFilters?.competency || '',
     start_date: initialFilters?.start_date ? new Date(initialFilters.start_date) : null,
@@ -84,7 +84,7 @@ export default function ApplicationForms({ applicationForms, filters: initialFil
     setFilters({
       search: '',
       status: '',
-      registration_status: '',
+      registration_status: 'active',
       area: '',
       competency: '',
       start_date: null,
@@ -92,21 +92,10 @@ export default function ApplicationForms({ applicationForms, filters: initialFil
     })
     router.get(
       url.split('?')[0],
-      {},
+      { registration_status: 'active' },
       {
         preserveState: true,
         preserveScroll: true
-      }
-    )
-  }
-
-  const handleStatusChange = (id: number, status: string) => {
-    router.put(
-      `/teacher/application-forms/${id}/change-status`,
-      { status },
-      {
-        onSuccess: () => toast.success('Estado actualizado correctamente'),
-        onError: () => toast.error('Error al actualizar el estado')
       }
     )
   }
@@ -125,30 +114,50 @@ export default function ApplicationForms({ applicationForms, filters: initialFil
     )
   }
 
-  const getAvailableStatuses = (currentStatus: string, currentRegistrationStatus: string) => {
-    const allStatuses = ['scheduled', 'active', 'finished', 'canceled']
+  const getAvailableRegistrationStatuses = (currentStatus: string, currentRegistrationStatus: string, learningSession: any) => {
+    const options: string[] = []
 
-    // No permitir cambiar de estado una vez cancelado
-    if (currentStatus === 'canceled') {
-      return [] // No mostrar ninguna opción
+    // Solo permitir desactivar (inactive) si el estado es "scheduled"
+    if (currentStatus === 'scheduled' && currentRegistrationStatus !== 'inactive') {
+      options.push('inactive')
     }
 
-    // No permitir retroceder de active a scheduled
-    if (currentStatus === 'active') {
-      return allStatuses.filter((s) => s !== 'scheduled')
+    // Permitir reactivar (active) si NO es "canceled" o si es "canceled" pero está dentro del rango de fechas
+    if (currentRegistrationStatus !== 'active') {
+      if (currentStatus !== 'canceled') {
+        options.push('active')
+      } else {
+        // Si es canceled, verificar si está dentro del rango de fechas del LearningSession
+        if (learningSession) {
+          const now = new Date()
+          const start = new Date(learningSession.start_date)
+          const end = new Date(learningSession.end_date)
+
+          if (now >= start && now <= end) {
+            options.push('active')
+          }
+        }
+      }
     }
 
-    // No permitir reactivar desde finished
-    if (currentStatus === 'finished') {
-      return allStatuses.filter((s) => s !== 'active')
+    return options
+  }
+
+  const canEditApplicationForm = (status: string, learningSession: any) => {
+    // Siempre editable si es scheduled o active
+    if (status === 'scheduled' || status === 'active') {
+      return true
     }
 
-    // No permitir reactivar si registration_status es inactive
-    if (currentRegistrationStatus === 'inactive') {
-      return allStatuses.filter((s) => s !== 'active' && s !== 'scheduled')
+    // Editable si es canceled y está antes de la fecha de inicio (usando fechas del LearningSession)
+    if (status === 'canceled' && learningSession) {
+      const now = new Date()
+      const start = new Date(learningSession.start_date)
+      return now < start
     }
 
-    return allStatuses
+    // No editable para finished
+    return false
   }
 
   const columns: TypedColumnDef<ApplicationForm>[] = [
@@ -163,12 +172,12 @@ export default function ApplicationForms({ applicationForms, filters: initialFil
     {
       header: 'Fecha de inicio',
       accessorKey: 'start_date',
-      cell: (row) => format(new Date(row.getValue() as string), 'dd/MM/yyyy')
+      cell: (row) => format(new Date(row.getValue() as string), 'dd/MM/yyyy HH:mm', { locale: es })
     },
     {
       header: 'Fecha de fin',
       accessorKey: 'end_date',
-      cell: (row) => format(new Date(row.getValue() as string), 'dd/MM/yyyy')
+      cell: (row) => format(new Date(row.getValue() as string), 'dd/MM/yyyy HH:mm', { locale: es })
     },
     {
       header: 'Estado de Registro',
@@ -176,30 +185,12 @@ export default function ApplicationForms({ applicationForms, filters: initialFil
       cell: (row) => {
         const statusValue = row.getValue() as string
         const status = t(statusValue, '')
-        const applicationFormId = row.row.original.id
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Badge variant={getBadgeColor(statusValue)} className='cursor-pointer hover:opacity-80'>
-                {status}
-              </Badge>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => handleRegistrationStatusChange(applicationFormId, 'active')}>{t('active')}</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleRegistrationStatusChange(applicationFormId, 'inactive')}>{t('inactive')}</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )
-      }
-    },
-    {
-      header: 'Estado',
-      accessorKey: 'status',
-      cell: (row) => {
-        const statusValue = row.getValue() as string
-        const status = t(statusValue, '')
         const applicationForm = row.row.original
-        const availableStatuses = getAvailableStatuses(applicationForm.status, applicationForm.registration_status)
+        const availableStatuses = getAvailableRegistrationStatuses(
+          applicationForm.status,
+          applicationForm.registration_status,
+          applicationForm.learning_session
+        )
 
         // No mostrar DropdownMenu si no hay opciones disponibles
         if (availableStatuses.length === 0) {
@@ -215,7 +206,7 @@ export default function ApplicationForms({ applicationForms, filters: initialFil
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               {availableStatuses.map((statusOption) => (
-                <DropdownMenuItem key={statusOption} onClick={() => handleStatusChange(applicationForm.id, statusOption)}>
+                <DropdownMenuItem key={statusOption} onClick={() => handleRegistrationStatusChange(applicationForm.id, statusOption)}>
                   {t(statusOption)}
                 </DropdownMenuItem>
               ))}
@@ -224,25 +215,39 @@ export default function ApplicationForms({ applicationForms, filters: initialFil
         )
       }
     },
+    {
+      header: 'Estado',
+      accessorKey: 'status',
+      cell: (row) => {
+        const statusValue = row.getValue() as string
+        const status = t(statusValue, '')
+        return <Badge variant={getBadgeColor(statusValue)}>{status}</Badge>
+      }
+    },
 
     {
       header: 'Acciones',
       accessorKey: 'id',
       accessorFn: (row) => row.id,
-      cell: (row) => (
-        <div className='flex space-x-2'>
-          <Link href={`/teacher/application-forms/${row.getValue()}/edit`} className={cn(row.row.original.status === 'canceled' && 'hidden')}>
-            <Button variant='outline' size='sm'>
-              Editar
-            </Button>
-          </Link>
-          <Link href={`/teacher/application-forms/${row.getValue()}`}>
-            <Button variant='outline' size='sm'>
-              Ver
-            </Button>
-          </Link>
-        </div>
-      )
+      cell: (row) => {
+        const applicationForm = row.row.original
+        return (
+          <div className='flex space-x-2'>
+            {canEditApplicationForm(applicationForm.status, applicationForm.learning_session) && (
+              <Link href={`/teacher/application-forms/${row.getValue()}/edit`}>
+                <Button variant='outline' size='sm'>
+                  Editar
+                </Button>
+              </Link>
+            )}
+            <Link href={`/teacher/application-forms/${row.getValue()}`}>
+              <Button variant='outline' size='sm'>
+                Ver
+              </Button>
+            </Link>
+          </div>
+        )
+      }
     }
   ]
 

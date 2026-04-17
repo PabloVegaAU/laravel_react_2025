@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import AppLayout from '@/layouts/app-layout'
-import { formatDate } from '@/lib/formats'
 import { useTranslations } from '@/lib/translator'
 import { getBadgeColor } from '@/lib/ui/variants'
 import { cn } from '@/lib/utils'
@@ -50,7 +49,7 @@ export default function LearningSessionIndex({ learningSessions, filters: initia
   const [filters, setFilters] = useState({
     search: initialFilters?.search || '',
     status: initialFilters?.status || '',
-    registration_status: initialFilters?.registration_status || '',
+    registration_status: initialFilters?.registration_status || 'active',
     area: initialFilters?.area || '',
     competency: initialFilters?.competency || '',
     start_date: initialFilters?.start_date ? new Date(initialFilters.start_date) : undefined,
@@ -83,7 +82,7 @@ export default function LearningSessionIndex({ learningSessions, filters: initia
     setFilters({
       search: '',
       status: '',
-      registration_status: '',
+      registration_status: 'active',
       area: '',
       competency: '',
       start_date: undefined,
@@ -91,7 +90,7 @@ export default function LearningSessionIndex({ learningSessions, filters: initia
     })
     router.get(
       url.split('?')[0],
-      {},
+      { registration_status: 'active' },
       {
         preserveState: true,
         preserveScroll: true
@@ -113,30 +112,48 @@ export default function LearningSessionIndex({ learningSessions, filters: initia
     )
   }
 
-  const getAvailableStatuses = (currentStatus: string, currentRegistrationStatus: string) => {
-    const allStatuses = ['scheduled', 'active', 'finished', 'canceled']
+  const getAvailableRegistrationStatuses = (currentStatus: string, currentRegistrationStatus: string, startDate: string, endDate: string) => {
+    const options: string[] = []
 
-    // No permitir cambiar de estado una vez cancelado
-    if (currentStatus === 'canceled') {
-      return [] // No mostrar ninguna opción
+    // Solo permitir desactivar (inactive) si el estado es "scheduled"
+    if (currentStatus === 'scheduled' && currentRegistrationStatus !== 'inactive') {
+      options.push('inactive')
     }
 
-    // No permitir retroceder de active a scheduled
-    if (currentStatus === 'active') {
-      return allStatuses.filter((s) => s !== 'scheduled')
+    // Permitir reactivar (active) si NO es "canceled" o si es "canceled" pero está dentro del rango de fechas
+    if (currentRegistrationStatus !== 'active') {
+      if (currentStatus !== 'canceled') {
+        options.push('active')
+      } else {
+        // Si es canceled, verificar si está dentro del rango de fechas
+        const now = new Date()
+        const start = new Date(startDate)
+        const end = new Date(endDate)
+
+        if (now >= start && now <= end) {
+          options.push('active')
+        }
+      }
     }
 
-    // No permitir reactivar desde finished
-    if (currentStatus === 'finished') {
-      return allStatuses.filter((s) => s !== 'active')
+    return options
+  }
+
+  const canEditLearningSession = (status: string, startDate: string) => {
+    // Siempre editable si es scheduled o active
+    if (status === 'scheduled' || status === 'active') {
+      return true
     }
 
-    // No permitir reactivar si registration_status es inactive
-    if (currentRegistrationStatus === 'inactive') {
-      return allStatuses.filter((s) => s !== 'active' && s !== 'scheduled')
+    // Editable si es canceled y está antes de la fecha de inicio
+    if (status === 'canceled') {
+      const now = new Date()
+      const start = new Date(startDate)
+      return now < start
     }
 
-    return allStatuses
+    // No editable para finished
+    return false
   }
 
   const columns: ColumnDef<LearningSession>[] = [
@@ -160,7 +177,12 @@ export default function LearningSessionIndex({ learningSessions, filters: initia
     {
       header: 'Fecha de Inicio',
       accessorKey: 'start_date',
-      cell: (row) => formatDate(row.getValue() as string)
+      cell: (row) => format(new Date(row.getValue() as string), 'dd/MM/yyyy HH:mm', { locale: es })
+    },
+    {
+      header: 'Fecha de Fin',
+      accessorKey: 'end_date',
+      cell: (row) => format(new Date(row.getValue() as string), 'dd/MM/yyyy HH:mm', { locale: es })
     },
     {
       header: 'Estado de Registro',
@@ -168,30 +190,13 @@ export default function LearningSessionIndex({ learningSessions, filters: initia
       cell: (row) => {
         const statusValue = row.getValue() as string
         const status = t(statusValue, '')
-        const learningSessionId = row.row.original.id
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Badge variant={getBadgeColor(statusValue)} className='cursor-pointer hover:opacity-80'>
-                {status}
-              </Badge>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => handleRegistrationStatusChange(learningSessionId, 'active')}>{t('active')}</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleRegistrationStatusChange(learningSessionId, 'inactive')}>{t('inactive')}</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )
-      }
-    },
-    {
-      header: 'Estado',
-      accessorKey: 'status',
-      cell: (row) => {
-        const statusValue = row.getValue() as string
-        const status = t(statusValue, '')
         const learningSession = row.row.original
-        const availableStatuses = getAvailableStatuses(learningSession.status, learningSession.registration_status)
+        const availableStatuses = getAvailableRegistrationStatuses(
+          learningSession.status,
+          learningSession.registration_status,
+          learningSession.start_date,
+          learningSession.end_date
+        )
 
         // No mostrar DropdownMenu si no hay opciones disponibles
         if (availableStatuses.length === 0) {
@@ -207,7 +212,7 @@ export default function LearningSessionIndex({ learningSessions, filters: initia
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               {availableStatuses.map((statusOption) => (
-                <DropdownMenuItem key={statusOption} onClick={() => handleStatusChange(learningSession.id, statusOption)}>
+                <DropdownMenuItem key={statusOption} onClick={() => handleRegistrationStatusChange(learningSession.id, statusOption)}>
                   {t(statusOption)}
                 </DropdownMenuItem>
               ))}
@@ -217,12 +222,20 @@ export default function LearningSessionIndex({ learningSessions, filters: initia
       }
     },
     {
+      header: 'Estado',
+      accessorKey: 'status',
+      cell: (row) => {
+        const statusValue = row.getValue() as string
+        const status = t(statusValue, '')
+        return <Badge variant={getBadgeColor(statusValue)}>{status}</Badge>
+      }
+    },
+    {
       header: 'Acciones',
       id: 'actions',
       cell: ({ row }) => {
         const learningSession = row.original
         const statusVariant = learningSession.status === 'active' ? 'destructive' : 'default'
-        const statusText = learningSession.status === 'active' ? 'Desactivar' : 'Activar'
         const statusAction = learningSession.status === 'active' ? 'inactive' : 'active'
 
         return (
@@ -244,12 +257,11 @@ export default function LearningSessionIndex({ learningSessions, filters: initia
                   <Link href={`/teacher/learning-sessions/${learningSession.id}/table-calification`}>
                     <DropdownMenuItem>Ver tabla de puntuaciones</DropdownMenuItem>
                   </Link>
-                  <Link href={`/teacher/learning-sessions/${learningSession.id}/edit`}>
-                    <DropdownMenuItem>Editar</DropdownMenuItem>
-                  </Link>
-                  <DropdownMenuItem variant={statusVariant} onClick={() => handleStatusChange(learningSession.id, statusAction)}>
-                    {statusText}
-                  </DropdownMenuItem>
+                  {canEditLearningSession(learningSession.status, learningSession.start_date) && (
+                    <Link href={`/teacher/learning-sessions/${learningSession.id}/edit`}>
+                      <DropdownMenuItem>Editar</DropdownMenuItem>
+                    </Link>
+                  )}
                   <DropdownMenuItem>
                     <Link
                       href={`/teacher/application-form-responses?learning_session_id=${learningSession.id}`}
@@ -266,21 +278,6 @@ export default function LearningSessionIndex({ learningSessions, filters: initia
       }
     }
   ]
-
-  const handleStatusChange = (id: number, status: string) => {
-    return router.put(
-      `/teacher/learning-sessions/${id}/change-status`,
-      {
-        status
-      },
-      {
-        onSuccess: () => toast.success('Estado actualizado correctamente'),
-        onError: () => toast.error('Error al actualizar el estado'),
-        preserveScroll: true,
-        preserveState: true
-      }
-    )
-  }
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>

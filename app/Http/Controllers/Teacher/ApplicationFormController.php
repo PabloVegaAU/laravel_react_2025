@@ -67,6 +67,8 @@ class ApplicationFormController extends Controller
 
         if (! empty($filters['registration_status'])) {
             $query->where('application_forms.registration_status', $filters['registration_status']);
+        } else {
+            $query->where('application_forms.registration_status', 'active');
         }
 
         if (! empty($filters['area'])) {
@@ -510,139 +512,17 @@ class ApplicationFormController extends Controller
     }
 
     /**
-     * Cambiar el estado de una ficha de aplicación
-     *
-     * El cambio de status del formulario puede afectar el status de la sesión de aprendizaje relacionada.
-     * Reglas de sincronización:
-     * - Si el formulario tiene una sesión asociada, considerar sincronización de estados
-     * - Regla de negocio: registration_status es active cuando status es scheduled o active, inactive cuando es finished o canceled
-     * - No permitir retroceder de active a scheduled
-     * - No permitir reactivar desde finished o canceled
-     * - No permitir reactivar si registration_status es inactive
-     */
-    public function changeStatus(Request $request, int $id)
-    {
-        try {
-            $validated = $request->validate([
-                'status' => 'required|in:scheduled,active,finished,canceled',
-            ]);
-
-            $applicationForm = ApplicationForm::with('learningSession')->findOrFail($id);
-
-            // Validar transición de estados
-            $currentStatus = $applicationForm->status;
-            $newStatus = $validated['status'];
-
-            // No permitir cambiar de estado una vez cancelado
-            if ($currentStatus === 'canceled') {
-                throw new \Exception('No se puede cambiar el estado de una ficha cancelada. Una vez cancelada, la ficha no puede cambiar de estado.');
-            }
-
-            // No permitir retroceder de active a scheduled
-            if ($currentStatus === 'active' && $newStatus === 'scheduled') {
-                throw new \Exception('No se puede cambiar de activo a programado. Una ficha activa no puede volver a programada.');
-            }
-
-            // No permitir reactivar desde finished
-            if ($currentStatus === 'finished' && $newStatus === 'active') {
-                throw new \Exception('No se puede reactivar una ficha finalizada.');
-            }
-
-            // No permitir reactivar si registration_status es inactive
-            if ($applicationForm->registration_status === 'inactive' && in_array($newStatus, ['scheduled', 'active'])) {
-                throw new \Exception('No se puede reactivar una ficha con estado de registro inactivo.');
-            }
-
-            DB::beginTransaction();
-
-            // Sincronizar registration_status basado en el status
-            // Regla de negocio: registration_status es active cuando status es scheduled o active, inactive cuando es finished o canceled
-            $registrationStatus = in_array($validated['status'], ['scheduled', 'active']) ? 'active' : 'inactive';
-            $updateData = [
-                'status' => $validated['status'],
-                'registration_status' => $registrationStatus,
-            ];
-
-            // Manejar la finalización o cancelación del formulario
-            if (in_array($validated['status'], ['finished', 'canceled'])) {
-                // Establecer fecha de desactivación
-                $updateData['deactivated_at'] = now();
-
-                // Manejar applicationFormResponse cuando se cancela
-                if ($validated['status'] === 'canceled') {
-                    // Eliminar applicationFormResponse en pending o in progress
-                    ApplicationFormResponse::where('application_form_id', $applicationForm->id)
-                        ->whereIn('status', ['pending', 'in progress'])
-                        ->delete(); // Soft delete
-                }
-
-                // Sincronizar con la sesión de aprendizaje relacionada
-                if ($applicationForm->learningSession) {
-                    $applicationForm->learningSession->update([
-                        'status' => $validated['status'],
-                        'registration_status' => 'inactive',
-                        'deactivated_at' => now(),
-                    ]);
-                }
-            }
-
-            // Manejar la reactivación del formulario (scheduled o active)
-            if (in_array($validated['status'], ['scheduled', 'active'])) {
-                // Limpiar fecha de desactivación
-                $updateData['deactivated_at'] = null;
-
-                // Generar applicationFormResponse si no existen cuando se activa
-                if ($validated['status'] === 'active' && $applicationForm->learningSession) {
-                    $this->generateApplicationFormResponses($applicationForm->learningSession);
-                }
-
-                // Reactivar la sesión de aprendizaje relacionada si existe
-                // Solo sincronizar si LearningSession no está cancelado o finalizado
-                if ($applicationForm->learningSession) {
-                    // Validar que LearningSession no esté cancelado o finalizado
-                    if (in_array($applicationForm->learningSession->status, ['canceled', 'finished'])) {
-                        throw new \Exception('No se puede sincronizar el estado con una sesión de aprendizaje cancelada o finalizada. Una vez cancelada o finalizada, la sesión no puede cambiar de estado.');
-                    }
-
-                    $applicationForm->learningSession->update([
-                        'status' => $validated['status'],
-                        'registration_status' => 'active',
-                        'deactivated_at' => null,
-                    ]);
-                }
-            }
-
-            // Actualizar el formulario
-            $applicationForm->update($updateData);
-
-            DB::commit();
-
-            return back()
-                ->with('success', 'Estado de la ficha de aplicación actualizado correctamente');
-        } catch (ValidationException $e) {
-            DB::rollBack();
-
-            return back()
-                ->withInput()
-                ->withErrors($e->validator)
-                ->with('error', 'Ocurrió un error inesperado al actualizar el estado de la ficha. Intenta nuevamente.');
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
-            return back()
-                ->withInput()
-                ->with('error', $e->getMessage());
-        }
-    }
-
-    /**
      * Cambiar el estado de registro de una ficha de aplicación
      *
      * El registration_status controla si el formulario está disponible para estudiantes.
      * - active: El formulario está disponible para estudiantes
      * - inactive: El formulario no está disponible para estudiantes (establece deactivated_at)
      *
-     * Regla de negocio: Cuando registration_status cambia a inactive, status cambia a canceled
+     * Restricciones de negocio (lógica manual):
+     * - NO permitir desactivar si el estado actual es "finished" o "active"
+     * - NO permitir reactivar si el estado actual es "canceled" fuera del rango de fechas
+     * - SOLO permitir desactivar si el estado actual es "scheduled"
+     * - Al desactivar manualmente, status cambia a "canceled" (no "finished")
      */
     public function changeRegistrationStatus(Request $request, int $id)
     {
@@ -655,18 +535,32 @@ class ApplicationFormController extends Controller
 
             DB::beginTransaction();
 
-            // Lógica de negocio para registration_status
-            $updateData = [
-                'registration_status' => $validated['registration_status'],
-            ];
-
+            // Validar restricciones de estado
             if ($validated['registration_status'] === 'inactive') {
-                // Establecer fecha de desactivación y cancelar el formulario
-                $updateData['deactivated_at'] = now();
-                $updateData['status'] = 'canceled';
+                // NO permitir desactivar si el estado es "finished" o "active"
+                if (in_array($applicationForm->status, ['finished', 'active'])) {
+                    throw new \Exception('No se puede desactivar el registro de una ficha que está finalizada o activa. Solo se puede desactivar fichas en estado "programado".');
+                }
 
-                // Sincronizar con learningSession relacionado
+                // SOLO permitir desactivar si el estado es "scheduled"
+                if ($applicationForm->status !== 'scheduled') {
+                    throw new \Exception('Solo se puede desactivar el registro de fichas que están en estado "programado".');
+                }
+
+                // Establecer fecha de desactivación y cambiar status a canceled (manual)
+                $updateData = [
+                    'registration_status' => 'inactive',
+                    'deactivated_at' => now(),
+                    'status' => 'canceled',
+                ];
+
+                // Sincronizar con learningSession relacionado aplicando las mismas restricciones
                 if ($applicationForm->learningSession) {
+                    // Validar que el LearningSession también esté en estado "scheduled"
+                    if ($applicationForm->learningSession->status !== 'scheduled') {
+                        throw new \Exception('No se puede desactivar el registro porque la sesión de aprendizaje relacionada no está en estado "programado".');
+                    }
+
                     $applicationForm->learningSession->update([
                         'status' => 'canceled',
                         'registration_status' => 'inactive',
@@ -674,8 +568,27 @@ class ApplicationFormController extends Controller
                     ]);
                 }
             } else {
+                // Reactivar a active
+                // NO permitir reactivar si el estado es "canceled" fuera del rango de fechas
+                if ($applicationForm->status === 'canceled') {
+                    if ($applicationForm->learningSession) {
+                        $now = now();
+                        $startDate = $applicationForm->learningSession->start_date;
+                        $endDate = $applicationForm->learningSession->end_date;
+
+                        if ($now < $startDate || $now > $endDate) {
+                            throw new \Exception('No se puede reactivar el registro de una ficha cancelada fuera del rango de fechas de la sesión de aprendizaje.');
+                        }
+                    } else {
+                        throw new \Exception('No se puede reactivar el registro de una ficha cancelada sin sesión de aprendizaje relacionada.');
+                    }
+                }
+
                 // Limpiar fecha de desactivación
-                $updateData['deactivated_at'] = null;
+                $updateData = [
+                    'registration_status' => 'active',
+                    'deactivated_at' => null,
+                ];
 
                 // Calcular status basado en la fecha de LearningSession
                 if ($applicationForm->learningSession) {
@@ -696,10 +609,8 @@ class ApplicationFormController extends Controller
                         // Antes de la fecha de inicio: programado
                         $updateData['status'] = 'scheduled';
                     } else {
-                        // Después de la fecha de fin: mantener el status actual o cambiar a scheduled si era canceled
-                        if ($applicationForm->status === 'canceled') {
-                            $updateData['status'] = 'scheduled';
-                        }
+                        // Después de la fecha de fin: mantener el status actual
+                        $updateData['status'] = $applicationForm->status;
                     }
 
                     // Reactivar learningSession relacionado con el mismo status
@@ -709,12 +620,14 @@ class ApplicationFormController extends Controller
                         'deactivated_at' => null,
                     ]);
                 } else {
-                    // Si no hay LearningSession vinculado, mantener el status actual o cambiar a scheduled si era canceled
-                    if ($applicationForm->status === 'canceled') {
-                        $updateData['status'] = 'scheduled';
-                    }
+                    // Si no hay LearningSession vinculado, mantener el status actual
+                    $updateData['status'] = $applicationForm->status;
                 }
             }
+
+            $applicationForm->update($updateData);
+
+            DB::commit();
 
             return back()
                 ->with('success', 'Estado de registro de la ficha de aplicación actualizado correctamente');

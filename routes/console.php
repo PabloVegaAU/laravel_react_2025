@@ -9,7 +9,7 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // Tarea programada para finalizar learning sessions vencidas
+// Ejecuta cada 30 minutos exactamente en las horas y medias horas (ej: 10:00, 10:30, 11:00, 11:30)
 Schedule::command('learning-sessions:finalize')
-    ->daily()
-    ->at('00:01')
+    ->cron('0,30 * * * *')
     ->description('Finalize learning sessions that have expired (end date passed)');

@@ -24,8 +24,6 @@ class ApplicationFormResponseController extends Controller
 
         // Consulta base para respuestas
         $query = ApplicationFormResponse::with([
-            'applicationForm.learningSession.teacherClassroomCurricularAreaCycle.classroom',
-            'applicationForm.learningSession.teacherClassroomCurricularAreaCycle.curricularAreaCycle.curricularArea',
             'student.user.profile',
             'responseQuestions.applicationFormQuestion',
         ])
@@ -43,8 +41,9 @@ class ApplicationFormResponseController extends Controller
 
         // Aplicar búsqueda si se proporcionó
         if ($search = $request->input('search')) {
+            $search = strtolower($search);
             $query->whereHas('student.user.profile', function ($q) use ($search) {
-                $q->whereRaw("CONCAT(first_name, ' ', last_name, ' ', second_last_name) like ?", ["%{$search}%"]);
+                $q->whereRaw("CONCAT(LOWER(first_name), ' ', LOWER(last_name), ' ', LOWER(second_last_name)) like ?", ["%{$search}%"]);
             });
         }
 
@@ -56,9 +55,22 @@ class ApplicationFormResponseController extends Controller
         // Paginar resultados
         $responses = $query->paginate(10)->withQueryString();
 
+        // Obtener datos de la sesión de aprendizaje si está filtrada
+        $learningSession = null;
+        if ($learningSessionId) {
+            $learningSession = \App\Models\LearningSession::with([
+                'competency',
+                'capabilities',
+                'teacherClassroomCurricularAreaCycle.classroom',
+                'teacherClassroomCurricularAreaCycle.curricularAreaCycle.curricularArea',
+                'applicationForm',
+            ])->find($learningSessionId);
+        }
+
         // Retornar vista Inertia con los datos
         return Inertia::render('teacher/application-form-responses/index', [
             'application_form_responses' => $responses,
+            'learning_session' => $learningSession,
             'filters' => $request->only([
                 'search',
                 'learning_session_id',

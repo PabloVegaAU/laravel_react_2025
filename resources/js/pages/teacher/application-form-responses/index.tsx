@@ -4,17 +4,19 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import AppLayout from '@/layouts/app-layout'
-import { formatDate } from '@/lib/formats'
+import { formatDateTime } from '@/lib/formats'
 import { useTranslations } from '@/lib/translator'
 import type { ApplicationFormResponse } from '@/types/application-form/form/response/application-form-response'
 import { BreadcrumbItem } from '@/types/core'
 import type { PaginatedResponse, ResourcePageProps } from '@/types/core/api-types'
+import type { LearningSession } from '@/types/learning-session'
 import { Head, Link, router } from '@inertiajs/react'
 import { ColumnDef } from '@tanstack/react-table'
 import { useState } from 'react'
 
 type PageProps = Omit<ResourcePageProps<ApplicationFormResponse>, 'data'> & {
   application_form_responses: PaginatedResponse<ApplicationFormResponse>
+  learning_session?: LearningSession | null
   filters: {
     search?: string
     learning_session_id?: number
@@ -23,7 +25,7 @@ type PageProps = Omit<ResourcePageProps<ApplicationFormResponse>, 'data'> & {
   }
 }
 
-export default function ApplicationFormResponse({ application_form_responses, filters = {} }: PageProps) {
+export default function ApplicationFormResponse({ application_form_responses, learning_session, filters = {} }: PageProps) {
   const { t } = useTranslations()
   const [localFilters, setLocalFilters] = useState(filters)
 
@@ -43,8 +45,7 @@ export default function ApplicationFormResponse({ application_form_responses, fi
       submitted: { label: 'Enviado', className: 'bg-green-100 text-green-800' },
       'in review': { label: 'En revisión', className: 'bg-purple-100 text-purple-800' },
       graded: { label: 'Calificado', className: 'bg-indigo-100 text-indigo-800' },
-      returned: { label: 'Devuelto', className: 'bg-pink-100 text-pink-800' },
-      late: { label: 'Tardío', className: 'bg-red-100 text-red-800' }
+      finalized: { label: 'Finalizado', className: 'bg-gray-100 text-gray-800' }
     }
 
     const statusInfo = statusMap[status] || { label: status, className: 'bg-gray-100 text-gray-800' }
@@ -70,48 +71,6 @@ export default function ApplicationFormResponse({ application_form_responses, fi
       }
     },
     {
-      accessorKey: 'learning_session',
-      header: 'Sesión de Aprendizaje',
-      cell: ({ row }) => {
-        const response = row.original
-        return response.application_form?.learning_session?.name || 'No asignada'
-      }
-    },
-    {
-      accessorKey: 'application_form',
-      header: 'Ficha de aplicación',
-      cell: ({ row }) => {
-        const response = row.original
-        return response.application_form?.name || 'Formulario no encontrado'
-      }
-    },
-
-    {
-      accessorKey: 'classroom',
-      header: 'Aula',
-      cell: ({ row }) => {
-        const response = row.original
-        const learningSession = response.application_form?.learning_session
-        return (
-          t(learningSession?.teacher_classroom_curricular_area_cycle?.classroom?.level) +
-          ' ' +
-          t(learningSession?.teacher_classroom_curricular_area_cycle?.classroom?.grade) +
-          ' ' +
-          learningSession?.teacher_classroom_curricular_area_cycle?.classroom?.section
-        )
-      }
-    },
-    {
-      accessorKey: 'curricular_areas',
-      header: 'Área Curricular',
-      cell: ({ row }) => {
-        const response = row.original
-        const curricularArea =
-          response.application_form?.learning_session?.teacher_classroom_curricular_area_cycle?.curricular_area_cycle?.curricular_area
-        return curricularArea?.name || 'No asignada'
-      }
-    },
-    {
       accessorKey: 'status',
       header: 'Estado',
       cell: ({ row }) => <StatusBadge status={row.original.status} />
@@ -129,27 +88,38 @@ export default function ApplicationFormResponse({ application_form_responses, fi
       header: 'Enviado',
       cell: ({ row }) => {
         const submittedAt = row.original.submitted_at
-        return <div className='text-sm text-gray-500'>{submittedAt ? formatDate(submittedAt) : 'No enviado'}</div>
+        return <div className='text-sm text-gray-500'>{submittedAt ? formatDateTime(submittedAt) : 'No enviado'}</div>
       }
     },
     {
       accessorKey: 'id',
       header: 'Acciones',
       cell: ({ row }) => {
-        const { status, id } = row.original
+        const { status, id, submitted_at } = row.original
+        const maxTimeToEdit = 24 * 7 * 60 * 60 * 1000 // 1 week in milliseconds
+        const currentTime = new Date().getTime()
+        const timeSinceSubmission = currentTime - new Date(submitted_at || '').getTime()
+        const canEdit = timeSinceSubmission < maxTimeToEdit
+
         const actionMap = {
-          submitted: { label: 'Revisar', route: 'edit' },
-          'in review': { label: 'Calificar', route: 'edit' },
-          graded: { label: 'Ver', route: 'show' }
+          submitted: [{ label: 'Revisar', route: 'edit', color: 'indigo' }],
+          'in review': [{ label: 'Calificar', route: 'edit', color: 'indigo' }],
+          graded: [{ label: 'Ver', route: 'show', color: 'indigo' }, ...(canEdit ? [{ label: 'Editar', route: 'edit', color: 'gray' }] : [])]
         }
 
         const action = actionMap[status as keyof typeof actionMap]
 
         return action ? (
           <div className='flex space-x-2'>
-            <Link href={route(`teacher.application-form-responses.${action.route}`, id)} className='text-indigo-600 hover:text-indigo-900'>
-              {action.label}
-            </Link>
+            {action.map((a) => (
+              <Link
+                key={a.route}
+                href={route(`teacher.application-form-responses.${a.route}`, id)}
+                className={`text-${a.color}-600 hover:text-${a.color}-900`}
+              >
+                {a.label}
+              </Link>
+            ))}
           </div>
         ) : null
       }
@@ -167,6 +137,51 @@ export default function ApplicationFormResponse({ application_form_responses, fi
       <FlashMessages />
 
       <div className='flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4'>
+        {learning_session && (
+          <div className='space-y-4'>
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+              {/* Sesion de aprendizaje */}
+              <div>
+                <Label>Sesión de aprendizaje</Label>
+                <div className='mt-1 rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm'>{learning_session.name}</div>
+              </div>
+              {/* Ficha de aplicacion */}
+              <div>
+                <Label>Ficha de aplicación</Label>
+                <div className='mt-1 rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm'>
+                  {learning_session.application_form?.name || 'No asignada'}
+                </div>
+              </div>
+            </div>
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+              {/* Competencia */}
+              <div>
+                <Label>Competencia</Label>
+                <div className='mt-1 rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm'>
+                  {learning_session?.competency?.name || 'No asignada'}
+                </div>
+              </div>
+              {/* Capacidad */}
+              <div>
+                <Label>Capacidad(es)</Label>
+                <div className='mt-1 rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm'>
+                  {learning_session?.capabilities?.map((capacity) => capacity.name).join(', ') || 'No asignada'}
+                </div>
+              </div>
+              {/* Aula, area curricular */}
+              <div>
+                <Label>Aula, área curricular</Label>
+                <div className='mt-1 rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm'>
+                  {t(learning_session.teacher_classroom_curricular_area_cycle?.classroom?.level)}{' '}
+                  {t(learning_session.teacher_classroom_curricular_area_cycle?.classroom?.grade)}{' '}
+                  {learning_session.teacher_classroom_curricular_area_cycle?.classroom?.section} -{' '}
+                  {learning_session.teacher_classroom_curricular_area_cycle?.curricular_area_cycle?.curricular_area?.name}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* FILTROS */}
         <div className='grid grid-cols-1 items-center gap-4 md:grid-cols-2'>
           {/* CAMPO STUDENT NAME */}

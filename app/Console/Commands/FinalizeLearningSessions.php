@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Models\ApplicationForm;
+use App\Models\ApplicationFormResponse;
 use App\Models\LearningSession;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -45,11 +47,28 @@ class FinalizeLearningSessions extends Command
 
         DB::transaction(function () use ($sessionsToFinalize, &$finalizedCount) {
             foreach ($sessionsToFinalize as $session) {
+                // Cargar el ApplicationForm relacionado
+                $session->load('applicationForm');
+
                 // Cambiar status a finished y registration_status a inactive
                 $session->update([
                     'status' => 'finished',
                     'registration_status' => 'inactive',
                 ]);
+
+                // Sincronizar con ApplicationForm relacionado
+                if ($session->applicationForm) {
+                    $session->applicationForm->update([
+                        'status' => 'finished',
+                        'registration_status' => 'inactive',
+                    ]);
+
+                    // Cambiar el estado de ApplicationFormResponse de 'pending' y 'in progress' a 'finalized'
+                    ApplicationFormResponse::where('application_form_id', $session->applicationForm->id)
+                        ->whereIn('status', ['pending', 'in progress'])
+                        ->update(['status' => 'finalized']);
+                }
+
                 $finalizedCount++;
 
                 $this->line("Finalized session ID: {$session->id} - {$session->name}");

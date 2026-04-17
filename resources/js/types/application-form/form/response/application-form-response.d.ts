@@ -13,8 +13,7 @@ export type ApplicationFormResponseStatus =
   | 'submitted' // Enviado para revisión
   | 'in review' // En revisión por el profesor
   | 'graded' // Calificado
-  | 'returned' // Devuelto con comentarios
-  | 'late' // Entregado tarde
+  | 'finalized' // Finalizado
 
 /**
  * Respuesta de un estudiante a un formulario de aplicación

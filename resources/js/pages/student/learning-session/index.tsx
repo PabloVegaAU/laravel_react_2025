@@ -1,5 +1,15 @@
 import DataTable from '@/components/organisms/data-table'
 import FlashMessages from '@/components/organisms/flash-messages'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import AppLayout from '@/layouts/app-layout'
 import { useTranslations } from '@/lib/translator'
@@ -33,6 +43,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function LearningSession({ learning_sessions, curricular_areas, filters }: PageProps) {
   const { t } = useTranslations()
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; responseId: number | null }>({
+    open: false,
+    responseId: null
+  })
 
   const columns: ColumnDef<LearningSession>[] = [
     {
@@ -63,8 +77,7 @@ export default function LearningSession({ learning_sessions, curricular_areas, f
               submitted: 'Enviado',
               'in review': 'En revisión',
               graded: 'Calificado',
-              returned: 'Devuelto',
-              late: 'Tardío'
+              finalized: 'Finalizado'
             }[response.status] || response.status
           )
         }
@@ -77,7 +90,10 @@ export default function LearningSession({ learning_sessions, curricular_areas, f
       cell: (cell: CellContext<LearningSession, any>) => {
         const applicationForms = cell.row.original.application_form
         const response = applicationForms?.responses?.[0]
-        return applicationForms?.score_max + ' / ' + (response?.score || 'N/A')
+        if (response?.status === 'graded') {
+          return applicationForms?.score_max + ' / ' + (response?.score || 'N/A')
+        }
+        return 'Pendiente calificación'
       }
     },
     {
@@ -97,12 +113,21 @@ export default function LearningSession({ learning_sessions, curricular_areas, f
           <div className='flex space-x-2'>
             {isAvailable &&
               (canTakeTest ? (
-                <Link
-                  href={`/student/application-form-responses/${applicationForm?.responses[0].id}/edit`}
-                  className='inline-flex items-center rounded-md border border-transparent bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none'
-                >
-                  {response ? 'Continuar prueba' : 'Comenzar prueba'}
-                </Link>
+                !response ? (
+                  <button
+                    onClick={() => setConfirmDialog({ open: true, responseId: applicationForm?.responses[0].id || null })}
+                    className='inline-flex items-center rounded-md border border-transparent bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none'
+                  >
+                    Comenzar prueba
+                  </button>
+                ) : (
+                  <Link
+                    href={`/student/application-form-responses/${applicationForm?.responses[0].id}/edit`}
+                    className='inline-flex items-center rounded-md border border-transparent bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none'
+                  >
+                    Continuar prueba
+                  </Link>
+                )
               ) : (
                 <Link
                   href={`/student/application-form-responses/${applicationForm?.responses[0].id}`}
@@ -196,6 +221,31 @@ export default function LearningSession({ learning_sessions, curricular_areas, f
           <DataTable columns={columns} data={learning_sessions} />
         </div>
       </div>
+
+      <AlertDialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ open, responseId: null })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar inicio de prueba</AlertDialogTitle>
+            <AlertDialogDescription>
+              El tiempo de inicio empezará desde que ingreses a desarrollar la ficha.
+              <br />
+              ¿Estás seguro que quieres iniciar la prueba?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (confirmDialog.responseId) {
+                  router.visit(`/student/application-form-responses/${confirmDialog.responseId}/edit`)
+                }
+              }}
+            >
+              Sí, iniciar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   )
 }

@@ -1,11 +1,9 @@
 import InputError from '@/components/input-error'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import AppLayout from '@/layouts/app-layout'
@@ -14,13 +12,12 @@ import { useTranslations } from '@/lib/translator'
 import { cn, getNestedError, normalizeString } from '@/lib/utils'
 import { ViewQuestionDialog } from '@/pages/teacher/questions/components/form-view'
 import { Question, QuestionWithScore } from '@/types/application-form'
-import { ApplicationForm, ApplicationFormStatus } from '@/types/application-form/application-form'
+import { ApplicationForm } from '@/types/application-form/application-form'
 import { getQuestionTypeBadge } from '@/types/application-form/question/question-type-c'
 import { BreadcrumbItem } from '@/types/core'
 import { Head, Link, useForm } from '@inertiajs/react'
 import { endOfDay, format, startOfDay } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Calendar as CalendarIcon } from 'lucide-react'
 import { Fragment, useEffect, useState } from 'react'
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -74,7 +71,7 @@ export default function ApplicationFormEdit({ application_form, questions }: App
     description: application_form?.description || '',
     start_date: application_form?.start_date ? format(new Date(application_form.start_date), 'yyyy-MM-dd') : format(defaultStartDate, 'yyyy-MM-dd'),
     end_date: application_form?.end_date ? format(new Date(application_form.end_date), 'yyyy-MM-dd') : format(defaultEndDate, 'yyyy-MM-dd'),
-    status: application_form?.status || 'draft',
+    status: application_form?.status || 'scheduled',
     score_max: application_form?.score_max || 0,
     questions:
       application_form?.questions?.map((q) => ({
@@ -318,52 +315,28 @@ export default function ApplicationFormEdit({ application_form, questions }: App
             {/* Campo: Fecha de Inicio */}
             <div className='space-y-2'>
               <Label>Fecha de Inicio</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant='outline' className={cn('w-full justify-start text-left font-normal', !data.start_date && 'text-muted-foreground')}>
-                    <CalendarIcon className='mr-2 h-4 w-4' />
-                    {data.start_date ? format(new Date(data.start_date), 'PPP', { locale: dateLocale }) : <span>Selecciona una fecha</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className='w-auto p-0'>
-                  <Calendar
-                    mode='single'
-                    selected={data.start_date ? new Date(data.start_date) : undefined}
-                    onSelect={(date) => setData('start_date', date?.toISOString() || '')}
-                    disabled={{
-                      before: application_form?.learning_session?.start_date
-                        ? parseDateString(application_form.learning_session.start_date)
-                        : new Date()
-                    }}
-                    startMonth={
-                      application_form?.learning_session?.start_date ? parseDateString(application_form?.learning_session?.start_date) : undefined
-                    }
-                  />
-                </PopoverContent>
-              </Popover>
+              <Input
+                value={
+                  application_form?.learning_session?.start_date
+                    ? format(parseDateString(application_form.learning_session.start_date), 'PPP', { locale: dateLocale })
+                    : ''
+                }
+                readOnly
+              />
               <InputError message={errors.start_date} className='mt-1' />
             </div>
 
             {/* Campo: Fecha de Fin */}
             <div className='space-y-2'>
               <Label>Fecha de Fin</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant='outline' className={cn('w-full justify-start text-left font-normal', !data.end_date && 'text-muted-foreground')}>
-                    <CalendarIcon className='mr-2 h-4 w-4' />
-                    {data.end_date ? format(new Date(data.end_date), 'PPP', { locale: dateLocale }) : <span>Selecciona una fecha</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className='w-auto p-0'>
-                  <Calendar
-                    mode='single'
-                    selected={data.end_date ? new Date(data.end_date) : undefined}
-                    onSelect={(date) => setData('end_date', date?.toISOString() || '')}
-                    disabled={{ before: data.start_date ? new Date(data.start_date) : new Date() }}
-                    fromMonth={data.start_date ? new Date(data.start_date) : new Date()}
-                  />
-                </PopoverContent>
-              </Popover>
+              <Input
+                value={
+                  application_form?.learning_session?.end_date
+                    ? format(parseDateString(application_form.learning_session.end_date), 'PPP', { locale: dateLocale })
+                    : ''
+                }
+                readOnly
+              />
               <InputError message={errors.end_date} className='mt-1' />
             </div>
 
@@ -379,7 +352,7 @@ export default function ApplicationFormEdit({ application_form, questions }: App
             {/* Campo: Estado */}
             <div className='space-y-2'>
               <Label htmlFor='status'>Estado</Label>
-              <Select value={data.status} onValueChange={(value: ApplicationFormStatus) => setData('status', value)}>
+              <Select value={data.status} disabled>
                 <SelectTrigger>
                   <SelectValue placeholder='Selecciona un estado' />
                 </SelectTrigger>
@@ -396,7 +369,7 @@ export default function ApplicationFormEdit({ application_form, questions }: App
             {/* Campo: Estado Registro */}
             <div className='space-y-2'>
               <Label htmlFor='registration_status'>Estado de Registro</Label>
-              <Select value={data.registration_status} onValueChange={(value: 'active' | 'inactive') => setData('registration_status', value)}>
+              <Select value={data.registration_status} disabled>
                 <SelectTrigger>
                   <SelectValue placeholder='Selecciona un estado' />
                 </SelectTrigger>

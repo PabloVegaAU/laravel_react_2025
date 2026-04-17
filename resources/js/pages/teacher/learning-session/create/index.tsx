@@ -49,8 +49,10 @@ export default function LearningSessionCreate({ educational_institution, teacher
     status: 'active',
     registration_status: 'active',
     name: '',
-    start_date: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
-    end_date: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+    start_date: format(new Date(), 'yyyy-MM-dd'),
+    start_time: format(new Date(), 'HH:mm'),
+    end_date: format(new Date(), 'yyyy-MM-dd'),
+    end_time: format(new Date(), 'HH:mm'),
     teacher_classroom_curricular_area_cycle_id: '',
     classroom_id: '',
     curricular_area_cycle_id: '',
@@ -118,10 +120,15 @@ export default function LearningSessionCreate({ educational_institution, teacher
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    post(route('teacher.learning-sessions.store'), {
-      preserveScroll: true,
-      preserveState: true
-    })
+    // Combine date and time into datetime strings
+    const formData = {
+      ...data,
+      start_date: data.start_date && data.start_time ? `${data.start_date}T${data.start_time}` : data.start_date,
+      end_date: data.end_date && data.end_time ? `${data.end_date}T${data.end_time}` : data.end_date
+    }
+
+    // Use transform to modify data before sending
+    post(route('teacher.learning-sessions.store'), formData as any)
   }
 
   return (
@@ -155,34 +162,80 @@ export default function LearningSessionCreate({ educational_institution, teacher
               <InputError message={errors.name} className='mt-1' />
             </div>
 
-            {/* Campo: Fecha y hora de inicio */}
             <div className='space-y-2'>
-              <Label htmlFor='start_date'>{t('Start Date')}</Label>
-              <Input
-                id='start_date'
-                type='datetime-local'
-                value={data.start_date}
-                onChange={(e) => {
-                  setData('start_date', e.target.value || '')
-                  clearErrors('start_date')
-                }}
-              />
-              <InputError message={errors.start_date} className='mt-1' />
+              {/* Campo: Fecha de inicio */}
+              <div>
+                <Label htmlFor='start_date'>{t('Start Date')}</Label>
+                <Input
+                  id='start_date'
+                  type='date'
+                  value={data.start_date}
+                  onChange={(e) => {
+                    setData('start_date', e.target.value || '')
+                    clearErrors('start_date')
+                  }}
+                />
+                <InputError message={errors.start_date} className='mt-1' />
+              </div>
+
+              {/* Campo: Hora de inicio */}
+              <div>
+                <Label htmlFor='start_time'>{t('Start Time')}</Label>
+                <Select value={data.start_time} onValueChange={(value) => setData('start_time', value)}>
+                  <SelectTrigger className='w-full'>
+                    <SelectValue placeholder='Selecciona hora' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 24 }, (_, hour) => [
+                      <SelectItem key={`${hour}:00`} value={`${hour.toString().padStart(2, '0')}:00`}>
+                        {hour.toString().padStart(2, '0')}:00
+                      </SelectItem>,
+                      <SelectItem key={`${hour}:30`} value={`${hour.toString().padStart(2, '0')}:30`}>
+                        {hour.toString().padStart(2, '0')}:30
+                      </SelectItem>
+                    ]).flat()}
+                  </SelectContent>
+                </Select>
+                <InputError message={errors.start_time} className='mt-1' />
+              </div>
             </div>
 
-            {/* Campo: Fecha y hora de fin */}
             <div className='space-y-2'>
-              <Label htmlFor='end_date'>{t('End Date')}</Label>
-              <Input
-                id='end_date'
-                type='datetime-local'
-                value={data.end_date}
-                onChange={(e) => {
-                  setData('end_date', e.target.value || '')
-                  clearErrors('end_date')
-                }}
-              />
-              <InputError message={errors.end_date} className='mt-1' />
+              {/* Campo: Fecha de fin */}
+              <div>
+                <Label htmlFor='end_date'>{t('End Date')}</Label>
+                <Input
+                  id='end_date'
+                  type='date'
+                  value={data.end_date}
+                  onChange={(e) => {
+                    setData('end_date', e.target.value || '')
+                    clearErrors('end_date')
+                  }}
+                />
+                <InputError message={errors.end_date} className='mt-1' />
+              </div>
+
+              {/* Campo: Hora de fin */}
+              <div>
+                <Label htmlFor='end_time'>{t('End Time')}</Label>
+                <Select value={data.end_time} onValueChange={(value) => setData('end_time', value)}>
+                  <SelectTrigger className='w-full'>
+                    <SelectValue placeholder='Selecciona hora' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 24 }, (_, hour) => [
+                      <SelectItem key={`${hour}:00`} value={`${hour.toString().padStart(2, '0')}:00`}>
+                        {hour.toString().padStart(2, '0')}:00
+                      </SelectItem>,
+                      <SelectItem key={`${hour}:30`} value={`${hour.toString().padStart(2, '0')}:30`}>
+                        {hour.toString().padStart(2, '0')}:30
+                      </SelectItem>
+                    ]).flat()}
+                  </SelectContent>
+                </Select>
+                <InputError message={errors.end_time} className='mt-1' />
+              </div>
             </div>
 
             {/* Campo: Aula */}

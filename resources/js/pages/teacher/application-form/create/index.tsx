@@ -2,11 +2,9 @@ import InputError from '@/components/input-error'
 import FlashMessages from '@/components/organisms/flash-messages'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import AppLayout from '@/layouts/app-layout'
@@ -16,14 +14,12 @@ import { cn, getNestedError, normalizeString } from '@/lib/utils'
 import { ViewQuestionDialog } from '@/pages/teacher/questions/components/form-view'
 import { TeacherClassroomCurricularAreaCycle } from '@/types/academic/teacher-classroom-curricular-area-cycle'
 import { Question, QuestionWithScore } from '@/types/application-form'
-import { ApplicationFormStatus } from '@/types/application-form/application-form'
 import { getQuestionTypeBadge } from '@/types/application-form/question/question-type-c'
 import { BreadcrumbItem } from '@/types/core'
 import { LearningSession } from '@/types/learning-session'
 import { Head, useForm } from '@inertiajs/react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Calendar as CalendarIcon } from 'lucide-react'
 import { Fragment, useEffect, useState } from 'react'
 
 interface CreateApplicationFormProps {
@@ -79,9 +75,9 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
 
     name: '',
     description: '',
-    start_date: toUTCDateString(startDate),
-    end_date: toUTCDateString(endDate),
-    status: 'draft',
+    start_date: learning_session.start_date || toUTCDateString(startDate),
+    end_date: learning_session.end_date || toUTCDateString(endDate),
+    status: 'scheduled',
     registration_status: 'active',
     score_max: 0,
     questions: []
@@ -296,56 +292,20 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
             {/* Campo: Fecha de Inicio */}
             <div className='space-y-2'>
               <Label>Fecha de Inicio</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant='outline' className={cn('w-full justify-start text-left font-normal', !data.start_date && 'text-muted-foreground')}>
-                    <CalendarIcon className='mr-2 h-4 w-4' />
-                    {data.start_date ? (
-                      format(parseDateString(data.start_date), 'PPP', { locale: dateLocale })
-                    ) : (
-                      <span>Selecciona una fecha de inicio</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className='w-auto p-0' align='start'>
-                  <Calendar
-                    mode='single'
-                    selected={data.start_date ? parseDateString(data.start_date) : undefined}
-                    onSelect={(date) => setData('start_date', date?.toISOString() || '')}
-                    autoFocus
-                    locale={dateLocale}
-                    disabled={(date) => date < new Date() || date < new Date('1900-01-01')}
-                    startMonth={learning_session.start_date ? parseDateString(learning_session.start_date) : undefined}
-                  />
-                </PopoverContent>
-              </Popover>
+              <Input
+                value={learning_session.start_date ? format(parseDateString(learning_session.start_date), 'PPP', { locale: dateLocale }) : ''}
+                readOnly
+              />
               <InputError message={errors.start_date} className='mt-1' />
             </div>
 
             {/* Campo: Fecha de Fin */}
             <div className='space-y-2'>
               <Label>Fecha de Fin</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant='outline' className={cn('w-full justify-start text-left font-normal', !data.end_date && 'text-muted-foreground')}>
-                    <CalendarIcon className='mr-2 h-4 w-4' />
-                    {data.end_date ? format(parseDateString(data.end_date), 'PPP', { locale: dateLocale }) : <span>Selecciona una fecha de fin</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className='w-auto p-0' align='start'>
-                  <Calendar
-                    mode='single'
-                    selected={data.end_date ? parseDateString(data.end_date) : undefined}
-                    onSelect={(date) => setData('end_date', date?.toISOString() || '')}
-                    autoFocus
-                    locale={dateLocale}
-                    disabled={(date) => {
-                      const start = data.start_date ? parseDateString(data.start_date) : new Date()
-                      return date < start || date < new Date('1900-01-01')
-                    }}
-                  />
-                </PopoverContent>
-              </Popover>
+              <Input
+                value={learning_session.end_date ? format(parseDateString(learning_session.end_date), 'PPP', { locale: dateLocale }) : ''}
+                readOnly
+              />
               <InputError message={errors.end_date} className='mt-1' />
             </div>
 
@@ -362,7 +322,7 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
             {/* Campo: Estado */}
             <div className='space-y-2'>
               <Label htmlFor='status'>Estado</Label>
-              <Select value={data.status} onValueChange={(value: ApplicationFormStatus) => setData('status', value)}>
+              <Select value={data.status} disabled>
                 <SelectTrigger>
                   <SelectValue placeholder='Selecciona un estado' />
                 </SelectTrigger>
@@ -379,7 +339,7 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
             {/* Campo: Estado Registro */}
             <div className='space-y-2'>
               <Label htmlFor='registration_status'>Estado de Registro</Label>
-              <Select value={data.registration_status} onValueChange={(value: 'active' | 'inactive') => setData('registration_status', value)}>
+              <Select value={data.registration_status} disabled>
                 <SelectTrigger>
                   <SelectValue placeholder='Selecciona un estado' />
                 </SelectTrigger>

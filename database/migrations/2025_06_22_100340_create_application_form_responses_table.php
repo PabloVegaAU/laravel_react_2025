@@ -25,8 +25,7 @@ return new class extends Migration
                 'submitted',  // Enviado para revisión
                 'in review',  // En revisión por el profesor
                 'graded',     // Calificado
-                'returned',   // Devuelto con comentarios
-                'late',       // Entregado tarde
+                'finalized',   // finalizado
             ])->default('pending')
                 ->comment('Estado actual de la respuesta');
             $table->timestamp('started_at')
