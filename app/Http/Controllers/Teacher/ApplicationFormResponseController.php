@@ -210,6 +210,13 @@ class ApplicationFormResponseController extends Controller
 
     /**
      * Update the specified resource in storage.
+     *
+     * This method handles the grading of student responses with the following logic:
+     * 1. Validates that manual_score can only be used when is_correct = true
+     * 2. Calculates points difference to prevent duplication on re-grading
+     * 3. Applies difficulty multiplier (easy: 2, medium: 3, hard: 5) to points calculation
+     * 4. Auto-calculates is_correct based on final score
+     * 5. Updates student points_store and experience based on score differences
      */
     public function update(Request $request, string $id)
     {
@@ -218,6 +225,7 @@ class ApplicationFormResponseController extends Controller
             'response_questions' => 'required|array',
             'response_questions.*.id' => 'required|exists:application_form_response_questions,id',
             'response_questions.*.is_correct' => 'required|boolean',
+            'response_questions.*.manual_score' => 'nullable|numeric|min:0',
         ]);
 
         try {
@@ -225,7 +233,11 @@ class ApplicationFormResponseController extends Controller
 
             $applicationFormResponse = ApplicationFormResponse::with('student')->findOrFail($id);
 
-            // Cambiar estado
+            // Calcular totales antes de actualizar para simplificar la lógica de puntos
+            $oldTotalPointsStore = $applicationFormResponse->responseQuestions->sum('points_store');
+            $oldTotalScore = $applicationFormResponse->score;
+
+            // Cambiar estado a calificado
             $applicationFormResponse->update([
                 'status' => 'graded',
                 'graded_at' => now(),
@@ -234,43 +246,89 @@ class ApplicationFormResponseController extends Controller
             $totalScore = 0;
 
             foreach ($validated['response_questions'] as $responseQuestion) {
-                $applicationFormResponseQuestion = ApplicationFormResponseQuestion::with('applicationFormQuestion')
+                // Cargar la pregunta de respuesta con sus relaciones necesarias
+                $applicationFormResponseQuestion = ApplicationFormResponseQuestion::with([
+                    'applicationFormQuestion.question',
+                    'applicationFormQuestion',
+                ])
                     ->where('id', $responseQuestion['id'])->firstOrFail();
+
+                $maxScore = $applicationFormResponseQuestion->applicationFormQuestion->score;
+                $maxPointsStore = $applicationFormResponseQuestion->applicationFormQuestion->points_store;
+                $manualScore = $responseQuestion['manual_score'] ?? null;
+
+                // Validación: manual_score solo puede usarse cuando is_correct es true
+                if ($manualScore !== null && ! $responseQuestion['is_correct']) {
+                    throw new \Exception('No se puede asignar puntaje manual sin marcar como correcto');
+                }
+
+                // Validación: manual_score no puede exceder el puntaje máximo
+                if ($manualScore !== null && $manualScore > $maxScore) {
+                    throw new \Exception('El puntaje manual no puede exceder el puntaje máximo de la pregunta');
+                }
+
+                // Calcular el puntaje y points_store basado en manual_score o is_correct
+                if ($manualScore !== null) {
+                    // Si se proporciona manual_score, usar ese valor y recalcular points_store proporcionalmente
+                    $score = min($manualScore, $maxScore); // Asegurar que no exceda el máximo
+                    // Recalcular points_store proporcionalmente basado en el manual_score
+                    // points_store ya incluye el multiplicador de dificultad del application form
+                    $pointsStore = ($score / $maxScore) * $maxPointsStore;
+                } elseif ($responseQuestion['is_correct']) {
+                    // Si no hay manual_score pero está marcado como correcto, usar flujo natural
+                    $score = $maxScore;
+                    $pointsStore = $maxPointsStore;
+                } else {
+                    // Si no hay manual_score y está marcado como incorrecto, usar flujo natural
+                    $score = 0;
+                    $pointsStore = 0;
+                }
+
+                // Auto-calcular is_correct basado en el puntaje final
+                // is_correct = true si score > 0, false si score = 0
+                $isCorrect = $score > 0;
+
+                // Actualizar la pregunta de respuesta
                 $applicationFormResponseQuestion->update([
-                    'is_correct' => $responseQuestion['is_correct'],
-                    'score' => $applicationFormResponseQuestion->applicationFormQuestion->score,
-                    'points_store' => $applicationFormResponseQuestion->applicationFormQuestion->points_store,
+                    'is_correct' => $isCorrect,
+                    'score' => $score,
+                    'points_store' => $pointsStore,
                 ]);
 
-                // Si es correcto
-                if ($responseQuestion['is_correct']) {
-                    // Asignar experiencia y puntos al estudiante
-                    $student = $applicationFormResponse->student;
-                    $student->update([
-                        'points_store' => $student->points_store + $applicationFormResponseQuestion->points_store,
-                    ]);
-                }
-
-                // Si es incorrecto
-                if (! $responseQuestion['is_correct']) {
-                    $applicationFormResponseQuestion->update([
-                        'score' => 0,
-                        'points_store' => 0,
-                    ]);
-                }
-
-                $totalScore += $applicationFormResponseQuestion->score;
+                $totalScore += $score;
             }
 
+            // Actualizar el puntaje total del formulario de respuesta
             $applicationFormResponse->update([
                 'score' => $totalScore,
             ]);
 
-            // Actualizar experiencia del estudiante
-            DB::statement('SELECT spu_student_progress_upd(:user_id, :experience)', [
-                'user_id' => $applicationFormResponse->student->user_id,
-                'experience' => $totalScore,
-            ]);
+            // Calcular el nuevo total de points_store después de todas las actualizaciones
+            $newTotalPointsStore = $applicationFormResponse->responseQuestions->fresh()->sum('points_store');
+
+            // Calcular la diferencia total de points_store
+            $pointsDifference = $newTotalPointsStore - $oldTotalPointsStore;
+
+            // Aplicar la diferencia total una sola vez al estudiante
+            // Esto simplifica la lógica y previene duplicación al re-calificar
+            if ($pointsDifference !== 0) {
+                $student = $applicationFormResponse->student;
+                $student->update([
+                    'points_store' => max(0, $student->points_store + $pointsDifference),
+                ]);
+            }
+
+            // Calcular la diferencia de experiencia total
+            $experienceDifference = $totalScore - $oldTotalScore;
+
+            // Actualizar la experiencia del estudiante basado en la diferencia total
+            // Esto previene duplicación de experiencia al re-calificar
+            if ($experienceDifference !== 0) {
+                DB::statement('SELECT spu_student_progress_upd(:user_id, :experience)', [
+                    'user_id' => $applicationFormResponse->student->user_id,
+                    'experience' => $experienceDifference,
+                ]);
+            }
 
             DB::commit();
 
@@ -282,7 +340,7 @@ class ApplicationFormResponseController extends Controller
 
             return redirect()
                 ->route('teacher.application-form-responses.index')
-                ->with('error', 'Error al revisar la respuesta'.$e->getMessage());
+                ->with('error', 'Error al revisar la respuesta: '.$e->getMessage());
         }
     }
 

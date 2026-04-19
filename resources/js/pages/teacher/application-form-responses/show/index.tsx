@@ -2,6 +2,7 @@ import FlashMessages from '@/components/organisms/flash-messages'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
+import ExpandableImage from '@/components/ui/expandable-image'
 import AppLayout from '@/layouts/app-layout'
 import { useTranslations } from '@/lib/translator'
 import { ApplicationFormResponseQuestion } from '@/types/application-form'
@@ -73,7 +74,7 @@ export default function ApplicationFormResponseShow({ application_form_response 
                     </div>
                   </CardHeader>
 
-                  <CardContent className='flex items-center gap-4'>
+                  <CardContent className='flex flex-col-reverse gap-4 md:flex-row md:items-center'>
                     <div className='flex-1 space-y-4 p-6'>
                       <div className='space-y-4'>
                         {/* Explicación de la respuesta */}
@@ -158,6 +159,12 @@ export default function ApplicationFormResponseShow({ application_form_response 
                         )}
                       </div>
                     </div>
+                    {/* Imagen */}
+                    {question?.image && (
+                      <div className='w-full flex-1 md:w-auto'>
+                        <ExpandableImage src={question.image} alt={question.name} />
+                      </div>
+                    )}
                     {/* Campo is_correct */}
                     <div>
                       <Checkbox

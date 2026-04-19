@@ -220,9 +220,9 @@ export default function ApplicationFormEdit({ application_form, questions }: App
     const scoreValue = parseFloat(value) || 0
     const multiplier =
       {
-        easy: 0.5,
-        medium: 1,
-        hard: 1.5
+        easy: 2,
+        medium: 3,
+        hard: 5
       }[question.difficulty] || 0
 
     const pointsStoreValue = scoreValue * multiplier

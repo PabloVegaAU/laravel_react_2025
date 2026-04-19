@@ -1,4 +1,5 @@
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { ExpandableImage } from '@/components/ui/expandable-image'
 import { Question } from '@/types/application-form/question'
 import { EyeIcon } from 'lucide-react'
 import { MatchingOptions, OrderingOptions, SingleChoiceOptions, TrueFalseOptions } from './question-types'
@@ -134,11 +135,7 @@ export function ViewQuestionDialog({ isOpen, id, onOpenChange }: ViewQuestionDia
                   {/* Imagen */}
                   {question.image && (
                     <div className='flex flex-col gap-2'>
-                      <div className='flex justify-center'>
-                        <div className='border-input relative h-48 w-full max-w-xs overflow-hidden rounded-lg border'>
-                          <img src={question.image} alt='Imagen de la pregunta' className='h-full w-full object-contain p-2' />
-                        </div>
-                      </div>
+                      <ExpandableImage src={question.image} alt='Imagen de la pregunta' className='h-full w-full object-contain p-2' />
                     </div>
                   )}
 

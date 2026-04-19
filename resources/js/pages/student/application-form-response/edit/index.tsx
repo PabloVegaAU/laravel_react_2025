@@ -13,7 +13,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import Image from '@/components/ui/image'
+import { ExpandableImage } from '@/components/ui/expandable-image'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import AppLayout from '@/layouts/app-layout'
@@ -412,7 +412,7 @@ export default function ApplicationFormResponseEdit({ application_form_response 
                       </div>
                       {image && (
                         <div className='w-full flex-1 md:w-auto'>
-                          <Image src={image} alt={image} />
+                          <ExpandableImage src={image} alt={image} />
                         </div>
                       )}
                     </CardContent>

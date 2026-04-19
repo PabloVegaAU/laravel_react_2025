@@ -3,6 +3,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
+import { ExpandableImage } from '@/components/ui/expandable-image'
+import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import AppLayout from '@/layouts/app-layout'
 import { useTranslations } from '@/lib/translator'
@@ -34,7 +36,9 @@ export default function ApplicationFormResponseEdit({ application_form_response 
   const initValue = {
     response_questions: application_form_response.response_questions.map((responseQuestion) => ({
       id: responseQuestion.id,
-      is_correct: responseQuestion.score > 0
+      is_correct: responseQuestion.score > 0,
+      manual_score:
+        responseQuestion.score > 0 && responseQuestion.score < responseQuestion.application_form_question?.score ? responseQuestion.score : null
     }))
   }
 
@@ -78,6 +82,8 @@ export default function ApplicationFormResponseEdit({ application_form_response 
               const questionTypeId = question?.question_type?.id
               const selectedOptions = responseQuestion.selected_options || []
               const isCorrect = data.response_questions.find((q) => q.id === responseQuestion.id)?.is_correct || false
+              const manualScore = data.response_questions.find((q) => q.id === responseQuestion.id)?.manual_score || null
+              const maxScore = responseQuestion.application_form_question?.score || 0
 
               return (
                 <Card key={responseQuestion.id} className='overflow-hidden'>
@@ -94,7 +100,7 @@ export default function ApplicationFormResponseEdit({ application_form_response 
                     </div>
                   </CardHeader>
 
-                  <CardContent className='flex items-center gap-4'>
+                  <CardContent className='flex flex-col-reverse gap-4 md:flex-row md:items-center'>
                     <div className='flex-1 space-y-4 p-6'>
                       <div className='space-y-4'>
                         {/* Explicación de la respuesta */}
@@ -182,26 +188,64 @@ export default function ApplicationFormResponseEdit({ application_form_response 
                         )}
                       </div>
                     </div>
-                    {/* Campo is_correct */}
-                    <div>
-                      <Checkbox
-                        id={`is_correct_${responseQuestion.id}`}
-                        className={cn(
-                          'size-5 md:size-10 lg:size-20',
-                          processing && 'cursor-not-allowed opacity-50',
-                          'data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500'
-                        )}
-                        checked={isCorrect}
-                        onCheckedChange={(e) => {
-                          setData(
-                            'response_questions',
-                            data.response_questions.map((question) =>
-                              question.id === responseQuestion.id ? { ...question, is_correct: e as boolean } : question
+                    {/* Imagen */}
+                    {question?.image && (
+                      <div className='w-full flex-1 md:w-auto'>
+                        <ExpandableImage src={question.image} alt={question.name} />
+                      </div>
+                    )}
+                    {/* Campo is_correct y manual_score */}
+                    <div className='flex items-center gap-4'>
+                      <div>
+                        <Checkbox
+                          id={`is_correct_${responseQuestion.id}`}
+                          className={cn(
+                            'size-5 md:size-10 lg:size-20',
+                            processing && 'cursor-not-allowed opacity-50',
+                            'data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500'
+                          )}
+                          checked={isCorrect}
+                          onCheckedChange={(e) => {
+                            // Si se desmarca, limpiar manual_score
+                            // Si se marca, permitir ingreso de manual_score
+                            setData(
+                              'response_questions',
+                              data.response_questions.map((question) =>
+                                question.id === responseQuestion.id
+                                  ? { ...question, is_correct: e as boolean, manual_score: e ? question.manual_score : null }
+                                  : question
+                              )
                             )
-                          )
-                        }}
-                        disabled={processing}
-                      />
+                          }}
+                          disabled={processing}
+                        />
+                      </div>
+                      <div className='flex flex-col gap-2'>
+                        <Label htmlFor={`manual_score_${responseQuestion.id}`}>Puntaje manual (Max: {maxScore})</Label>
+                        <Input
+                          id={`manual_score_${responseQuestion.id}`}
+                          type='number'
+                          min='0'
+                          max={maxScore}
+                          step='0.01'
+                          placeholder={isCorrect ? 'Opcional' : 'Debe ser correcto'}
+                          value={manualScore ?? ''}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            // Solo permitir cambios en manual_score si is_correct es true
+                            if (!isCorrect) {
+                              return
+                            }
+                            const value = e.target.value === '' ? null : parseFloat(e.target.value)
+                            setData(
+                              'response_questions',
+                              data.response_questions.map((question) =>
+                                question.id === responseQuestion.id ? { ...question, manual_score: value } : question
+                              )
+                            )
+                          }}
+                          disabled={processing || !isCorrect}
+                        />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
