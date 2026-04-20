@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import AppLayout from '@/layouts/app-layout'
+import { generateTimeOptions, getNextValidTime, getValidEndTime, isEndAfterStart, isEndDateValid, isValidTimeForDate } from '@/lib/time-utils'
 import { useTranslations } from '@/lib/translator'
 import { Capability, Classroom, Competency } from '@/types/academic'
 import { CurricularAreaCycle } from '@/types/academic/curricular-area-cycle'
@@ -40,8 +41,13 @@ export default function LearningSessionCreate({ educational_institution, teacher
   const [curricularAreas, setCurricularAreas] = useState<CurricularAreaCycle[]>([])
   const [competencies, setCompetencies] = useState<Competency[]>([])
   const [capabilities, setCapabilities] = useState<Capability[]>([])
+  const [availableStartTimes, setAvailableStartTimes] = useState<string[]>([])
+  const [availableEndTimes, setAvailableEndTimes] = useState<string[]>([])
 
   const dateLocale = es
+
+  const initialDate = format(new Date(), 'yyyy-MM-dd')
+  const initialTime = getNextValidTime()
 
   const { data, setData, post, processing, errors, hasErrors, clearErrors } = useForm({
     redirect: true as boolean,
@@ -49,10 +55,10 @@ export default function LearningSessionCreate({ educational_institution, teacher
     status: 'active',
     registration_status: 'active',
     name: '',
-    start_date: format(new Date(), 'yyyy-MM-dd'),
-    start_time: format(new Date(), 'HH:mm'),
-    end_date: format(new Date(), 'yyyy-MM-dd'),
-    end_time: format(new Date(), 'HH:mm'),
+    start_date: initialDate,
+    start_time: initialTime,
+    end_date: initialDate,
+    end_time: initialTime,
     teacher_classroom_curricular_area_cycle_id: '',
     classroom_id: '',
     curricular_area_cycle_id: '',
@@ -117,8 +123,86 @@ export default function LearningSessionCreate({ educational_institution, teacher
     setData('teacher_classroom_curricular_area_cycle_id', teacherClassroomAreaCycle.id.toString())
   }, [data.curricular_area_cycle_id, data.classroom_id])
 
+  // Actualizar opciones de tiempo cuando cambia la fecha de inicio
+  useEffect(() => {
+    const times = generateTimeOptions(data.start_date)
+    setAvailableStartTimes(times)
+
+    // Si la hora actual no es válida para la nueva fecha, actualizar a la próxima válida
+    if (!isValidTimeForDate(data.start_time, data.start_date) && times.length > 0) {
+      setData('start_time', times[0])
+    }
+
+    // Validar fecha de fin: si end_date < start_date, actualizar end_date a start_date
+    if (data.end_date && !isEndDateValid(data.start_date, data.end_date)) {
+      setData('end_date', data.start_date)
+    }
+
+    // Validar fecha y hora completa
+    validateDateTime()
+  }, [data.start_date])
+
+  // Validar cuando cambia la hora de inicio
+  useEffect(() => {
+    // Si las fechas son iguales y end_time <= start_time, actualizar end_time
+    if (data.start_date === data.end_date && data.end_time && data.start_time) {
+      if (!isEndAfterStart(data.start_date, data.start_time, data.end_date, data.end_time)) {
+        const validEndTime = getValidEndTime(data.start_time)
+        setData('end_time', validEndTime)
+      }
+    }
+    validateDateTime()
+  }, [data.start_time])
+
+  // Actualizar opciones de tiempo cuando cambia la fecha de fin
+  useEffect(() => {
+    // Si las fechas son iguales, filtrar end time options basándose en start time
+    const minTime = data.start_date === data.end_date ? data.start_time : undefined
+    const times = generateTimeOptions(data.end_date, 'America/Lima', minTime)
+    setAvailableEndTimes(times)
+
+    // Si la hora actual no es válida para la nueva fecha, actualizar a la próxima válida
+    if (!isValidTimeForDate(data.end_time, data.end_date) && times.length > 0) {
+      setData('end_time', times[0])
+    }
+
+    validateDateTime()
+  }, [data.end_date, data.start_date, data.start_time])
+
+  // Validar cuando cambia la hora de fin
+  useEffect(() => {
+    validateDateTime()
+  }, [data.end_time])
+
+  // Inicializar opciones de tiempo al montar el componente
+  useEffect(() => {
+    setAvailableStartTimes(generateTimeOptions(data.start_date))
+    setAvailableEndTimes(generateTimeOptions(data.end_date))
+  }, [])
+
+  // Función para validar y corregir fecha y hora de fin automáticamente
+  const validateDateTime = () => {
+    if (!data.start_date || !data.start_time || !data.end_date || !data.end_time) {
+      return
+    }
+
+    // Si fecha de fin es menor a fecha de inicio, actualizar a fecha de inicio
+    if (!isEndDateValid(data.start_date, data.end_date)) {
+      setData('end_date', data.start_date)
+    }
+
+    // Si fechas son iguales y hora de fin <= hora de inicio, actualizar hora de fin
+    if (data.start_date === data.end_date && !isEndAfterStart(data.start_date, data.start_time, data.end_date, data.end_time)) {
+      const validEndTime = getValidEndTime(data.start_time)
+      setData('end_time', validEndTime)
+    }
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Validar y corregir antes de enviar
+    validateDateTime()
 
     // Combine date and time into datetime strings
     const formData = {
@@ -162,7 +246,7 @@ export default function LearningSessionCreate({ educational_institution, teacher
               <InputError message={errors.name} className='mt-1' />
             </div>
 
-            <div className='space-y-2'>
+            <div className='grid grid-cols-1 gap-6 space-y-2 md:grid-cols-2'>
               {/* Campo: Fecha de inicio */}
               <div>
                 <Label htmlFor='start_date'>{t('Start Date')}</Label>
@@ -186,21 +270,18 @@ export default function LearningSessionCreate({ educational_institution, teacher
                     <SelectValue placeholder='Selecciona hora' />
                   </SelectTrigger>
                   <SelectContent>
-                    {Array.from({ length: 24 }, (_, hour) => [
-                      <SelectItem key={`${hour}:00`} value={`${hour.toString().padStart(2, '0')}:00`}>
-                        {hour.toString().padStart(2, '0')}:00
-                      </SelectItem>,
-                      <SelectItem key={`${hour}:30`} value={`${hour.toString().padStart(2, '0')}:30`}>
-                        {hour.toString().padStart(2, '0')}:30
+                    {availableStartTimes.map((time) => (
+                      <SelectItem key={time} value={time}>
+                        {time}
                       </SelectItem>
-                    ]).flat()}
+                    ))}
                   </SelectContent>
                 </Select>
                 <InputError message={errors.start_time} className='mt-1' />
               </div>
             </div>
 
-            <div className='space-y-2'>
+            <div className='grid grid-cols-1 gap-6 space-y-2 md:grid-cols-2'>
               {/* Campo: Fecha de fin */}
               <div>
                 <Label htmlFor='end_date'>{t('End Date')}</Label>
@@ -224,17 +305,13 @@ export default function LearningSessionCreate({ educational_institution, teacher
                     <SelectValue placeholder='Selecciona hora' />
                   </SelectTrigger>
                   <SelectContent>
-                    {Array.from({ length: 24 }, (_, hour) => [
-                      <SelectItem key={`${hour}:00`} value={`${hour.toString().padStart(2, '0')}:00`}>
-                        {hour.toString().padStart(2, '0')}:00
-                      </SelectItem>,
-                      <SelectItem key={`${hour}:30`} value={`${hour.toString().padStart(2, '0')}:30`}>
-                        {hour.toString().padStart(2, '0')}:30
+                    {availableEndTimes.map((time) => (
+                      <SelectItem key={time} value={time}>
+                        {time}
                       </SelectItem>
-                    ]).flat()}
+                    ))}
                   </SelectContent>
                 </Select>
-                <InputError message={errors.end_time} className='mt-1' />
               </div>
             </div>
 
@@ -248,7 +325,7 @@ export default function LearningSessionCreate({ educational_institution, teacher
                   clearErrors('classroom_id')
                 }}
               >
-                <SelectTrigger>
+                <SelectTrigger className='w-full'>
                   <SelectValue placeholder={t('Select a Classroom')} />
                 </SelectTrigger>
                 <SelectContent>

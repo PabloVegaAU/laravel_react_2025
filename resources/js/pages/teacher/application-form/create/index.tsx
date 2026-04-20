@@ -328,7 +328,7 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value='scheduled'>Programada</SelectItem>
-                  <SelectItem value='active'>Activo</SelectItem>
+                  <SelectItem value='active'>Vigente</SelectItem>
                   <SelectItem value='finished'>Finalizada</SelectItem>
                   <SelectItem value='canceled'>Cancelada</SelectItem>
                 </SelectContent>

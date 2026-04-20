@@ -7,6 +7,8 @@ use App\Models\ApplicationForm;
 use App\Models\ApplicationFormQuestion;
 use App\Models\ApplicationFormResponse;
 use App\Models\ApplicationFormResponseQuestion;
+use App\Models\Competency;
+use App\Models\CurricularArea;
 use App\Models\EducationalInstitution;
 use App\Models\LearningSession;
 use App\Models\TeacherClassroomCurricularAreaCycle;
@@ -43,15 +45,15 @@ class LearningSessionController extends Controller
             $query->where('registration_status', 'active');
         }
 
-        if ($request->filled('area')) {
+        if ($request->filled('curricular_area_id') && $request->curricular_area_id !== 'all') {
             $query->whereHas('teacherClassroomCurricularAreaCycle.curricularAreaCycle.curricularArea', function ($q) use ($request) {
-                $q->where('name', 'like', '%'.$request->area.'%');
+                $q->where('id', $request->curricular_area_id);
             });
         }
 
-        if ($request->filled('competency')) {
+        if ($request->filled('competency_id') && $request->competency_id !== 'all') {
             $query->whereHas('competency', function ($q) use ($request) {
-                $q->where('name', 'like', '%'.$request->competency.'%');
+                $q->where('id', $request->competency_id);
             });
         }
 
@@ -65,9 +67,31 @@ class LearningSessionController extends Controller
 
         $learningSessions = $query->orderByDesc('id')->paginate(10);
 
+        // Obtener áreas curriculares y competencias del docente
+        $teacherClassroomCurricularAreaCycles = TeacherClassroomCurricularAreaCycle::with('curricularAreaCycle.curricularArea')
+            ->where('teacher_id', auth()->id())
+            ->get();
+
+        $curricularAreaCycleIds = $teacherClassroomCurricularAreaCycles
+            ->pluck('curricular_area_cycle_id')
+            ->unique()
+            ->filter();
+
+        $curricularAreas = CurricularArea::whereIn('id', function ($query) use ($curricularAreaCycleIds) {
+            $query->select('curricular_area_id')
+                ->from('curricular_area_cycles')
+                ->whereIn('id', $curricularAreaCycleIds);
+        })->get();
+
+        $competencies = Competency::with('curricularAreaCycle.curricularArea')
+            ->whereIn('curricular_area_cycle_id', $curricularAreaCycleIds)
+            ->get();
+
         return Inertia::render('teacher/learning-session/index', [
             'learningSessions' => $learningSessions,
-            'filters' => $request->only(['search', 'status', 'registration_status', 'area', 'competency', 'start_date', 'end_date']),
+            'filters' => $request->only(['search', 'status', 'registration_status', 'curricular_area_id', 'competency_id', 'start_date', 'end_date']),
+            'curricularAreas' => $curricularAreas,
+            'competencies' => $competencies,
         ]);
     }
 

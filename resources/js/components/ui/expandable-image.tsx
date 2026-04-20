@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
-import { ImgHTMLAttributes } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { XIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import React, { ImgHTMLAttributes, useState } from 'react';
 
 interface ExpandableImageProps extends ImgHTMLAttributes<HTMLImageElement> {
   src: string;

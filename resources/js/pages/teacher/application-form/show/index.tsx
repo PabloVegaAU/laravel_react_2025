@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import Image from '@/components/ui/image'
+import ExpandableImage from '@/components/ui/expandable-image'
 import AppLayout from '@/layouts/app-layout'
+import { tStatus } from '@/lib/status-translation'
 import { useTranslations } from '@/lib/translator'
 import { cn } from '@/lib/utils'
 import { ApplicationForm, ApplicationFormStatus } from '@/types/application-form'
@@ -180,7 +181,7 @@ function QuestionDisplay({
 
         <div className='flex flex-col-reverse flex-wrap items-center justify-between gap-2 pt-1 md:flex-row'>
           {renderOptions()}
-          {q.image && <Image src={q.image} alt={q.name} className='w-64' />}
+          {q.image && <ExpandableImage src={q.image} alt={q.name} className='w-64' />}
         </div>
       </div>
     </div>
@@ -208,7 +209,7 @@ export default function ApplicationFormShow({ application_form }: ApplicationFor
               <span
                 className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${statusColors[application_form.status as ApplicationFormStatus]}`}
               >
-                {t(application_form.status)}
+                {tStatus(application_form.status)}
               </span>
               <Button asChild variant='outline' size='sm'>
                 <Link href={route('teacher.application-forms.edit', application_form.id)}>{t('Edit form')}</Link>

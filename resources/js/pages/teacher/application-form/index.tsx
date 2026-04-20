@@ -8,9 +8,11 @@ import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import AppLayout from '@/layouts/app-layout'
+import { tStatus } from '@/lib/status-translation'
 import { useTranslations } from '@/lib/translator'
 import { getBadgeColor } from '@/lib/ui/variants'
 import { cn } from '@/lib/utils'
+import { Competency, CurricularArea } from '@/types/academic'
 import { ApplicationForm } from '@/types/application-form'
 import { BreadcrumbItem, TypedColumnDef } from '@/types/core'
 import { PaginatedResponse, ResourcePageProps } from '@/types/core/api-types'
@@ -18,7 +20,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { CalendarIcon } from 'lucide-react'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { toast } from 'sonner'
 
 type PageProps = Omit<ResourcePageProps<ApplicationForm>, 'data'> & {
@@ -27,11 +29,13 @@ type PageProps = Omit<ResourcePageProps<ApplicationForm>, 'data'> & {
     search?: string
     status?: string
     registration_status?: string
-    area?: string
-    competency?: string
+    curricular_area_id?: string
+    competency_id?: string
     start_date?: string
     end_date?: string
   }
+  curricularAreas: CurricularArea[]
+  competencies: Competency[]
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -45,21 +49,39 @@ const breadcrumbs: BreadcrumbItem[] = [
   }
 ]
 
-export default function ApplicationForms({ applicationForms, filters: initialFilters = {} }: PageProps) {
+export default function ApplicationForms({ applicationForms, filters: initialFilters = {}, curricularAreas, competencies }: PageProps) {
   const { t } = useTranslations()
   const { url } = usePage()
   const [filters, setFilters] = useState({
     search: initialFilters?.search || '',
     status: initialFilters?.status || '',
     registration_status: initialFilters?.registration_status || 'active',
-    area: initialFilters?.area || '',
-    competency: initialFilters?.competency || '',
+    curricular_area_id: initialFilters?.curricular_area_id || '',
+    competency_id: initialFilters?.competency_id || '',
     start_date: initialFilters?.start_date ? new Date(initialFilters.start_date) : null,
     end_date: initialFilters?.end_date ? new Date(initialFilters.end_date) : null
   })
 
+  const [competenciesByCurricularArea, setCompetenciesByCurricularArea] = useState<Record<string, Competency[]>>({})
+
+  // Agrupar competencias por área curricular para filtrado en el select
+  React.useEffect(() => {
+    // Obtener IDs únicos de áreas curriculares usando la relación curricular_area_cycle
+    const grouped = competencies.reduce<Record<string, Competency[]>>((acc, competency) => {
+      const areaId = competency.curricular_area_cycle?.curricular_area?.id?.toString() || 'other'
+      if (!acc[areaId]) acc[areaId] = []
+      acc[areaId].push(competency)
+      return acc
+    }, {})
+    setCompetenciesByCurricularArea(grouped)
+  }, [competencies])
+
   const handleFilterChange = (name: string, value: any) => {
-    setFilters((prev) => ({ ...prev, [name]: value }))
+    setFilters((prev: typeof filters) => ({ ...prev, [name]: value }))
+    // Limpia la competencia seleccionada cuando cambia el área curricular
+    if (name === 'curricular_area_id') {
+      setFilters((prev) => ({ ...prev, competency_id: '' }))
+    }
   }
 
   const applyFilters = (e: React.FormEvent) => {
@@ -69,8 +91,8 @@ export default function ApplicationForms({ applicationForms, filters: initialFil
     if (filters.search) params.search = filters.search
     if (filters.status) params.status = filters.status
     if (filters.registration_status) params.registration_status = filters.registration_status
-    if (filters.area) params.area = filters.area
-    if (filters.competency) params.competency = filters.competency
+    if (filters.curricular_area_id) params.curricular_area_id = filters.curricular_area_id
+    if (filters.competency_id) params.competency_id = filters.competency_id
     if (filters.start_date) params.start_date = format(filters.start_date, 'yyyy-MM-dd')
     if (filters.end_date) params.end_date = format(filters.end_date, 'yyyy-MM-dd')
 
@@ -85,8 +107,8 @@ export default function ApplicationForms({ applicationForms, filters: initialFil
       search: '',
       status: '',
       registration_status: 'active',
-      area: '',
-      competency: '',
+      curricular_area_id: '',
+      competency_id: '',
       start_date: null,
       end_date: null
     })
@@ -194,15 +216,13 @@ export default function ApplicationForms({ applicationForms, filters: initialFil
 
         // No mostrar DropdownMenu si no hay opciones disponibles
         if (availableStatuses.length === 0) {
-          return <Badge variant={getBadgeColor(statusValue)}>{status}</Badge>
+          return <span>{status}</span>
         }
 
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Badge variant={getBadgeColor(statusValue)} className='cursor-pointer hover:opacity-80'>
-                {status}
-              </Badge>
+              <span className='cursor-pointer hover:opacity-80'>{status}</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               {availableStatuses.map((statusOption) => (
@@ -220,7 +240,7 @@ export default function ApplicationForms({ applicationForms, filters: initialFil
       accessorKey: 'status',
       cell: (row) => {
         const statusValue = row.getValue() as string
-        const status = t(statusValue, '')
+        const status = tStatus(statusValue)
         return <Badge variant={getBadgeColor(statusValue)}>{status}</Badge>
       }
     },
@@ -269,7 +289,7 @@ export default function ApplicationForms({ applicationForms, filters: initialFil
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value='scheduled'>Programada</SelectItem>
-                <SelectItem value='active'>Activo</SelectItem>
+                <SelectItem value='active'>Vigente</SelectItem>
                 <SelectItem value='finished'>Finalizada</SelectItem>
                 <SelectItem value='canceled'>Cancelada</SelectItem>
               </SelectContent>
@@ -283,10 +303,39 @@ export default function ApplicationForms({ applicationForms, filters: initialFil
                 <SelectItem value='inactive'>Inactivo</SelectItem>
               </SelectContent>
             </Select>
-            <Input placeholder='Área curricular' value={filters.area} onChange={(e) => handleFilterChange('area', e.target.value)} />
+            <Select value={filters.curricular_area_id} onValueChange={(value) => handleFilterChange('curricular_area_id', value)}>
+              <SelectTrigger className='w-full'>
+                <SelectValue placeholder='Área Curricular' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='all'>Todos</SelectItem>
+                {curricularAreas.map((area) => (
+                  <SelectItem key={area.id} value={area.id.toString()}>
+                    {area.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-            <Input placeholder='Competencia' value={filters.competency} onChange={(e) => handleFilterChange('competency', e.target.value)} />
+            <Select
+              value={filters.competency_id}
+              onValueChange={(value) => handleFilterChange('competency_id', value)}
+              disabled={!filters.curricular_area_id}
+            >
+              <SelectTrigger className='w-full'>
+                <SelectValue placeholder={!filters.curricular_area_id ? 'Seleccione área primero' : 'Competencia'} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='all'>Todos</SelectItem>
+                {filters.curricular_area_id &&
+                  competenciesByCurricularArea[filters.curricular_area_id]?.map((competency) => (
+                    <SelectItem key={competency.id} value={competency.id.toString()}>
+                      {competency.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
             <Popover>
               <PopoverTrigger asChild>
                 <Button

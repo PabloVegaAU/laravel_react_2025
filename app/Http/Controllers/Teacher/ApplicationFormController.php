@@ -7,6 +7,8 @@ use App\Models\ApplicationForm;
 use App\Models\ApplicationFormQuestion;
 use App\Models\ApplicationFormResponse;
 use App\Models\ApplicationFormResponseQuestion;
+use App\Models\Competency;
+use App\Models\CurricularArea;
 use App\Models\LearningSession;
 use App\Models\Question;
 use App\Models\TeacherClassroomCurricularAreaCycle;
@@ -25,7 +27,7 @@ class ApplicationFormController extends Controller
         $currentYear = now()->year;
 
         // Obtener parámetros de filtrado
-        $filters = $request->only(['search', 'status', 'registration_status', 'area', 'competency', 'start_date', 'end_date']);
+        $filters = $request->only(['search', 'status', 'registration_status', 'curricular_area_id', 'competency_id', 'start_date', 'end_date']);
 
         // Obtener formularios de aplicación con relaciones optimizadas
         $query = ApplicationForm::select([
@@ -71,13 +73,15 @@ class ApplicationFormController extends Controller
             $query->where('application_forms.registration_status', 'active');
         }
 
-        if (! empty($filters['area'])) {
-            $query->where('curricular_areas.name', 'LIKE', '%'.$filters['area'].'%');
+        if ($request->filled('curricular_area_id') && $request->curricular_area_id !== 'all') {
+            $query->whereHas('learningSession.teacherClassroomCurricularAreaCycle.curricularAreaCycle.curricularArea', function ($q) use ($request) {
+                $q->where('id', $request->curricular_area_id);
+            });
         }
 
-        if (! empty($filters['competency'])) {
-            $query->whereHas('learningSession.competency', function ($q) use ($filters) {
-                $q->where('name', 'LIKE', '%'.$filters['competency'].'%');
+        if ($request->filled('competency_id') && $request->competency_id !== 'all') {
+            $query->whereHas('learningSession.competency', function ($q) use ($request) {
+                $q->where('id', $request->competency_id);
             });
         }
 
@@ -93,10 +97,32 @@ class ApplicationFormController extends Controller
             ->paginate(10)
             ->withQueryString();
 
+        // Obtener áreas curriculares y competencias del docente
+        $teacherClassroomCurricularAreaCycles = TeacherClassroomCurricularAreaCycle::with('curricularAreaCycle.curricularArea')
+            ->where('teacher_id', auth()->id())
+            ->get();
+
+        $curricularAreaCycleIds = $teacherClassroomCurricularAreaCycles
+            ->pluck('curricular_area_cycle_id')
+            ->unique()
+            ->filter();
+
+        $curricularAreas = CurricularArea::whereIn('id', function ($query) use ($curricularAreaCycleIds) {
+            $query->select('curricular_area_id')
+                ->from('curricular_area_cycles')
+                ->whereIn('id', $curricularAreaCycleIds);
+        })->get();
+
+        $competencies = Competency::with('curricularAreaCycle.curricularArea')
+            ->whereIn('curricular_area_cycle_id', $curricularAreaCycleIds)
+            ->get();
+
         return Inertia::render('teacher/application-form/index', [
             'applicationForms' => $applicationForms,
             'currentYear' => $currentYear,
             'filters' => $filters,
+            'curricularAreas' => $curricularAreas,
+            'competencies' => $competencies,
         ]);
     }
 

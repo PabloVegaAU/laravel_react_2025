@@ -2,6 +2,7 @@ import InputError from '@/components/input-error'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import ExpandableImage from '@/components/ui/expandable-image'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -295,7 +296,7 @@ export function EditQuestionDialog({
               {data.image ? (
                 <div className='relative flex w-full max-w-xs justify-center'>
                   <div className='border-input relative h-48 w-full max-w-xs overflow-hidden rounded-md border'>
-                    <img
+                    <ExpandableImage
                       src={typeof data.image === 'string' ? data.image : URL.createObjectURL(data.image)}
                       alt='Preview'
                       className='h-full w-full object-contain p-2'

@@ -2,6 +2,7 @@ import FlashMessages from '@/components/organisms/flash-messages'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import AppLayout from '@/layouts/app-layout'
+import { tStatus } from '@/lib/status-translation'
 import { useTranslations } from '@/lib/translator'
 import { BreadcrumbItem, SharedData } from '@/types/core'
 import { LearningSession } from '@/types/learning-session'
@@ -139,7 +140,7 @@ export default function LearningSessionShow({ learning_session }: PageProps) {
                   <div className='flex w-full flex-col gap-2'>
                     <div className='flex items-center space-x-2'>
                       <Label>ESTADO:</Label>
-                      <div>{t(learning_session.application_form.status)}</div>
+                      <div>{tStatus(learning_session.application_form.status)}</div>
                     </div>
 
                     <div className='flex items-center space-x-2'>
