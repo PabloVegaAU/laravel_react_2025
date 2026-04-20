@@ -481,15 +481,26 @@ class LearningSessionController extends Controller
                     $updateData['status'] = $learningSession->status;
                 }
 
-                // Reactivar applicationForm relacionado con el mismo status
+                // Reactivar applicationForm relacionado calculando su status basado en sus propias fechas
                 if ($learningSession->applicationForm) {
-                    // Validar que el ApplicationForm no esté cancelado
-                    if ($learningSession->applicationForm->status === 'canceled') {
-                        throw new \Exception('No se puede reactivar el registro porque la ficha de aplicación relacionada está cancelada.');
+                    // Calcular status del ApplicationForm basado en SU PROPIO rango de fechas
+                    $now = now();
+                    $appFormStartDate = $learningSession->applicationForm->start_date;
+                    $appFormEndDate = $learningSession->applicationForm->end_date;
+
+                    if ($now >= $appFormStartDate && $now <= $appFormEndDate) {
+                        // Dentro del rango de fechas del ApplicationForm: activo
+                        $appFormStatus = 'active';
+                    } elseif ($now < $appFormStartDate) {
+                        // Antes de la fecha de inicio del ApplicationForm: programado
+                        $appFormStatus = 'scheduled';
+                    } else {
+                        // Después de la fecha de fin del ApplicationForm: mantener el status actual
+                        $appFormStatus = $learningSession->applicationForm->status;
                     }
 
                     $learningSession->applicationForm->update([
-                        'status' => $updateData['status'],
+                        'status' => $appFormStatus,
                         'registration_status' => 'active',
                         'deactivated_at' => null,
                     ]);
