@@ -321,6 +321,15 @@ class ApplicationFormController extends Controller
      */
     public function edit(int $id)
     {
+        $applicationForm = ApplicationForm::findOrFail($id);
+
+        // Validar que solo se pueda editar en estado scheduled
+        if ($applicationForm->status !== 'scheduled') {
+            return redirect()
+                ->route('teacher.application-forms.show', $id)
+                ->with('info', 'Esta ficha solo se puede visualizar. Para editar, debe estar en estado "Programado".');
+        }
+
         // Cargar el formulario con sus relaciones
         $applicationForm = ApplicationForm::with([
             'learningSession.teacherClassroomCurricularAreaCycle' => function ($query) {
@@ -392,6 +401,12 @@ class ApplicationFormController extends Controller
     public function update(Request $request, int $id)
     {
         $applicationForm = ApplicationForm::with(['questions'])->findOrFail($id);
+
+        // Validar que solo se pueda actualizar en estado scheduled
+        if ($applicationForm->status !== 'scheduled') {
+            return back()
+                ->with('error', 'No se puede actualizar una ficha que no está en estado "Programado".');
+        }
 
         // Normalize input data
         $input = $request->all();
@@ -669,6 +684,59 @@ class ApplicationFormController extends Controller
 
             return back()
                 ->withInput()
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Cancel (anular) an application form
+     *
+     * Solo permite anular fichas en estado "scheduled" sin respuestas asociadas.
+     * Desvincula la ficha de la sesión de aprendizaje y sincroniza estados.
+     */
+    public function cancel(int $id)
+    {
+        try {
+            $applicationForm = ApplicationForm::with('learningSession')->findOrFail($id);
+
+            // Validar que solo se pueda cancelar en estado scheduled
+            if ($applicationForm->status !== 'scheduled') {
+                throw new \Exception('Solo se puede anular una ficha que está en estado "Programado".');
+            }
+
+            // Validar que no haya respuestas asociadas
+            if ($applicationForm->responses()->exists()) {
+                throw new \Exception('No se puede anular una ficha que ya tiene respuestas de estudiantes.');
+            }
+
+            DB::beginTransaction();
+
+            // Desvincular de la sesión de aprendizaje
+            $learningSessionId = $applicationForm->learning_session_id;
+            $applicationForm->update([
+                'learning_session_id' => null,
+                'status' => 'canceled',
+                'registration_status' => 'inactive',
+                'deactivated_at' => now(),
+            ]);
+
+            // Sincronizar con LearningSession si existe
+            if ($learningSessionId) {
+                LearningSession::where('id', $learningSessionId)->update([
+                    'status' => 'canceled',
+                    'registration_status' => 'inactive',
+                    'deactivated_at' => now(),
+                ]);
+            }
+
+            DB::commit();
+
+            return back()
+                ->with('success', 'Ficha de aplicación anulada correctamente. La sesión ahora muestra "Sin ficha".');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return back()
                 ->with('error', $e->getMessage());
         }
     }

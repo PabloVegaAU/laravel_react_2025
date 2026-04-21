@@ -375,7 +375,7 @@ export default function ApplicationFormEdit({ application_form, questions }: App
                   <SelectValue placeholder='Selecciona un estado' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value='active'>Activo</SelectItem>
+                  <SelectItem value='active'>Vigente</SelectItem>
                   <SelectItem value='inactive'>Inactivo</SelectItem>
                 </SelectContent>
               </Select>
@@ -542,6 +542,23 @@ export default function ApplicationFormEdit({ application_form, questions }: App
                 Cancelar
               </Button>
             </Link>
+            {application_form?.status === 'scheduled' && (
+              <Button
+                type='button'
+                variant='destructive'
+                onClick={() => {
+                  if (
+                    confirm(
+                      '¿Estás seguro de anular esta ficha de aplicación? Esta acción desvinculará la ficha de la sesión y no se puede deshacer.'
+                    )
+                  ) {
+                    put(route('teacher.application-forms.cancel', application_form?.id))
+                  }
+                }}
+              >
+                Anular Ficha
+              </Button>
+            )}
             <Button type='submit' disabled={processing}>
               {processing ? 'Guardando...' : 'Actualizar Ficha'}
             </Button>

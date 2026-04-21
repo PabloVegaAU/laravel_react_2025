@@ -244,7 +244,6 @@ export default function ApplicationForms({ applicationForms, filters: initialFil
         return <Badge variant={getBadgeColor(statusValue)}>{status}</Badge>
       }
     },
-
     {
       header: 'Acciones',
       accessorKey: 'id',
@@ -265,6 +264,23 @@ export default function ApplicationForms({ applicationForms, filters: initialFil
                 Ver
               </Button>
             </Link>
+            {applicationForm.status === 'scheduled' && (
+              <Button
+                variant='destructive'
+                size='sm'
+                onClick={() => {
+                  if (
+                    confirm(
+                      '¿Estás seguro de anular esta ficha de aplicación? Esta acción desvinculará la ficha de la sesión y no se puede deshacer.'
+                    )
+                  ) {
+                    router.put(route('teacher.application-forms.cancel', applicationForm.id))
+                  }
+                }}
+              >
+                Anular
+              </Button>
+            )}
           </div>
         )
       }
@@ -299,7 +315,7 @@ export default function ApplicationForms({ applicationForms, filters: initialFil
                 <SelectValue placeholder='Estado de Registro' />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value='active'>Activo</SelectItem>
+                <SelectItem value='active'>Vigente</SelectItem>
                 <SelectItem value='inactive'>Inactivo</SelectItem>
               </SelectContent>
             </Select>

@@ -336,7 +336,7 @@ export default function LearningSessionIndex({ learningSessions, filters: initia
                 <SelectValue placeholder='Estado de Registro' />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value='active'>Activo</SelectItem>
+                <SelectItem value='active'>Vigente</SelectItem>
                 <SelectItem value='inactive'>Inactivo</SelectItem>
               </SelectContent>
             </Select>

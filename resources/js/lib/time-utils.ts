@@ -86,7 +86,7 @@ export function getNextValidTime(currentTimezone: string = 'America/Lima'): stri
   const minutes = parseInt(currentTime.split(':')[1])
   const hours = parseInt(currentTime.split(':')[0])
 
-  let nextMinutes = minutes >= 30 ? 0 : 30
+  const nextMinutes = minutes >= 30 ? 0 : 30
   let nextHours = minutes >= 30 ? hours + 1 : hours
 
   if (nextHours >= 24) {
@@ -121,7 +121,7 @@ export function isEndDateValid(startDate: string, endDate: string): boolean {
 export function getValidEndTime(startTime: string): string {
   const [hours, minutes] = startTime.split(':').map(Number)
 
-  let nextMinutes = minutes >= 30 ? 0 : 30
+  const nextMinutes = minutes >= 30 ? 0 : 30
   let nextHours = minutes >= 30 ? hours + 1 : hours
 
   if (nextHours >= 24) {

@@ -11,7 +11,6 @@ import AppLayout from '@/layouts/app-layout'
 import { tStatus } from '@/lib/status-translation'
 import { generateTimeOptions, getValidEndTime, isEndAfterStart, isEndDateValid, isValidTimeForDate } from '@/lib/time-utils'
 import { useTranslations } from '@/lib/translator'
-import { cn } from '@/lib/utils'
 import { Capability, Classroom, Competency, TeacherClassroomCurricularAreaCycle } from '@/types/academic'
 import { CurricularAreaCycle } from '@/types/academic/curricular-area-cycle'
 import { BreadcrumbItem, SharedData } from '@/types/core'
@@ -501,7 +500,7 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
                 <Label htmlFor='application_form_ids'>Formularios de aplicación</Label>
 
                 <div>
-                  {learning_session?.application_form && (
+                  {learning_session?.application_form ? (
                     <div className='grid grid-cols-2 items-center gap-2 space-y-2'>
                       <div className='flex w-full flex-col gap-2'>
                         <div className='flex items-center space-x-2'>
@@ -541,20 +540,28 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
                           </div>
                         </div>
                       </div>
+                      {learning_session.application_form.status === 'canceled' && (
+                        <div className='col-span-2 rounded border border-amber-200 bg-amber-50 p-2 text-sm text-amber-800'>
+                          Esta ficha ha sido anulada. Puede crear una nueva ficha desde esta sesión.
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className='rounded border border-gray-200 bg-gray-50 p-4 text-center'>
+                      <p className='text-muted-foreground mb-2'>Sin ficha de aplicación</p>
+                      <div className='flex items-center justify-center space-x-2'>
+                        <Switch
+                          id='redirect-to-form'
+                          checked={data.redirect}
+                          onCheckedChange={(checked) => {
+                            setData('redirect', checked)
+                            clearErrors('redirect')
+                          }}
+                        />
+                        <Label htmlFor='redirect-to-form'>Crear Ficha luego de guardar</Label>
+                      </div>
                     </div>
                   )}
-
-                  <div className={cn('flex items-center space-x-2', data.application_form_id ? 'hidden' : '')}>
-                    <Switch
-                      id='redirect-to-form'
-                      checked={data.redirect}
-                      onCheckedChange={(checked) => {
-                        setData('redirect', checked)
-                        clearErrors('redirect')
-                      }}
-                    />
-                    <Label htmlFor='redirect-to-form'>Crear Ficha luego de guardar</Label>
-                  </div>
                 </div>
               </div>
             </div>

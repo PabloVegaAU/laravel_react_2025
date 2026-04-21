@@ -64,6 +64,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('teacher/application-forms', TeacherApplicationFormController::class)->names('teacher.application-forms');
     Route::put('teacher/application-forms/{id}/change-registration-status', [TeacherApplicationFormController::class, 'changeRegistrationStatus'])->name('teacher.application-forms.change-registration-status');
+    Route::put('teacher/application-forms/{id}/cancel', [TeacherApplicationFormController::class, 'cancel'])->name('teacher.application-forms.cancel');
     Route::prefix('teacher/questions')->name('teacher.questions.')->group(function () {
         Route::get('/', [TeacherQuestionController::class, 'index'])->name('index');
         Route::post('/', [TeacherQuestionController::class, 'store'])->name('store');
