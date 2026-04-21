@@ -3,6 +3,7 @@ import FlashMessages from '@/components/organisms/flash-messages'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import { ExpandableImage } from '@/components/ui/expandable-image'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -423,9 +424,12 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
                         <div className='flex gap-8'>
                           {/* TIENE IMAGEN */}
                           {question.image && (
-                            <Badge variant='outline' className='gap-1 text-xs'>
-                              Tiene imagen
-                            </Badge>
+                            <div className='flex items-center gap-2'>
+                              <Badge variant='outline' className='gap-1 text-xs'>
+                                Tiene imagen
+                              </Badge>
+                              <ExpandableImage src={question.image} alt={question.name} className='h-32 w-32 rounded object-cover' />
+                            </div>
                           )}
                           {/* TIENE EXPLICACIÓN REQUERIDA */}
                           {question.explanation_required && (

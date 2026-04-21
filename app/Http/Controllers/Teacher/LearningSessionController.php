@@ -399,9 +399,11 @@ class LearningSessionController extends Controller
      *
      * Restricciones de negocio (lógica manual):
      * - NO permitir desactivar si el estado actual es "finished" o "active"
+     * - NO permitir reactivar si el estado actual es "finished"
      * - NO permitir reactivar si el estado actual es "canceled" y fuera de rango de fecha inicio y fin
      * - SOLO permitir desactivar si el estado actual es "scheduled"
      * - Al desactivar manualmente, status cambia a "canceled"
+     * - Al reactivar, el status se calcula automáticamente basado en el rango de fechas
      */
     public function changeRegistrationStatus(Request $request, int $id)
     {
@@ -433,21 +435,26 @@ class LearningSessionController extends Controller
                     'status' => 'canceled',
                 ];
 
-                // Sincronizar con applicationForm relacionado aplicando las mismas restricciones
+                // Sincronizar con applicationForm relacionado usando el método de ApplicationFormController
                 if ($learningSession->applicationForm) {
-                    // Validar que el ApplicationForm también esté en estado "scheduled"
-                    if ($learningSession->applicationForm->status !== 'scheduled') {
-                        throw new \Exception('No se puede desactivar el registro porque la ficha de aplicación relacionada no está en estado "programado".');
-                    }
+                    $applicationFormController = app(\App\Http\Controllers\Teacher\ApplicationFormController::class);
 
-                    $learningSession->applicationForm->update([
-                        'status' => 'canceled',
-                        'registration_status' => 'inactive',
-                        'deactivated_at' => now(),
-                    ]);
+                    // Crear Request simulado
+                    $request = new Request(['registration_status' => $validated['registration_status']]);
+
+                    $applicationFormController->changeRegistrationStatus(
+                        $request,
+                        $learningSession->applicationForm->id,
+                        $fromLearningSession = true
+                    );
                 }
             } else {
                 // Reactivar a active
+                // NO permitir reactivar si el estado es "finished"
+                if ($learningSession->status === 'finished') {
+                    throw new \Exception('No se puede reactivar el registro de una sesión finalizada. Las sesiones finalizadas no pueden ser reactivadas ni inactivadas.');
+                }
+
                 // NO permitir reactivar si el estado es "canceled" fuera del rango de fechas
                 if ($learningSession->status === 'canceled') {
                     $now = now();
@@ -481,29 +488,18 @@ class LearningSessionController extends Controller
                     $updateData['status'] = $learningSession->status;
                 }
 
-                // Reactivar applicationForm relacionado calculando su status basado en sus propias fechas
+                // Reactivar applicationForm relacionado usando el método de ApplicationFormController
                 if ($learningSession->applicationForm) {
-                    // Calcular status del ApplicationForm basado en SU PROPIO rango de fechas
-                    $now = now();
-                    $appFormStartDate = $learningSession->applicationForm->start_date;
-                    $appFormEndDate = $learningSession->applicationForm->end_date;
+                    $applicationFormController = app(\App\Http\Controllers\Teacher\ApplicationFormController::class);
 
-                    if ($now >= $appFormStartDate && $now <= $appFormEndDate) {
-                        // Dentro del rango de fechas del ApplicationForm: activo
-                        $appFormStatus = 'active';
-                    } elseif ($now < $appFormStartDate) {
-                        // Antes de la fecha de inicio del ApplicationForm: programado
-                        $appFormStatus = 'scheduled';
-                    } else {
-                        // Después de la fecha de fin del ApplicationForm: mantener el status actual
-                        $appFormStatus = $learningSession->applicationForm->status;
-                    }
+                    // Crear Request simulado
+                    $request = new Request(['registration_status' => $validated['registration_status']]);
 
-                    $learningSession->applicationForm->update([
-                        'status' => $appFormStatus,
-                        'registration_status' => 'active',
-                        'deactivated_at' => null,
-                    ]);
+                    $applicationFormController->changeRegistrationStatus(
+                        $request,
+                        $learningSession->applicationForm->id,
+                        $fromLearningSession = true
+                    );
                 }
             }
 

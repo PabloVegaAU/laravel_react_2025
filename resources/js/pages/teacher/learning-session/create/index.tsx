@@ -45,6 +45,7 @@ export default function LearningSessionCreate({ educational_institution, teacher
   const [availableEndTimes, setAvailableEndTimes] = useState<string[]>([])
 
   const dateLocale = es
+  const minDate = format(new Date(), 'yyyy-MM-dd')
 
   const initialDate = format(new Date(), 'yyyy-MM-dd')
   const initialTime = getNextValidTime()
@@ -253,6 +254,7 @@ export default function LearningSessionCreate({ educational_institution, teacher
                 <Input
                   id='start_date'
                   type='date'
+                  min={minDate}
                   value={data.start_date}
                   onChange={(e) => {
                     setData('start_date', e.target.value || '')
@@ -288,6 +290,7 @@ export default function LearningSessionCreate({ educational_institution, teacher
                 <Input
                   id='end_date'
                   type='date'
+                  min={minDate}
                   value={data.end_date}
                   onChange={(e) => {
                     setData('end_date', e.target.value || '')

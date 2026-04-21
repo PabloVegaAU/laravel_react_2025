@@ -564,8 +564,10 @@ class ApplicationFormController extends Controller
      * - NO permitir reactivar si el estado actual es "canceled" fuera del rango de fechas
      * - SOLO permitir desactivar si el estado actual es "scheduled"
      * - Al desactivar manualmente, status cambia a "canceled" (no "finished")
+     *
+     * @param  bool  $fromLearningSession  Si es true, NO sincronizar de vuelta con LearningSession
      */
-    public function changeRegistrationStatus(Request $request, int $id)
+    public function changeRegistrationStatus(Request $request, int $id, bool $fromLearningSession = false)
     {
         try {
             $validated = $request->validate([
@@ -596,7 +598,8 @@ class ApplicationFormController extends Controller
                 ];
 
                 // Sincronizar con learningSession relacionado aplicando las mismas restricciones
-                if ($applicationForm->learningSession) {
+                // Solo sincronizar si NO viene de LearningSession (para evitar dependencia circular)
+                if ($applicationForm->learningSession && ! $fromLearningSession) {
                     // Validar que el LearningSession también esté en estado "scheduled"
                     if ($applicationForm->learningSession->status !== 'scheduled') {
                         throw new \Exception('No se puede desactivar el registro porque la sesión de aprendizaje relacionada no está en estado "programado".');
@@ -655,11 +658,14 @@ class ApplicationFormController extends Controller
                     }
 
                     // Reactivar learningSession relacionado con el mismo status
-                    $applicationForm->learningSession->update([
-                        'status' => $updateData['status'],
-                        'registration_status' => 'active',
-                        'deactivated_at' => null,
-                    ]);
+                    // Solo sincronizar si NO viene de LearningSession (para evitar dependencia circular)
+                    if (! $fromLearningSession) {
+                        $applicationForm->learningSession->update([
+                            'status' => $updateData['status'],
+                            'registration_status' => 'active',
+                            'deactivated_at' => null,
+                        ]);
+                    }
                 } else {
                     // Si no hay LearningSession vinculado, mantener el status actual
                     $updateData['status'] = $applicationForm->status;
@@ -684,59 +690,6 @@ class ApplicationFormController extends Controller
 
             return back()
                 ->withInput()
-                ->with('error', $e->getMessage());
-        }
-    }
-
-    /**
-     * Cancel (anular) an application form
-     *
-     * Solo permite anular fichas en estado "scheduled" sin respuestas asociadas.
-     * Desvincula la ficha de la sesión de aprendizaje y sincroniza estados.
-     */
-    public function cancel(int $id)
-    {
-        try {
-            $applicationForm = ApplicationForm::with('learningSession')->findOrFail($id);
-
-            // Validar que solo se pueda cancelar en estado scheduled
-            if ($applicationForm->status !== 'scheduled') {
-                throw new \Exception('Solo se puede anular una ficha que está en estado "Programado".');
-            }
-
-            // Validar que no haya respuestas asociadas
-            if ($applicationForm->responses()->exists()) {
-                throw new \Exception('No se puede anular una ficha que ya tiene respuestas de estudiantes.');
-            }
-
-            DB::beginTransaction();
-
-            // Desvincular de la sesión de aprendizaje
-            $learningSessionId = $applicationForm->learning_session_id;
-            $applicationForm->update([
-                'learning_session_id' => null,
-                'status' => 'canceled',
-                'registration_status' => 'inactive',
-                'deactivated_at' => now(),
-            ]);
-
-            // Sincronizar con LearningSession si existe
-            if ($learningSessionId) {
-                LearningSession::where('id', $learningSessionId)->update([
-                    'status' => 'canceled',
-                    'registration_status' => 'inactive',
-                    'deactivated_at' => now(),
-                ]);
-            }
-
-            DB::commit();
-
-            return back()
-                ->with('success', 'Ficha de aplicación anulada correctamente. La sesión ahora muestra "Sin ficha".');
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            return back()
                 ->with('error', $e->getMessage());
         }
     }

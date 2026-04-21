@@ -46,6 +46,7 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
   const [availableEndTimes, setAvailableEndTimes] = useState<string[]>([])
 
   const dateLocale = es
+  const minDate = format(new Date(), 'yyyy-MM-dd')
 
   const { data, setData, put, hasErrors, processing, errors, clearErrors } = useForm({
     redirect: (learning_session?.application_form ?? 0) === 0,
@@ -294,6 +295,7 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
                 <Input
                   id='start_date'
                   type='date'
+                  min={minDate}
                   value={data.start_date}
                   onChange={(e) => {
                     setData('start_date', e.target.value || '')
@@ -329,6 +331,7 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
                 <Input
                   id='end_date'
                   type='date'
+                  min={minDate}
                   value={data.end_date}
                   onChange={(e) => {
                     setData('end_date', e.target.value || '')

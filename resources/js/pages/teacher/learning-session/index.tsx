@@ -142,11 +142,11 @@ export default function LearningSessionIndex({ learningSessions, filters: initia
       options.push('inactive')
     }
 
-    // Permitir reactivar (active) si NO es "canceled" o si es "canceled" pero está dentro del rango de fechas
+    // Permitir reactivar (active) si NO es "finished", NO es "canceled", o si es "canceled" pero está dentro del rango de fechas
     if (currentRegistrationStatus !== 'active') {
-      if (currentStatus !== 'canceled') {
+      if (currentStatus !== 'finished' && currentStatus !== 'canceled') {
         options.push('active')
-      } else {
+      } else if (currentStatus === 'canceled') {
         // Si es canceled, verificar si está dentro del rango de fechas
         const now = new Date()
         const start = new Date(startDate)
@@ -336,7 +336,7 @@ export default function LearningSessionIndex({ learningSessions, filters: initia
                 <SelectValue placeholder='Estado de Registro' />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value='active'>Vigente</SelectItem>
+                <SelectItem value='active'>Activo</SelectItem>
                 <SelectItem value='inactive'>Inactivo</SelectItem>
               </SelectContent>
             </Select>

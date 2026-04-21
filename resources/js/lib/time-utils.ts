@@ -1,7 +1,25 @@
 import { format, isAfter, isBefore, parse } from 'date-fns'
 
 /**
+ * Valida si una fecha es anterior a hoy
+ */
+export function isDateBeforeToday(selectedDate: string): boolean {
+  const now = new Date()
+  const selectedDateObj = new Date(selectedDate + 'T00:00:00')
+
+  // Comparar solo las fechas (año, mes, día) sin considerar la hora
+  return (
+    selectedDateObj.getFullYear() < now.getFullYear() ||
+    (selectedDateObj.getFullYear() === now.getFullYear() && selectedDateObj.getMonth() < now.getMonth()) ||
+    (selectedDateObj.getFullYear() === now.getFullYear() &&
+      selectedDateObj.getMonth() === now.getMonth() &&
+      selectedDateObj.getDate() < now.getDate())
+  )
+}
+
+/**
  * Genera opciones de tiempo en intervalos de 30 minutos
+ * Si la fecha es anterior a hoy, no muestra opciones (no debería permitir selección)
  * Si la fecha es hoy, filtra para mostrar solo horas futuras
  * Si la fecha es futura, muestra todas las horas
  * Si minTime es proporcionado, filtra para mostrar solo horas > minTime (cuando la fecha es hoy)
@@ -18,8 +36,13 @@ export function generateTimeOptions(selectedDate: string | null, currentTimezone
   }
 
   // Si no hay fecha seleccionada, mostrar todas las opciones
-  if (!selectedDateObj) {
+  if (!selectedDateObj || !selectedDate) {
     return allTimes
+  }
+
+  // Si la fecha es anterior a hoy, no mostrar opciones (no permitido)
+  if (isDateBeforeToday(selectedDate)) {
+    return []
   }
 
   // Comparar solo las fechas (año, mes, día) sin considerar la hora

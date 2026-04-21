@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 import { ApplicationForm, ApplicationFormStatus } from '@/types/application-form'
 import { getQuestionTypeBadge, QUESTION_TYPES } from '@/types/application-form/question/question-type-c'
 import { BreadcrumbItem } from '@/types/core'
-import { Head, Link, router } from '@inertiajs/react'
+import { Head, Link } from '@inertiajs/react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { CheckCircle, Link as LinkIcon, XCircle } from 'lucide-react'
@@ -195,12 +195,6 @@ export default function ApplicationFormShow({ application_form }: ApplicationFor
     return format(new Date(dateString), 'PPP', { locale: es })
   }
 
-  const handleCancel = () => {
-    if (confirm('¿Estás seguro de anular esta ficha de aplicación? Esta acción desvinculará la ficha de la sesión y no se puede deshacer.')) {
-      router.put(route('teacher.application-forms.cancel', application_form.id))
-    }
-  }
-
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title={`Ficha: ${application_form.name}`} />
@@ -217,20 +211,6 @@ export default function ApplicationFormShow({ application_form }: ApplicationFor
               >
                 {tStatus(application_form.status)}
               </span>
-              {application_form.status === 'scheduled' ? (
-                <>
-                  <Button asChild variant='outline' size='sm'>
-                    <Link href={route('teacher.application-forms.edit', application_form.id)}>{t('Edit form')}</Link>
-                  </Button>
-                  <Button variant='destructive' size='sm' onClick={handleCancel}>
-                    Anular Ficha
-                  </Button>
-                </>
-              ) : (
-                <Button variant='outline' size='sm' disabled>
-                  Solo visualización
-                </Button>
-              )}
             </div>
           </div>
 

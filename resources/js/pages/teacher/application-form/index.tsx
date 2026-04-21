@@ -315,7 +315,7 @@ export default function ApplicationForms({ applicationForms, filters: initialFil
                 <SelectValue placeholder='Estado de Registro' />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value='active'>Vigente</SelectItem>
+                <SelectItem value='active'>Activo</SelectItem>
                 <SelectItem value='inactive'>Inactivo</SelectItem>
               </SelectContent>
             </Select>

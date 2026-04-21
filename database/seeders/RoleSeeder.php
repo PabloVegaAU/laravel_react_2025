@@ -45,16 +45,16 @@ class RoleSeeder extends Seeder
         Permission::firstOrCreate(['name' => 'admin.teachers.destroy'])->syncRoles([$admin]);
 
         // CRUD ACHIEVEMENTS
-        Permission::firstOrCreate(['name' => 'admin.achievements.index'])->syncRoles([$admin,$teacher]);
-        Permission::firstOrCreate(['name' => 'admin.achievements.create'])->syncRoles([$admin,$teacher]);
-        Permission::firstOrCreate(['name' => 'admin.achievements.edit'])->syncRoles([$admin,$teacher]);
-        Permission::firstOrCreate(['name' => 'admin.achievements.destroy'])->syncRoles([$admin,$teacher]);
+        Permission::firstOrCreate(['name' => 'admin.achievements.index'])->syncRoles([$admin, $teacher]);
+        Permission::firstOrCreate(['name' => 'admin.achievements.create'])->syncRoles([$admin, $teacher]);
+        Permission::firstOrCreate(['name' => 'admin.achievements.edit'])->syncRoles([$admin, $teacher]);
+        Permission::firstOrCreate(['name' => 'admin.achievements.destroy'])->syncRoles([$admin, $teacher]);
 
         // CRUD PRIZES
-        Permission::firstOrCreate(['name' => 'admin.prizes.index'])->syncRoles([$admin,$teacher]);
-        Permission::firstOrCreate(['name' => 'admin.prizes.create'])->syncRoles([$admin,$teacher]);
-        Permission::firstOrCreate(['name' => 'admin.prizes.edit'])->syncRoles([$admin,$teacher]);
-        Permission::firstOrCreate(['name' => 'admin.prizes.destroy'])->syncRoles([$admin,$teacher]);
+        Permission::firstOrCreate(['name' => 'admin.prizes.index'])->syncRoles([$admin, $teacher]);
+        Permission::firstOrCreate(['name' => 'admin.prizes.create'])->syncRoles([$admin, $teacher]);
+        Permission::firstOrCreate(['name' => 'admin.prizes.edit'])->syncRoles([$admin, $teacher]);
+        Permission::firstOrCreate(['name' => 'admin.prizes.destroy'])->syncRoles([$admin, $teacher]);
 
         // CRUD AVATARS
         Permission::firstOrCreate(['name' => 'admin.avatars.index'])->syncRoles([$admin]);

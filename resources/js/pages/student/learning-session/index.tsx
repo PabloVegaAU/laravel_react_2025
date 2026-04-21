@@ -102,6 +102,7 @@ export default function LearningSession({ learning_sessions, curricular_areas, f
       cell: ({ row }: CellContext<LearningSession, unknown>) => {
         const applicationForm = row.original.application_form
         const response = applicationForm?.responses?.[0]
+        const started = !!response?.started_at
         const now = new Date()
         const startDate = new Date(row.original.start_date || '')
         const endDate = new Date(row.original.end_date || '')
@@ -113,7 +114,7 @@ export default function LearningSession({ learning_sessions, curricular_areas, f
           <div className='flex space-x-2'>
             {isAvailable &&
               (canTakeTest ? (
-                !response ? (
+                !started ? (
                   <button
                     onClick={() => setConfirmDialog({ open: true, responseId: applicationForm?.responses[0].id || null })}
                     className='inline-flex items-center rounded-md border border-transparent bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none'

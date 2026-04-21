@@ -375,7 +375,7 @@ export default function ApplicationFormEdit({ application_form, questions }: App
                   <SelectValue placeholder='Selecciona un estado' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value='active'>Vigente</SelectItem>
+                  <SelectItem value='active'>Activo</SelectItem>
                   <SelectItem value='inactive'>Inactivo</SelectItem>
                 </SelectContent>
               </Select>

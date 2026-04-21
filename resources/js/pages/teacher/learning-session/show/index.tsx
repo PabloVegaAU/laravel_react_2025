@@ -60,9 +60,9 @@ export default function LearningSessionShow({ learning_session }: PageProps) {
           {/* Campo: Aula */}
           <div className='space-y-2'>
             <Label>
-              Aula: {learning_session.teacher_classroom_curricular_area_cycle?.classroom?.level}{' '}
-              {learning_session.teacher_classroom_curricular_area_cycle?.classroom?.grade}{' '}
-              {learning_session.teacher_classroom_curricular_area_cycle?.classroom?.section}
+              Aula: {t(learning_session.teacher_classroom_curricular_area_cycle?.classroom?.level)}{' '}
+              {t(learning_session.teacher_classroom_curricular_area_cycle?.classroom?.grade)}{' '}
+              {t(learning_session.teacher_classroom_curricular_area_cycle?.classroom?.section)}
             </Label>
           </div>
         </div>
