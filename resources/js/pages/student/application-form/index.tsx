@@ -40,12 +40,12 @@ export default function ApplicationsForm({ applicationForms }: PageProps) {
     {
       header: 'Fecha de inicio',
       accessorKey: 'start_date',
-      cell: (row) => format(row.getValue() as string, 'dd/MM/yyyy')
+      cell: (row) => format(row.getValue() as string, 'dd/MM/yyyy HH:mm', { locale: es })
     },
     {
       header: 'Fecha de fin',
       accessorKey: 'end_date',
-      cell: (row) => format(row.getValue() as string, 'dd/MM/yyyy')
+      cell: (row) => format(row.getValue() as string, 'dd/MM/yyyy HH:mm', { locale: es })
     },
     {
       header: 'Estado',

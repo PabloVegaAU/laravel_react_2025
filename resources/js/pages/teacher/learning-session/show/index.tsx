@@ -53,7 +53,7 @@ export default function LearningSessionShow({ learning_session }: PageProps) {
           {/* Campo: Fecha de la sesión */}
           <div className='space-y-2'>
             <Label>
-              {t('Start Date')}: {format(learning_session.start_date, 'PPP', { locale: dateLocale })}
+              {t('Start Date')}: {format(learning_session.start_date, 'dd/MM/yyyy HH:mm', { locale: dateLocale })}
             </Label>
           </div>
 
@@ -130,11 +130,11 @@ export default function LearningSessionShow({ learning_session }: PageProps) {
                     </div>
                     <div className='flex items-center space-x-2'>
                       <Label>FECHA INICIO:</Label>
-                      <p>{format(learning_session.application_form.start_date, 'dd/MM/yyyy')}</p>
+                      <p>{format(learning_session.application_form.start_date, 'dd/MM/yyyy HH:mm')}</p>
                     </div>
                     <div className='flex items-center space-x-2'>
                       <Label>FECHA FIN:</Label>
-                      <p>{format(learning_session.application_form.end_date, 'dd/MM/yyyy')}</p>
+                      <p>{format(learning_session.application_form.end_date, 'dd/MM/yyyy HH:mm')}</p>
                     </div>
                   </div>
                   <div className='flex w-full flex-col gap-2'>

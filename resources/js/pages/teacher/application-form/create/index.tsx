@@ -294,7 +294,9 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
             <div className='space-y-2'>
               <Label>Fecha de Inicio</Label>
               <Input
-                value={learning_session.start_date ? format(parseDateString(learning_session.start_date), 'PPP', { locale: dateLocale }) : ''}
+                value={
+                  learning_session.start_date ? format(parseDateString(learning_session.start_date), 'dd/MM/yyyy HH:mm', { locale: dateLocale }) : ''
+                }
                 readOnly
               />
               <InputError message={errors.start_date} className='mt-1' />
@@ -304,7 +306,9 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
             <div className='space-y-2'>
               <Label>Fecha de Fin</Label>
               <Input
-                value={learning_session.end_date ? format(parseDateString(learning_session.end_date), 'PPP', { locale: dateLocale }) : ''}
+                value={
+                  learning_session.end_date ? format(parseDateString(learning_session.end_date), 'dd/MM/yyyy HH:mm', { locale: dateLocale }) : ''
+                }
                 readOnly
               />
               <InputError message={errors.end_date} className='mt-1' />

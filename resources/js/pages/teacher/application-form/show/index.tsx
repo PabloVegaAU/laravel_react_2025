@@ -192,7 +192,7 @@ export default function ApplicationFormShow({ application_form }: ApplicationFor
   const { t } = useTranslations()
 
   const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'PPP', { locale: es })
+    return format(new Date(dateString), 'dd/MM/yyyy HH:mm', { locale: es })
   }
 
   return (

@@ -282,7 +282,7 @@ export default function ApplicationFormEdit({ application_form, questions }: App
                   ' - ' +
                   t(application_form?.learning_session?.teacher_classroom_curricular_area_cycle?.classroom?.level) +
                   ' ' +
-                  application_form?.learning_session?.teacher_classroom_curricular_area_cycle?.classroom?.grade +
+                  t(application_form?.learning_session?.teacher_classroom_curricular_area_cycle?.classroom?.grade) +
                   ' ' +
                   application_form?.learning_session?.teacher_classroom_curricular_area_cycle?.classroom?.section
                 }
@@ -319,7 +319,7 @@ export default function ApplicationFormEdit({ application_form, questions }: App
               <Input
                 value={
                   application_form?.learning_session?.start_date
-                    ? format(parseDateString(application_form.learning_session.start_date), 'PPP', { locale: dateLocale })
+                    ? format(parseDateString(application_form.learning_session.start_date), 'dd/MM/yyyy HH:mm', { locale: dateLocale })
                     : ''
                 }
                 readOnly
@@ -333,7 +333,7 @@ export default function ApplicationFormEdit({ application_form, questions }: App
               <Input
                 value={
                   application_form?.learning_session?.end_date
-                    ? format(parseDateString(application_form.learning_session.end_date), 'PPP', { locale: dateLocale })
+                    ? format(parseDateString(application_form.learning_session.end_date), 'dd/MM/yyyy HH:mm', { locale: dateLocale })
                     : ''
                 }
                 readOnly
