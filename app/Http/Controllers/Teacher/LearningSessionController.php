@@ -269,6 +269,11 @@ class LearningSessionController extends Controller
             'applicationForm',
         ])->findOrFail($id);
 
+        // Solo permitir editar si el estado es 'scheduled'
+        if ($learningSession->status !== 'scheduled') {
+            return back()->with('error', 'Solo se pueden editar sesiones de aprendizaje en estado "programado".');
+        }
+
         $teacherClassroomCurricularAreaCycles = TeacherClassroomCurricularAreaCycle::with([
             'classroom',
             'curricularAreaCycle.curricularArea', 'curricularAreaCycle.cycle',
@@ -322,6 +327,11 @@ class LearningSessionController extends Controller
             DB::beginTransaction();
 
             $learningSession = LearningSession::with('applicationForm')->findOrFail($id);
+
+            // Solo permitir editar si el estado es 'scheduled'
+            if ($learningSession->status !== 'scheduled') {
+                throw new \Exception('Solo se pueden editar sesiones de aprendizaje en estado "programado".');
+            }
 
             $learningSession->update([
                 'name' => $validated['name'],

@@ -342,4 +342,38 @@ export interface ApplicationFormFilters {
 
 1. **Validación**: Utilizar `Form Requests` en los controladores para validar los datos de entrada al crear o actualizar un formulario.
 2. **Autorización**: Implementar `Policies` para asegurar que solo los usuarios autorizados (ej. el profesor propietario) puedan modificar o eliminar un formulario.
+
+## 📋 Comportamiento de Estados
+
+### Distinción de Estados
+
+- **`finished`**: Período terminado por tarea programada (tarea `learning-sessions:finalize`)
+- **`finalized`**: Estado aplicado a ApplicationFormResponse (respuesta bloqueada sin completar por estudiante)
+
+### Inactivación Manual
+
+Cuando se cambia el `registration_status` a `inactive` manualmente:
+
+- **ApplicationForm**: SE desasigna de LearningSession
+  - `learning_session_id` se establece a `null`
+  - ApplicationForm cambia `status` a `canceled`
+  - ApplicationForm cambia `registration_status` a `inactive`
+- **LearningSession**: Mantiene su estado actual (scheduled/active) y queda sin ficha asignada
+  - LearningSession NO cambia a `canceled`
+  - LearningSession mantiene su `registration_status` actual
+
+### Restricciones de Edición
+
+- **Solo permitido en estado `scheduled`**:
+  - Backend: `ApplicationFormController::edit()` y `update()` validan que status sea 'scheduled'
+  - Frontend: `canEditApplicationForm()` solo retorna true si status es 'scheduled'
+- **En estado `active`**: No se permite editar (botón de edición oculto)
+
+### Tarea Programada de Finalización
+
+Comando `learning-sessions:finalize`:
+
+- Cambia `status` a `finished` en ApplicationForm (cuando LearningSession finaliza)
+- **NO cambia `registration_status`** (este solo se cambia manualmente)
+
 3. **Rendimiento**: Cargar relaciones de manera selectiva usando `with()` para evitar el problema N+1.

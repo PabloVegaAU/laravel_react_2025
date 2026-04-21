@@ -457,7 +457,7 @@ export default function SessionLearning({ sessions }: SessionLearningProps) {
 
    - `scheduled`: La sesión está programada y aún no ha comenzado
    - `active`: La sesión está activa y disponible
-   - `finished`: La sesión ha finalizado
+   - `finished`: La sesión ha finalizado (período terminado por tarea programada)
    - `canceled`: La sesión ha sido cancelada
 
 2. **Validaciones**:
@@ -471,3 +471,34 @@ export default function SessionLearning({ sessions }: SessionLearningProps) {
    2. Agrega capacidades y contenido
    3. Cambia el estado a 'active' cuando está lista
    4. Puede finalizar o cancelar la sesión cuando ya no esté en uso
+
+## 📋 Comportamiento de Estados
+
+### Distinción de Estados
+
+- **`finished`**: Período terminado por tarea programada (tarea `learning-sessions:finalize`)
+- **`finalized`**: Estado aplicado a ApplicationFormResponse (respuesta bloqueada sin completar por estudiante)
+
+### Inactivación Manual
+
+Cuando se cambia el `registration_status` a `inactive` manualmente:
+
+- **LearningSession**: NO desasigna ApplicationForm relacionado
+  - ApplicationForm mantiene `learning_session_id`
+  - LearningSession cambia `status` a `canceled`
+  - LearningSession cambia `registration_status` a `inactive`
+
+### Restricciones de Edición
+
+- **Solo permitido en estado `scheduled`**:
+  - Backend: `LearningSessionController::edit()` y `update()` validan que status sea 'scheduled'
+  - Frontend: `canEditLearningSession()` solo retorna true si status es 'scheduled'
+- **En estado `active`**: No se permite editar (botón de edición oculto)
+
+### Tarea Programada de Finalización
+
+Comando `learning-sessions:finalize`:
+
+- Cambia `status` a `finished` en LearningSession y ApplicationForm
+- **NO cambia `registration_status`** (este solo se cambia manualmente)
+- Cambia ApplicationFormResponse de `pending`/`in progress` a `finalized`

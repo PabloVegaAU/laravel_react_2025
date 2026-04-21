@@ -597,19 +597,11 @@ class ApplicationFormController extends Controller
                     'status' => 'canceled',
                 ];
 
-                // Sincronizar con learningSession relacionado aplicando las mismas restricciones
-                // Solo sincronizar si NO viene de LearningSession (para evitar dependencia circular)
-                if ($applicationForm->learningSession && ! $fromLearningSession) {
-                    // Validar que el LearningSession también esté en estado "scheduled"
-                    if ($applicationForm->learningSession->status !== 'scheduled') {
-                        throw new \Exception('No se puede desactivar el registro porque la sesión de aprendizaje relacionada no está en estado "programado".');
-                    }
-
-                    $applicationForm->learningSession->update([
-                        'status' => 'canceled',
-                        'registration_status' => 'inactive',
-                        'deactivated_at' => now(),
-                    ]);
+                // Desasignar de LearningSession SOLO si la inactivación NO viene de LearningSession
+                // Si viene de LearningSession ($fromLearningSession = true), mantener la relación
+                if (! $fromLearningSession) {
+                    $updateData['learning_session_id'] = null;
+                    // NOTA: LearningSession mantiene su estado actual (scheduled/active) y queda sin ficha asignada
                 }
             } else {
                 // Reactivar a active

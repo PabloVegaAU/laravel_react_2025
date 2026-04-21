@@ -283,5 +283,24 @@ export interface ApplicationFormResponse {
 ### Tipo `ApplicationFormResponseStatus`
 
 ```typescript
-export type ApplicationFormResponseStatus = 'pending' | 'in progress' | 'submitted' | 'in review' | 'graded' | 'returned' | 'late'
+export type ApplicationFormResponseStatus = 'pending' | 'in progress' | 'submitted' | 'in review' | 'graded' | 'returned' | 'late' | 'finalized'
 ```
+
+## 📋 Comportamiento de Estados
+
+### Distinción de Estados
+
+- **`finished`**: Período terminado por tarea programada (aplica a LearningSession y ApplicationForm)
+- **`finalized`**: Estado específico de ApplicationFormResponse
+  - Significa: Respuesta bloqueada sin completar por el estudiante
+  - El estudiante no pudo terminar la respuesta antes de que la sesión finalizará
+  - La respuesta queda en estado `finalized` y no puede ser editada por el estudiante
+
+### Tarea Programada de Finalización
+
+Comando `learning-sessions:finalize`:
+
+- Cuando una LearningSession finaliza (cambia a `finished`), sus ApplicationFormResponses cambian de estado
+- Respuestas en estado `pending` o `in progress` cambian a `finalized`
+- Esto bloquea las respuestas que el estudiante no completó a tiempo
+- Respuestas ya en estado `submitted`, `graded`, etc. no cambian

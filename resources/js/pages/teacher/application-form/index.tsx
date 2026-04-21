@@ -166,19 +166,12 @@ export default function ApplicationForms({ applicationForms, filters: initialFil
   }
 
   const canEditApplicationForm = (status: string, learningSession: any) => {
-    // Siempre editable si es scheduled o active
-    if (status === 'scheduled' || status === 'active') {
+    // Solo editable si es scheduled
+    if (status === 'scheduled') {
       return true
     }
 
-    // Editable si es canceled y está antes de la fecha de inicio (usando fechas del LearningSession)
-    if (status === 'canceled' && learningSession) {
-      const now = new Date()
-      const start = new Date(learningSession.start_date)
-      return now < start
-    }
-
-    // No editable para finished
+    // No editable para active, finished o canceled
     return false
   }
 

@@ -126,7 +126,7 @@ export default function LearningSessionIndex({ learningSessions, filters: initia
       { registration_status: registrationStatus },
       {
         onSuccess: () => {
-          toast.success('Estado de registro actualizado correctamente')
+          // NOTA: No mostrar toast.success aquí porque el backend ya envía flash message
           router.reload()
         },
         onError: () => toast.error('Error al actualizar el estado de registro')
@@ -162,19 +162,12 @@ export default function LearningSessionIndex({ learningSessions, filters: initia
   }
 
   const canEditLearningSession = (status: string, startDate: string) => {
-    // Siempre editable si es scheduled o active
-    if (status === 'scheduled' || status === 'active') {
+    // Solo editable si es scheduled
+    if (status === 'scheduled') {
       return true
     }
 
-    // Editable si es canceled y está antes de la fecha de inicio
-    if (status === 'canceled') {
-      const now = new Date()
-      const start = new Date(startDate)
-      return now < start
-    }
-
-    // No editable para finished
+    // No editable para active, finished o canceled
     return false
   }
 

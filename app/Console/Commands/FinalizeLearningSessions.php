@@ -50,20 +50,22 @@ class FinalizeLearningSessions extends Command
                 // Cargar el ApplicationForm relacionado
                 $session->load('applicationForm');
 
-                // Cambiar status a finished y registration_status a inactive
+                // Cambiar status a finished (período terminado por tarea programada)
+                // NOTA: No se modifica registration_status - este solo se cambia manualmente
                 $session->update([
                     'status' => 'finished',
-                    'registration_status' => 'inactive',
                 ]);
 
                 // Sincronizar con ApplicationForm relacionado
+                // NOTA: No se modifica registration_status - este solo se cambia manualmente
                 if ($session->applicationForm) {
                     $session->applicationForm->update([
                         'status' => 'finished',
-                        'registration_status' => 'inactive',
                     ]);
 
-                    // Cambiar el estado de ApplicationFormResponse de 'pending' y 'in progress' a 'finalized'
+                    // Cambiar el estado de ApplicationFormResponse a 'finalized'
+                    // 'finalized' = respuesta bloqueada sin completar por el estudiante
+                    // (diferente de 'finished' que es período terminado)
                     ApplicationFormResponse::where('application_form_id', $session->applicationForm->id)
                         ->whereIn('status', ['pending', 'in progress'])
                         ->update(['status' => 'finalized']);
