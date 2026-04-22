@@ -51,10 +51,10 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
   const getInitials = useInitials()
 
   // Get filtered navigation items based on permissions
-  const { noTitleNavItems, peopleNavItems, schoolNavItems, applicationFormsNavItems } = createNavItems(permissions)
+  const { adminNavItems, noTitleNavItems, peopleNavItems, schoolNavItems, applicationFormsNavItems } = createNavItems(permissions)
 
   // Combine all navigation items for mobile menu
-  const mainNavItems = [...noTitleNavItems, ...peopleNavItems, ...schoolNavItems, ...applicationFormsNavItems]
+  const mainNavItems = [...adminNavItems, ...noTitleNavItems, ...peopleNavItems, ...schoolNavItems, ...applicationFormsNavItems]
 
   return (
     <>

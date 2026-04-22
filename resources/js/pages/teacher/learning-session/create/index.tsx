@@ -17,7 +17,6 @@ import { TeacherClassroomCurricularAreaCycle } from '@/types/academic/teacher-cl
 import { BreadcrumbItem, SharedData } from '@/types/core'
 import { Head, useForm, usePage } from '@inertiajs/react'
 import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { LoaderCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
@@ -44,7 +43,6 @@ export default function LearningSessionCreate({ educational_institution, teacher
   const [availableStartTimes, setAvailableStartTimes] = useState<string[]>([])
   const [availableEndTimes, setAvailableEndTimes] = useState<string[]>([])
 
-  const dateLocale = es
   const minDate = format(new Date(), 'yyyy-MM-dd')
 
   const initialDate = format(new Date(), 'yyyy-MM-dd')
@@ -53,7 +51,7 @@ export default function LearningSessionCreate({ educational_institution, teacher
   const { data, setData, post, processing, errors, hasErrors, clearErrors } = useForm({
     redirect: true as boolean,
     educational_institution_id: educational_institution.id,
-    status: 'active',
+    status: 'scheduled',
     registration_status: 'active',
     name: '',
     start_date: initialDate,

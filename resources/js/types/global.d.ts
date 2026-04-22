@@ -6,7 +6,7 @@ declare global {
 }
 
 declare module '@tanstack/react-table' {
-  interface ColumnMeta<TData, TValue> {
+  interface ColumnMeta<_TData, _TValue> {
     className?: string
   }
 }

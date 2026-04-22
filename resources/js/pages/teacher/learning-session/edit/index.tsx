@@ -17,7 +17,6 @@ import { BreadcrumbItem, SharedData } from '@/types/core'
 import { LearningSession } from '@/types/learning-session'
 import { Head, Link, useForm, usePage } from '@inertiajs/react'
 import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { LoaderCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
@@ -45,7 +44,6 @@ export default function LearningSessionEdit({ learning_session, teacher_classroo
   const [availableStartTimes, setAvailableStartTimes] = useState<string[]>([])
   const [availableEndTimes, setAvailableEndTimes] = useState<string[]>([])
 
-  const dateLocale = es
   const minDate = format(new Date(), 'yyyy-MM-dd')
 
   const { data, setData, put, hasErrors, processing, errors, clearErrors } = useForm({

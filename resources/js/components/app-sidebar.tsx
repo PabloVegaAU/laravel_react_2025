@@ -19,6 +19,7 @@ const FOOTER_NAV_ITEMS: NavItem[] = []
 
 // Tipos
 interface NavigationSections {
+  adminNavItems: NavItem[]
   noTitleNavItems: NavItem[]
   peopleNavItems: NavItem[]
   schoolNavItems: NavItem[]
@@ -27,6 +28,7 @@ interface NavigationSections {
 }
 
 interface SectionVisibility {
+  showAdminSection: boolean
   showStudentSection: boolean
   showPeopleSection: boolean
   showSchoolSection: boolean
@@ -50,18 +52,19 @@ export function AppSidebar() {
     [permissions] // Solo se recrea cuando los permisos cambian
   )
 
-  const { noTitleNavItems, peopleNavItems, schoolNavItems, applicationFormsNavItems, storeNavItems } = navigationSections
+  const { adminNavItems, noTitleNavItems, peopleNavItems, schoolNavItems, applicationFormsNavItems, storeNavItems } = navigationSections
 
   // Memoizar visibilidad de secciones para evitar recálculos en cada renderizado
   const sectionVisibility = useMemo<SectionVisibility>(
     () => ({
+      showAdminSection: adminNavItems.length > 0,
       showStudentSection: roles.includes('student'),
       showPeopleSection: peopleNavItems.length > 0,
       showSchoolSection: schoolNavItems.length > 0,
       showApplicationFormsSection: applicationFormsNavItems.length > 0,
       showStoreSection: storeNavItems.length > 0
     }),
-    [roles, peopleNavItems.length, schoolNavItems.length, applicationFormsNavItems.length, storeNavItems.length]
+    [adminNavItems.length, roles, peopleNavItems.length, schoolNavItems.length, applicationFormsNavItems.length, storeNavItems.length]
   )
 
   const { showStudentSection } = sectionVisibility
@@ -84,6 +87,7 @@ export function AppSidebar() {
         {showStudentSection && <StudentProfileSection state={state} avatar={avatar} userName={auth.user?.name} getInitials={getInitials} />}
 
         <NavigationSections
+          adminNavItems={adminNavItems}
           noTitleNavItems={noTitleNavItems}
           peopleNavItems={peopleNavItems}
           schoolNavItems={schoolNavItems}
@@ -134,6 +138,7 @@ interface NavigationSectionsProps extends NavigationSections {
 }
 
 function NavigationSections({
+  adminNavItems,
   noTitleNavItems,
   peopleNavItems,
   schoolNavItems,
@@ -141,11 +146,13 @@ function NavigationSections({
   storeNavItems,
   sectionVisibility
 }: NavigationSectionsProps) {
-  const { showPeopleSection, showSchoolSection, showApplicationFormsSection, showStoreSection } = sectionVisibility
+  const { showAdminSection, showPeopleSection, showSchoolSection, showApplicationFormsSection, showStoreSection } = sectionVisibility
 
   return (
     <>
       <NavMain items={noTitleNavItems} />
+
+      {showAdminSection && <NavMain title='ADMINISTRACIÓN' items={adminNavItems} />}
 
       {showPeopleSection && <NavMain title='PERSONAS' items={peopleNavItems} />}
 

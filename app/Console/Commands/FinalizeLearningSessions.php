@@ -32,9 +32,9 @@ class FinalizeLearningSessions extends Command
         $this->info('Finalizing learning sessions that have expired...');
 
         // Buscar learning sessions que han vencido pero aún están activas
-        // Consideramos que una sesión ha vencido si su fecha de fin es anterior a hoy
+        // Consideramos que una sesión ha vencido si su fecha de fin es anterior o igual a la hora actual
         $sessionsToFinalize = LearningSession::where('status', 'active')
-            ->where('end_date', '<', now())
+            ->where('end_date', '<=', now())
             ->get();
 
         if ($sessionsToFinalize->isEmpty()) {

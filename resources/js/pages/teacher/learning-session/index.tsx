@@ -161,7 +161,7 @@ export default function LearningSessionIndex({ learningSessions, filters: initia
     return options
   }
 
-  const canEditLearningSession = (status: string, startDate: string) => {
+  const canEditLearningSession = (status: string) => {
     // Solo editable si es scheduled
     if (status === 'scheduled') {
       return true
@@ -248,8 +248,6 @@ export default function LearningSessionIndex({ learningSessions, filters: initia
       id: 'actions',
       cell: ({ row }) => {
         const learningSession = row.original
-        const statusVariant = learningSession.status === 'active' ? 'destructive' : 'default'
-        const statusAction = learningSession.status === 'active' ? 'inactive' : 'active'
 
         return (
           <div className='flex items-center space-x-2'>
@@ -282,7 +280,7 @@ export default function LearningSessionIndex({ learningSessions, filters: initia
                       </DropdownMenuItem>
                     </>
                   )}
-                  {canEditLearningSession(learningSession.status, learningSession.start_date) && learningSession.status !== 'finished' && (
+                  {canEditLearningSession(learningSession.status) && learningSession.status !== 'finished' && (
                     <Link href={`/teacher/learning-sessions/${learningSession.id}/edit`}>
                       <DropdownMenuItem>Editar</DropdownMenuItem>
                     </Link>

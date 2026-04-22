@@ -10,24 +10,12 @@ const hasPermission = (permissions: string[] = [], requiredPermission: string): 
 
 // Función para crear items de navegación con verificación de permisos
 export const createNavItems = (permissions: string[] = []) => {
-  const noTitleNavItems: NavItem[] = [
+  const adminNavItems: NavItem[] = [
     {
       title: 'Inicio',
       href: '/admin',
       icon: Home,
       permission: 'admin.dashboard'
-    },
-    {
-      title: 'Inicio',
-      href: '/teacher',
-      icon: Home,
-      permission: 'teacher.dashboard'
-    },
-    {
-      title: 'Inicio',
-      href: '/student',
-      icon: Home,
-      permission: 'student.dashboard'
     },
     {
       title: 'Avatares',
@@ -52,12 +40,21 @@ export const createNavItems = (permissions: string[] = []) => {
       href: '/admin/achievements',
       icon: Trophy,
       permission: 'admin.achievements.index'
+    }
+  ]
+
+  const noTitleNavItems: NavItem[] = [
+    {
+      title: 'Inicio',
+      href: '/teacher',
+      icon: Home,
+      permission: 'teacher.dashboard'
     },
     {
-      title: 'Logros',
-      href: '/teacher/achievements',
-      icon: Trophy,
-      permission: 'teacher.achievements.index'
+      title: 'Inicio',
+      href: '/student',
+      icon: Home,
+      permission: 'student.dashboard'
     }
   ]
 
@@ -156,10 +153,16 @@ export const createNavItems = (permissions: string[] = []) => {
       permission: 'student.objects'
     },
     {
-      title: 'Premios',
+      title: 'Asignar Premios',
       href: '/teacher/student-prizes',
       icon: Gift,
       permission: 'teacher.student-prizes.index'
+    },
+    {
+      title: 'Asignar Logros',
+      href: '/teacher/achievements',
+      icon: Trophy,
+      permission: 'teacher.achievements.index'
     }
   ]
 
@@ -169,6 +172,7 @@ export const createNavItems = (permissions: string[] = []) => {
   }
 
   return {
+    adminNavItems: filterByPermission(adminNavItems),
     noTitleNavItems: filterByPermission(noTitleNavItems),
     peopleNavItems: filterByPermission(peopleNavItems),
     schoolNavItems: filterByPermission(schoolNavItems),
