@@ -332,14 +332,20 @@ class ApplicationFormResponseController extends Controller
 
             DB::commit();
 
+            // Obtener el learning_session_id para mantener el contexto de navegación
+            $learningSessionId = $applicationFormResponse->applicationForm->learning_session_id;
+
             return redirect()
-                ->route('teacher.application-form-responses.index')
+                ->route('teacher.application-form-responses.index', ['learning_session_id' => $learningSessionId])
                 ->with('success', 'Retroalimentación guardada correctamente');
         } catch (\Exception $e) {
             DB::rollBack();
 
+            // Obtener el learning_session_id para mantener el contexto de navegación
+            $learningSessionId = $applicationFormResponse->applicationForm->learning_session_id ?? null;
+
             return redirect()
-                ->route('teacher.application-form-responses.index')
+                ->route('teacher.application-form-responses.index', $learningSessionId ? ['learning_session_id' => $learningSessionId] : [])
                 ->with('error', 'Error al revisar la respuesta: '.$e->getMessage());
         }
     }
