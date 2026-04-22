@@ -257,23 +257,6 @@ export default function ApplicationForms({ applicationForms, filters: initialFil
                 Ver
               </Button>
             </Link>
-            {applicationForm.status === 'scheduled' && (
-              <Button
-                variant='destructive'
-                size='sm'
-                onClick={() => {
-                  if (
-                    confirm(
-                      '¿Estás seguro de anular esta ficha de aplicación? Esta acción desvinculará la ficha de la sesión y no se puede deshacer.'
-                    )
-                  ) {
-                    router.put(route('teacher.application-forms.cancel', applicationForm.id))
-                  }
-                }}
-              >
-                Anular
-              </Button>
-            )}
           </div>
         )
       }

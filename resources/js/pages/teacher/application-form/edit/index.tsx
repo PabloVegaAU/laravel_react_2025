@@ -16,7 +16,7 @@ import { Question, QuestionWithScore } from '@/types/application-form'
 import { ApplicationForm } from '@/types/application-form/application-form'
 import { getQuestionTypeBadge } from '@/types/application-form/question/question-type-c'
 import { BreadcrumbItem } from '@/types/core'
-import { Head, Link, useForm } from '@inertiajs/react'
+import { Head, useForm } from '@inertiajs/react'
 import { endOfDay, format, startOfDay } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { Fragment, useEffect, useState } from 'react'
@@ -537,28 +537,6 @@ export default function ApplicationFormEdit({ application_form, questions }: App
 
           {/* Botones de acción */}
           <div className='flex justify-end gap-4 pt-4'>
-            <Link href={route('teacher.application-forms.index')}>
-              <Button type='button' variant='outline'>
-                Cancelar
-              </Button>
-            </Link>
-            {application_form?.status === 'scheduled' && (
-              <Button
-                type='button'
-                variant='destructive'
-                onClick={() => {
-                  if (
-                    confirm(
-                      '¿Estás seguro de anular esta ficha de aplicación? Esta acción desvinculará la ficha de la sesión y no se puede deshacer.'
-                    )
-                  ) {
-                    put(route('teacher.application-forms.cancel', application_form?.id))
-                  }
-                }}
-              >
-                Anular Ficha
-              </Button>
-            )}
             <Button type='submit' disabled={processing}>
               {processing ? 'Guardando...' : 'Actualizar Ficha'}
             </Button>
