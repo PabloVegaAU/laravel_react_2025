@@ -87,8 +87,8 @@ export default function LearningSessionIndex({ learningSessions, filters: initia
     const params: Record<string, string> = {}
 
     if (filters.search) params.search = filters.search
-    if (filters.status) params.status = filters.status
-    if (filters.registration_status) params.registration_status = filters.registration_status
+    if (filters.status && filters.status !== 'todos') params.status = filters.status
+    if (filters.registration_status && filters.registration_status !== 'todos') params.registration_status = filters.registration_status
     if (filters.curricular_area_id) params.curricular_area_id = filters.curricular_area_id
     if (filters.competency_id) params.competency_id = filters.competency_id
     if (filters.start_date) params.start_date = format(filters.start_date, 'yyyy-MM-dd')
@@ -315,6 +315,7 @@ export default function LearningSessionIndex({ learningSessions, filters: initia
                   <SelectValue placeholder='Estado de Sesión' />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value='todos'>Todos</SelectItem>
                   <SelectItem value='scheduled'>Programada</SelectItem>
                   <SelectItem value='active'>Vigente</SelectItem>
                   <SelectItem value='finished'>Finalizada</SelectItem>
@@ -327,6 +328,7 @@ export default function LearningSessionIndex({ learningSessions, filters: initia
                 <SelectValue placeholder='Estado de Registro' />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value='todos'>Todos</SelectItem>
                 <SelectItem value='active'>Activo</SelectItem>
                 <SelectItem value='inactive'>Inactivo</SelectItem>
               </SelectContent>

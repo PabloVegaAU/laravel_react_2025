@@ -35,11 +35,11 @@ class LearningSessionController extends Controller
             $query->where('name', 'like', '%'.$request->search.'%');
         }
 
-        if ($request->filled('status')) {
+        if ($request->filled('status') && $request->status !== 'todos') {
             $query->where('status', $request->status);
         }
 
-        if ($request->filled('registration_status')) {
+        if ($request->filled('registration_status') && $request->registration_status !== 'todos') {
             $query->where('registration_status', $request->registration_status);
         } else {
             $query->where('registration_status', 'active');

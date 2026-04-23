@@ -63,11 +63,11 @@ class ApplicationFormController extends Controller
             });
         }
 
-        if (! empty($filters['status'])) {
+        if (! empty($filters['status']) && $filters['status'] !== 'todos') {
             $query->where('application_forms.status', $filters['status']);
         }
 
-        if (! empty($filters['registration_status'])) {
+        if (! empty($filters['registration_status']) && $filters['registration_status'] !== 'todos') {
             $query->where('application_forms.registration_status', $filters['registration_status']);
         } else {
             $query->where('application_forms.registration_status', 'active');
