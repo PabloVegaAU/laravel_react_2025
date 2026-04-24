@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class ApplicationFormResponseQuestion extends Model
 {
@@ -271,13 +272,30 @@ class ApplicationFormResponseQuestion extends Model
                     $existingOption->update($data);
                 } else {
                     // Usar updateOrCreate para manejar condiciones de carrera
-                    $this->selectedOptions()->updateOrCreate(
-                        [
-                            'application_form_response_question_id' => $this->id,
-                            'question_option_id' => $optionId,
-                        ],
-                        $data
-                    );
+                    try {
+                        $this->selectedOptions()->updateOrCreate(
+                            [
+                                'application_form_response_question_id' => $this->id,
+                                'question_option_id' => $optionId,
+                            ],
+                            $data
+                        );
+                    } catch (\Illuminate\Database\QueryException $e) {
+                        // Si hay un error de unicidad (posible desincronización de secuencia)
+                        if (str_contains($e->getMessage(), 'duplicate key value violates unique constraint')) {
+                            // Intentar refrescar la secuencia y reintentar
+                            $this->refreshSequence();
+                            $this->selectedOptions()->updateOrCreate(
+                                [
+                                    'application_form_response_question_id' => $this->id,
+                                    'question_option_id' => $optionId,
+                                ],
+                                $data
+                            );
+                        } else {
+                            throw $e;
+                        }
+                    }
                 }
             }
 
@@ -291,6 +309,26 @@ class ApplicationFormResponseQuestion extends Model
         } catch (\Exception $e) {
 
             throw $e;
+        }
+    }
+
+    /**
+     * Refresca la secuencia de la tabla de opciones de respuesta para evitar errores de duplicados.
+     * Esto es necesario en PostgreSQL cuando la secuencia se desincroniza del max ID.
+     */
+    protected function refreshSequence(): void
+    {
+        $tableName = (new ApplicationFormResponseQuestionOption)->getTable();
+        $sequenceName = $tableName.'_id_seq';
+
+        try {
+            DB::statement("SELECT setval('{$sequenceName}', (SELECT MAX(id) FROM {$tableName}), true)");
+        } catch (\Exception $e) {
+            // Si falla el refresco de secuencia, loggear pero no interrumpir el flujo
+            logger()->warning('Failed to refresh sequence', [
+                'sequence' => $sequenceName,
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 }
