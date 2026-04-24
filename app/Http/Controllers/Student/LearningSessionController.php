@@ -35,7 +35,8 @@ class LearningSessionController extends Controller
             ])
             ->whereHas('teacherClassroomCurricularAreaCycle', function ($q) use ($enrollment) {
                 $q->where('classroom_id', $enrollment->classroom_id);
-            });
+            })
+            ->where('registration_status', 'active');
 
         // Aplicar filtro por área curricular si se especifica y no está vacío ni es '0'
         if ($request->has('curricular_area_id') && $request->curricular_area_id !== '' && $request->curricular_area_id !== '0') {
