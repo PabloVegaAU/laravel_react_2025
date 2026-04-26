@@ -80,8 +80,10 @@ class PrizeController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
 
+            dd($e->getMessage());
+
             return redirect()->route('admin.prizes.index')
-                ->with('error', 'Error al crear el premio.');
+                ->with('error', $e->getMessage());
         }
     }
 

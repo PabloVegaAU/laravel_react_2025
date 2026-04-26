@@ -42,7 +42,7 @@ export function CreatePrizeModal({ isOpen, onClose, onSuccess }: CreatePrizeModa
     available_until: '',
     is_active: true,
     image: null,
-    level_required: null
+    level_required: 1
   })
 
   // Cargar niveles cuando se abre
@@ -164,7 +164,7 @@ export function CreatePrizeModal({ isOpen, onClose, onSuccess }: CreatePrizeModa
             <select
               id='level_required'
               value={data.level_required ?? ''}
-              onChange={(e) => setData('level_required', e.target.value ? parseInt(e.target.value) : null)}
+              onChange={(e) => setData('level_required', parseInt(e.target.value))}
               className='border-input bg-background ring-offset-background flex h-10 w-full rounded-md border px-3 py-2 text-sm'
             >
               {levels.map((level) => (
