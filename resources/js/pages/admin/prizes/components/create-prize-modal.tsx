@@ -144,6 +144,7 @@ export function CreatePrizeModal({ isOpen, onClose, onSuccess }: CreatePrizeModa
                 id='points_cost'
                 type='number'
                 min='0'
+                step='1'
                 value={data.points_cost}
                 onChange={(e) => setData('points_cost', e.target.value)}
                 required

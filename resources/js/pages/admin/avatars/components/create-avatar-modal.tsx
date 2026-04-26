@@ -133,7 +133,7 @@ export function CreateAvatarModal({ isOpen, onClose, onSuccess }: CreateAvatarMo
                 id='price'
                 type='number'
                 min='0'
-                step='0.01'
+                step='1'
                 value={data.price}
                 onChange={(e) => setData('price', parseFloat(e.target.value) || 0)}
                 className='pl-7'

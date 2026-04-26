@@ -239,6 +239,7 @@ export function EditBackgroundModal({ isOpen, onClose, background: initialBackgr
                 id='points_store'
                 type='number'
                 min='0'
+                step='1'
                 value={formData.points_store}
                 onChange={(e) => setFormData((prev) => ({ ...prev, points_store: e.target.value }))}
                 placeholder='Ej: 50'

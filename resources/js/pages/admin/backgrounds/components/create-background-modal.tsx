@@ -148,6 +148,7 @@ export function CreateBackgroundModal({ isOpen, onClose, onSuccess }: CreateBack
                 id='points_store'
                 type='number'
                 min='0'
+                step='1'
                 value={data.points_store}
                 onChange={(e) => setData('points_store', e.target.value)}
                 required
