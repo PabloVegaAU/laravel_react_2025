@@ -17,6 +17,7 @@ export function CreateStudentDialog({ isOpen, onOpenChange }: CreateStudentDialo
     /* USER */
     name: '',
     password: '',
+    password_confirmation: '',
     email: '',
     /* PROFILE */
     firstName: '',
@@ -61,7 +62,16 @@ export function CreateStudentDialog({ isOpen, onOpenChange }: CreateStudentDialo
             </div>
             <div className='flex flex-col gap-2'>
               <Label htmlFor='password'>Contraseña</Label>
-              <Input id='password' name='password' type='password' value={data.password} onChange={(e) => setData('password', e.target.value)} />
+              <Input
+                id='password'
+                name='password'
+                type='password'
+                value={data.password}
+                onChange={(e) => {
+                  setData('password', e.target.value)
+                  setData('password_confirmation', e.target.value)
+                }}
+              />
               <InputError message={errors.password} />
             </div>
           </div>

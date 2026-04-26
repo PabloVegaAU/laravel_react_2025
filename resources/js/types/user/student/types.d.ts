@@ -52,6 +52,7 @@ export type CreateStudent = {
   /* USER */
   name: string
   password: string
+  password_confirmation: string
   /* PROFILE */
   email: string
   firstName: string
