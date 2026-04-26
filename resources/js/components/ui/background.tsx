@@ -9,13 +9,13 @@ const Background = () => {
 
   return (
     <div
-      className="absolute inset-0 -z-10 min-h-screen" 
+      className="absolute inset-0 -z-10 min-h-screen"
       style={{
         backgroundImage: `url(${background})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
-        opacity: 0.5,
+        opacity: 0.8,
       }}
     />
   )

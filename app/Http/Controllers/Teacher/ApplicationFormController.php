@@ -689,12 +689,25 @@ class ApplicationFormController extends Controller
     // Generar ApplicationFormResponses para students
     public function generateApplicationFormResponses(LearningSession $learningSession)
     {
-        // Revisar si existen applicationFormResponses
-        if (ApplicationFormResponse::where('application_form_id', $learningSession->applicationForm->id)->exists()) {
+        // Verificar que exista ApplicationForm
+        if (! $learningSession->applicationForm) {
+            \Log::warning('generateApplicationFormResponses: LearningSession has no ApplicationForm', [
+                'learning_session_id' => $learningSession->id,
+            ]);
+
             return;
         }
 
         $applicationForm = $learningSession->applicationForm->load('questions');
+
+        // Verificar que existan preguntas
+        if ($applicationForm->questions->isEmpty()) {
+            \Log::warning('generateApplicationFormResponses: ApplicationForm has no questions', [
+                'application_form_id' => $applicationForm->id,
+            ]);
+
+            return;
+        }
 
         // Después de insertar las preguntas del formulario, obtenemos los IDs generados
         $insertedQuestions = ApplicationFormQuestion::where('application_form_id', $applicationForm->id)->get();
@@ -710,37 +723,87 @@ class ApplicationFormController extends Controller
                 });
         }])->findOrFail($learningSession->teacher_classroom_curricular_area_cycle_id);
 
-        if ($teacherClassroomCurricularAreaCycle->classroom && $teacherClassroomCurricularAreaCycle->classroom->students->isNotEmpty()) {
-            foreach ($teacherClassroomCurricularAreaCycle->classroom->students as $student) {
-                $applicationFormResponses = [
-                    'score' => 0,
-                    'status' => 'pending',
-                    'started_at' => null,
-                    'submitted_at' => null,
-                    'graded_at' => null,
-                    'application_form_id' => $applicationForm->id,
-                    'student_id' => $student->user_id,
-                ];
+        if (! $teacherClassroomCurricularAreaCycle->classroom) {
+            \Log::warning('generateApplicationFormResponses: No classroom found', [
+                'teacher_classroom_curricular_area_cycle_id' => $learningSession->teacher_classroom_curricular_area_cycle_id,
+            ]);
 
-                $applicationFormResponse = ApplicationFormResponse::create($applicationFormResponses);
-
-                // Preparar preguntas de respuesta para inserción masiva
-                $applicationFormResponseQuestions = [];
-                foreach ($applicationForm->questions as $question) {
-                    // Usamos el mapa para obtener el ID correcto
-                    $appFormQuestionId = $questionIdMap[$question->question_id] ?? null;
-
-                    $applicationFormResponseQuestions[] = [
-                        'application_form_response_id' => $applicationFormResponse->id,
-                        'application_form_question_id' => $appFormQuestionId,
-                        'explanation' => '',
-                        'score' => $question['score'],
-                        'points_store' => $question['points_store'],
-                    ];
-                }
-
-                ApplicationFormResponseQuestion::insert($applicationFormResponseQuestions);
-            }
+            return;
         }
+
+        if ($teacherClassroomCurricularAreaCycle->classroom->students->isEmpty()) {
+            \Log::warning('generateApplicationFormResponses: No active students found in classroom', [
+                'classroom_id' => $teacherClassroomCurricularAreaCycle->classroom->id,
+            ]);
+
+            return;
+        }
+
+        // Obtener IDs de estudiantes que ya tienen respuestas para este formulario
+        $existingResponseStudentIds = ApplicationFormResponse::where('application_form_id', $applicationForm->id)
+            ->pluck('student_id')
+            ->toArray();
+
+        // Filtrar estudiantes que aún no tienen respuestas
+        $studentsWithoutResponses = $teacherClassroomCurricularAreaCycle->classroom->students
+            ->reject(function ($student) use ($existingResponseStudentIds) {
+                return in_array($student->user_id, $existingResponseStudentIds);
+            });
+
+        $totalStudents = $teacherClassroomCurricularAreaCycle->classroom->students->count();
+        $studentsWithResponses = count($existingResponseStudentIds);
+        $studentsToProcess = $studentsWithoutResponses->count();
+
+        \Log::info('generateApplicationFormResponses: Starting generation', [
+            'application_form_id' => $applicationForm->id,
+            'total_students' => $totalStudents,
+            'students_with_responses' => $studentsWithResponses,
+            'students_to_process' => $studentsToProcess,
+            'questions_count' => $applicationForm->questions->count(),
+        ]);
+
+        if ($studentsToProcess === 0) {
+            \Log::info('generateApplicationFormResponses: All students already have responses', [
+                'application_form_id' => $applicationForm->id,
+            ]);
+
+            return;
+        }
+
+        foreach ($studentsWithoutResponses as $student) {
+            $applicationFormResponses = [
+                'score' => 0,
+                'status' => 'pending',
+                'started_at' => null,
+                'submitted_at' => null,
+                'graded_at' => null,
+                'application_form_id' => $applicationForm->id,
+                'student_id' => $student->user_id,
+            ];
+
+            $applicationFormResponse = ApplicationFormResponse::create($applicationFormResponses);
+
+            // Preparar preguntas de respuesta para inserción masiva
+            $applicationFormResponseQuestions = [];
+            foreach ($applicationForm->questions as $question) {
+                // Usamos el mapa para obtener el ID correcto
+                $appFormQuestionId = $questionIdMap[$question->question_id] ?? null;
+
+                $applicationFormResponseQuestions[] = [
+                    'application_form_response_id' => $applicationFormResponse->id,
+                    'application_form_question_id' => $appFormQuestionId,
+                    'explanation' => '',
+                    'score' => $question['score'],
+                    'points_store' => $question['points_store'],
+                ];
+            }
+
+            ApplicationFormResponseQuestion::insert($applicationFormResponseQuestions);
+        }
+
+        \Log::info('generateApplicationFormResponses: Completed successfully', [
+            'application_form_id' => $applicationForm->id,
+            'new_responses_created' => $studentsToProcess,
+        ]);
     }
 }

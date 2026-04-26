@@ -68,6 +68,10 @@ class ActivateLearningSessions extends Command
                         'registration_status' => 'active',
                     ]);
 
+                    // Generar ApplicationFormResponses para estudiantes matriculados
+                    $applicationFormController = app(ApplicationFormController::class);
+                    $applicationFormController->generateApplicationFormResponses($session);
+
                     $this->line("Activated session ID: {$session->id} - {$session->name} (with ApplicationForm ID: {$session->applicationForm->id})");
                 } else {
                     $this->line("Activated session ID: {$session->id} - {$session->name} (no ApplicationForm)");
