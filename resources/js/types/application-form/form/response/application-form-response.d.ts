@@ -29,6 +29,10 @@ export interface ApplicationFormResponse {
   started_at: string | null
   submitted_at: string | null
   graded_at: string | null
+  declaracion_autenticidad: boolean
+  declaracion_aceptada_at: string | null
+  declaracion_ip: string | null
+  declaracion_user_agent: string | null
   created_at: string
   updated_at: string
   deleted_at: string | null

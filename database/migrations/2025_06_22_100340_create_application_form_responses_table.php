@@ -38,6 +38,20 @@ return new class extends Migration
                 ->nullable()
                 ->comment('Fecha y hora de calificación');
 
+            // Declaración de autenticidad
+            $table->boolean('declaracion_autenticidad')
+                ->default(false)
+                ->comment('Indica si el estudiante aceptó la declaración de autenticidad');
+            $table->timestamp('declaracion_aceptada_at')
+                ->nullable()
+                ->comment('Fecha y hora en que el estudiante aceptó la declaración');
+            $table->string('declaracion_ip')
+                ->nullable()
+                ->comment('Dirección IP del estudiante al aceptar la declaración');
+            $table->string('declaracion_user_agent')
+                ->nullable()
+                ->comment('User agent del navegador del estudiante al aceptar la declaración');
+
             // Relaciones
             $table->foreignId('application_form_id')
                 ->constrained('application_forms')

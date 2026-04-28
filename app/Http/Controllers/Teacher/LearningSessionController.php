@@ -4,9 +4,6 @@ namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Models\ApplicationForm;
-use App\Models\ApplicationFormQuestion;
-use App\Models\ApplicationFormResponse;
-use App\Models\ApplicationFormResponseQuestion;
 use App\Models\Competency;
 use App\Models\CurricularArea;
 use App\Models\EducationalInstitution;

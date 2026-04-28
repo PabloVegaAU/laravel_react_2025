@@ -105,6 +105,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // REALIZADO POR CARLOS
     Route::resource('student/learning-sessions', StudentLearningSessionController::class)->names('student.learning-sessions');
+    Route::post('student/application-form-responses/{id}/start', [StudentApplicationFormResponseController::class, 'start'])->name('student.application-form-responses.start');
     Route::resource('student/application-form-responses', StudentApplicationFormResponseController::class)->names('student.application-form-responses');
 });
 

@@ -21,6 +21,10 @@ class ApplicationFormResponse extends Model
         'started_at',
         'submitted_at',
         'graded_at',
+        'declaracion_autenticidad',
+        'declaracion_aceptada_at',
+        'declaracion_ip',
+        'declaracion_user_agent',
         'application_form_id',
         'student_id',
     ];
@@ -30,6 +34,8 @@ class ApplicationFormResponse extends Model
         'started_at' => 'datetime',
         'submitted_at' => 'datetime',
         'graded_at' => 'datetime',
+        'declaracion_autenticidad' => 'boolean',
+        'declaracion_aceptada_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -38,6 +44,10 @@ class ApplicationFormResponse extends Model
     protected $attributes = [
         'status' => 'pending',
         'score' => 0.00,
+        'declaracion_autenticidad' => false,
+        'declaracion_aceptada_at' => null,
+        'declaracion_ip' => null,
+        'declaracion_user_agent' => null,
     ];
 
     public function applicationForm(): BelongsTo

@@ -1,15 +1,7 @@
 import DataTable from '@/components/organisms/data-table'
 import FlashMessages from '@/components/organisms/flash-messages'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle
-} from '@/components/ui/alert-dialog'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import AppLayout from '@/layouts/app-layout'
 import { useTranslations } from '@/lib/translator'
@@ -47,6 +39,7 @@ export default function LearningSession({ learning_sessions, curricular_areas, f
     open: false,
     responseId: null
   })
+  const [isChecked, setIsChecked] = useState(false)
 
   const columns: ColumnDef<LearningSession>[] = [
     {
@@ -223,30 +216,60 @@ export default function LearningSession({ learning_sessions, curricular_areas, f
         </div>
       </div>
 
-      <AlertDialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ open, responseId: null })}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar inicio de prueba</AlertDialogTitle>
-            <AlertDialogDescription>
-              El tiempo de inicio empezará desde que ingreses a desarrollar la ficha.
-              <br />
-              ¿Estás seguro que quieres iniciar la prueba?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
+      <Dialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => {
+          setConfirmDialog({ open, responseId: null })
+          setIsChecked(false)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Declaración de Autenticidad</DialogTitle>
+            <DialogDescription className='text-base'>
+              Declaro, bajo mi responsabilidad, que desarrollaré la presente evaluación de manera individual y autónoma, sin recibir ayuda de otras
+              personas, sin copiar respuestas y sin utilizar materiales externos no autorizados. Asimismo, me comprometo a responder con honestidad,
+              integridad y responsabilidad, garantizando que mis respuestas reflejan fielmente mis propios conocimientos y aprendizaje.
+            </DialogDescription>
+          </DialogHeader>
+          <div className='flex items-start space-x-3 py-4'>
+            <Checkbox
+              id='declaracion-autenticidad'
+              checked={isChecked}
+              onCheckedChange={(checked) => setIsChecked(checked === true)}
+              className='mt-0.5'
+            />
+            <label
+              htmlFor='declaracion-autenticidad'
+              className='text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
+            >
+              Acepto la declaración de autenticidad
+            </label>
+          </div>
+          <DialogFooter>
+            <button
+              onClick={() => {
+                setConfirmDialog({ open: false, responseId: null })
+                setIsChecked(false)
+              }}
+              className='inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none'
+            >
+              Cancelar
+            </button>
+            <button
+              disabled={!isChecked}
               onClick={() => {
                 if (confirmDialog.responseId) {
-                  router.visit(`/student/application-form-responses/${confirmDialog.responseId}/edit`)
+                  router.post(`/student/application-form-responses/${confirmDialog.responseId}/start`)
                 }
               }}
+              className='inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
             >
-              Sí, iniciar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              Iniciar evaluación
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   )
 }

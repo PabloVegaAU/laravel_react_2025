@@ -93,6 +93,57 @@ class ApplicationFormResponseController extends Controller
     }
 
     /**
+     * Aceptar la declaración de autenticidad e iniciar la evaluación.
+     */
+    public function start(Request $request, int $id)
+    {
+        $response = ApplicationFormResponse::where('id', $id)
+            ->where('student_id', auth()->id())
+            ->firstOrFail();
+
+        // Verificar permisos
+        if ($response->student_id !== auth()->id()) {
+            return redirect()
+                ->route('student.learning-sessions.index')
+                ->with('error', 'No tienes permiso para iniciar esta evaluación.');
+        }
+
+        // Control de concurrencia: verificar que no se haya aceptado previamente
+        if ($response->declaracion_aceptada_at !== null) {
+            // Ya fue aceptado, redireccionar según el estado
+            if ($response->status === 'in progress') {
+                return redirect()
+                    ->route('student.application-form-responses.edit', $response->id);
+            }
+
+            return redirect()
+                ->route('student.application-form-responses.show', $response->id);
+        }
+
+        // Verificar que el estado sea 'pending'
+        if ($response->status !== 'pending') {
+            return redirect()
+                ->route('student.application-form-responses.show', $response->id)
+                ->with('error', 'Esta evaluación ya no está disponible para iniciar.');
+        }
+
+        // Registrar la aceptación de la declaración
+        $response->fill([
+            'declaracion_autenticidad' => true,
+            'declaracion_aceptada_at' => now(),
+            'declaracion_ip' => $request->ip(),
+            'declaracion_user_agent' => $request->userAgent(),
+        ]);
+        $response->save();
+
+        // Iniciar la evaluación (cambiar estado a 'in progress')
+        $response->markAsStarted();
+
+        return redirect()
+            ->route('student.application-form-responses.edit', $response->id);
+    }
+
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit(int $id)
@@ -124,8 +175,18 @@ class ApplicationFormResponseController extends Controller
             ->where('student_id', auth()->id())
             ->firstOrFail();
 
-        // Iniciar el temporizador
-        $applicationFormResponse->markAsStarted();
+        // Validar que el estudiante haya aceptado la declaración de autenticidad
+        if (! $applicationFormResponse->declaracion_autenticidad) {
+            return redirect()
+                ->route('student.learning-sessions.index')
+                ->with('error', 'Debes aceptar la declaración de autenticidad antes de comenzar la evaluación.');
+        }
+
+        // Validar que el estado sea 'in progress'
+        if ($applicationFormResponse->status !== 'in progress') {
+            return redirect()
+                ->route('student.application-form-responses.show', $applicationFormResponse->id);
+        }
 
         // Si el formulario no ha sido enviado, aleatorizar opciones de ordenamiento y emparejamiento
         if ($applicationFormResponse->status == 'in progress') {

@@ -19,7 +19,8 @@ class CheckSequencesCommand extends Command
         $driver = DB::getDriverName();
 
         if ($driver !== 'pgsql') {
-            $this->warn('This command only works with PostgreSQL. Current driver: ' . $driver);
+            $this->warn('This command only works with PostgreSQL. Current driver: '.$driver);
+
             return self::FAILURE;
         }
 
@@ -27,12 +28,13 @@ class CheckSequencesCommand extends Command
         $desynchronized = [];
 
         foreach ($tables as $table) {
-            $sequenceName = $table . '_id_seq';
+            $sequenceName = $table.'_id_seq';
             $maxId = $this->getMaxId($table);
             $sequenceValue = $this->getSequenceValue($sequenceName);
 
             if ($sequenceValue === null) {
                 $this->line("  {$table}: Sequence not found, skipping");
+
                 continue;
             }
 
@@ -53,14 +55,15 @@ class CheckSequencesCommand extends Command
 
         if (empty($desynchronized)) {
             $this->info('All sequences are synchronized.');
+
             return self::SUCCESS;
         }
 
-        $this->warn("\nFound " . count($desynchronized) . ' desynchronized sequence(s):');
+        $this->warn("\nFound ".count($desynchronized).' desynchronized sequence(s):');
 
         $this->table(
             ['Table', 'Sequence', 'Max ID', 'Seq Value', 'Diff'],
-            array_map(fn($item) => [
+            array_map(fn ($item) => [
                 $item['table'],
                 $item['sequence'],
                 $item['max_id'],
@@ -108,6 +111,7 @@ class CheckSequencesCommand extends Command
     {
         try {
             $result = DB::select("SELECT MAX(id) as max_id FROM {$table}");
+
             return $result[0]->max_id ?? null;
         } catch (\Exception $e) {
             return null;
@@ -118,6 +122,7 @@ class CheckSequencesCommand extends Command
     {
         try {
             $result = DB::select("SELECT last_value FROM {$sequence}");
+
             return $result[0]->last_value ?? null;
         } catch (\Exception $e) {
             return null;
