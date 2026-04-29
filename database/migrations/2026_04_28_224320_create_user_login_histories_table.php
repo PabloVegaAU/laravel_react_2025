@@ -30,6 +30,24 @@ return new class extends Migration
             $table->text('user_agent')
                 ->comment('User-Agent del dispositivo utilizado para el login');
 
+            // Session ID (correlación con tabla sessions)
+            $table->string('session_id', 255)
+                ->nullable()
+                ->comment('ID de sesión de Laravel para correlación');
+
+            // Device Information (parsed from user_agent)
+            $table->string('browser', 50)
+                ->nullable()
+                ->comment('Navegador detectado (Chrome, Firefox, Safari, etc.)');
+
+            $table->string('operating_system', 50)
+                ->nullable()
+                ->comment('Sistema operativo detectado (Windows, macOS, Android, iOS, etc.)');
+
+            $table->enum('device_type', ['desktop', 'mobile', 'tablet'])
+                ->nullable()
+                ->comment('Tipo de dispositivo detectado');
+
             // Geolocation
             $table->string('country', 100)
                 ->nullable()
@@ -47,6 +65,15 @@ return new class extends Migration
             $table->timestamp('login_at')
                 ->useCurrent()
                 ->comment('Fecha y hora del intento de login');
+
+            // Logout tracking
+            $table->timestamp('logged_out_at')
+                ->nullable()
+                ->comment('Fecha y hora de cierre de sesión');
+
+            $table->integer('duration_minutes')
+                ->nullable()
+                ->comment('Duración de la sesión en minutos (calculado al logout)');
 
             // Suspicious activity flag
             $table->boolean('is_suspicious')
