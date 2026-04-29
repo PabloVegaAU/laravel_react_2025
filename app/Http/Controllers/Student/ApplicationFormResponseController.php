@@ -5,12 +5,21 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateApplicationFormResponseRequest;
 use App\Models\ApplicationFormResponse;
+use App\Models\UserLoginHistory;
+use App\Services\RiskScoringService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ApplicationFormResponseController extends Controller
 {
+    protected $riskScorer;
+
+    public function __construct(RiskScoringService $riskScorer)
+    {
+        $this->riskScorer = $riskScorer;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -94,6 +103,9 @@ class ApplicationFormResponseController extends Controller
 
     /**
      * Aceptar la declaración de autenticidad e iniciar la evaluación.
+     *
+     * Calcula el nivel de riesgo comparando datos de la declaración con el login
+     * que inició la sesión. Almacena GPS, IP, User-Agent y puntuación de riesgo.
      */
     public function start(Request $request, int $id)
     {
@@ -127,12 +139,55 @@ class ApplicationFormResponseController extends Controller
                 ->with('error', 'Esta evaluación ya no está disponible para iniciar.');
         }
 
-        // Registrar la aceptación de la declaración
+        // Obtener el login activo del estudiante para vincular la sesión
+        $loginHistory = UserLoginHistory::where('user_id', auth()->id())
+            ->where('status', 'success')
+            ->whereNull('logged_out_at')
+            ->latest('login_at')
+            ->first();
+
+        // Obtener GPS desde el frontend
+        $latitude = $request->input('latitude');
+        $longitude = $request->input('longitude');
+
+        // Preparar datos de autenticación para cálculo de riesgo
+        $authData = [
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'latitude' => $latitude,
+            'longitude' => $longitude,
+            'timestamp' => now(),
+        ];
+
+        // Calcular riesgo de autenticación si tenemos login history
+        $riskLevel = null;
+        $riskScore = null;
+        $riskFactors = null;
+
+        if ($loginHistory) {
+            $riskAssessment = $this->riskScorer->calculateAuthDeclarationRisk(
+                $response,
+                $loginHistory,
+                $authData
+            );
+
+            $riskLevel = $riskAssessment['level'];
+            $riskScore = $riskAssessment['score'];
+            $riskFactors = $riskAssessment['factors'];
+        }
+
+        // Registrar la aceptación de la declaración con datos de riesgo
         $response->fill([
             'declaracion_autenticidad' => true,
             'declaracion_aceptada_at' => now(),
             'declaracion_ip' => $request->ip(),
             'declaracion_user_agent' => $request->userAgent(),
+            'login_history_id' => $loginHistory?->id,
+            'auth_risk_level' => $riskLevel,
+            'auth_risk_score' => $riskScore,
+            'auth_risk_factors' => $riskFactors,
+            'auth_latitude' => $latitude,
+            'auth_longitude' => $longitude,
         ]);
         $response->save();
 

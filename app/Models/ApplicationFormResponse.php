@@ -25,6 +25,12 @@ class ApplicationFormResponse extends Model
         'declaracion_aceptada_at',
         'declaracion_ip',
         'declaracion_user_agent',
+        'login_history_id',
+        'auth_risk_level',
+        'auth_risk_score',
+        'auth_risk_factors',
+        'auth_latitude',
+        'auth_longitude',
         'application_form_id',
         'student_id',
     ];
@@ -36,6 +42,10 @@ class ApplicationFormResponse extends Model
         'graded_at' => 'datetime',
         'declaracion_autenticidad' => 'boolean',
         'declaracion_aceptada_at' => 'datetime',
+        'auth_risk_score' => 'integer',
+        'auth_risk_factors' => 'array',
+        'auth_latitude' => 'decimal:7',
+        'auth_longitude' => 'decimal:7',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -60,6 +70,11 @@ class ApplicationFormResponse extends Model
     {
         return $this->belongsTo(Student::class, 'student_id', 'user_id')
             ->withTrashed();
+    }
+
+    public function loginHistory(): BelongsTo
+    {
+        return $this->belongsTo(UserLoginHistory::class, 'login_history_id', 'id');
     }
 
     public function responseQuestions(): HasMany

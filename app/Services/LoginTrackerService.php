@@ -232,4 +232,22 @@ class LoginTrackerService
 
         return $highPriorityCount > 0 || $otherCount >= 2;
     }
+
+    /**
+     * Process GPS coordinates from frontend.
+     */
+    public function processCoordinates(?float $latitude, ?float $longitude): array
+    {
+        if ($latitude === null || $longitude === null) {
+            return [
+                'latitude' => null,
+                'longitude' => null,
+            ];
+        }
+
+        return [
+            'latitude' => $latitude,
+            'longitude' => $longitude,
+        ];
+    }
 }

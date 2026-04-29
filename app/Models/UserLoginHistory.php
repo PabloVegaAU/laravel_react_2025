@@ -22,11 +22,17 @@ class UserLoginHistory extends Model
         'device_type',
         'country',
         'city',
+        'latitude',
+        'longitude',
         'status',
         'login_at',
         'logged_out_at',
         'duration_minutes',
         'is_suspicious',
+        'risk_level',
+        'risk_score',
+        'risk_factors',
+        'comparison_login_id',
         'failure_reason',
     ];
 
@@ -34,6 +40,11 @@ class UserLoginHistory extends Model
         'login_at' => 'datetime',
         'logged_out_at' => 'datetime',
         'is_suspicious' => 'boolean',
+        'latitude' => 'decimal:7',
+        'longitude' => 'decimal:7',
+        'risk_score' => 'integer',
+        'risk_factors' => 'array',
+        'comparison_login_id' => 'integer',
     ];
 
     /**
@@ -42,6 +53,14 @@ class UserLoginHistory extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Get the previous login used for risk comparison.
+     */
+    public function comparisonLogin(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'comparison_login_id');
     }
 
     /**

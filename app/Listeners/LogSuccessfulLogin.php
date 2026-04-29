@@ -4,6 +4,7 @@ namespace App\Listeners;
 
 use App\Models\UserLoginHistory;
 use App\Services\LoginTrackerService;
+use App\Services\RiskScoringService;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -14,10 +15,13 @@ class LogSuccessfulLogin
 
     protected $tracker;
 
-    public function __construct(Request $request, LoginTrackerService $tracker)
+    protected $riskScorer;
+
+    public function __construct(Request $request, LoginTrackerService $tracker, RiskScoringService $riskScorer)
     {
         $this->request = $request;
         $this->tracker = $tracker;
+        $this->riskScorer = $riskScorer;
     }
 
     public function handle(Login $event): void
@@ -39,10 +43,30 @@ class LogSuccessfulLogin
         // 3. Get geolocation from IP
         $geo = $this->tracker->getGeolocation($ipAddress);
 
-        // 4. Get last login for comparison
-        $lastLogin = UserLoginHistory::getLastSuccessful($user->id);
+        // 4. Get GPS coordinates from frontend
+        $coordinates = $this->tracker->processCoordinates(
+            $this->request->input('latitude'),
+            $this->request->input('longitude')
+        );
 
-        // 5. Evaluate suspicious criteria
+        // 5. Get last login and recent logins for comparison
+        $lastLogin = UserLoginHistory::getLastSuccessful($user->id);
+        $recentLogins = $this->riskScorer->getRecentLogins($user->id, 10);
+
+        // 6. Calculate risk score with new RiskScoringService
+        $currentData = [
+            'ip_address' => $ipAddress,
+            'country' => $geo['country'],
+            'device_type' => $deviceInfo['device'],
+            'browser' => $deviceInfo['browser'],
+            'os' => $deviceInfo['os'],
+            'latitude' => $coordinates['latitude'],
+            'longitude' => $coordinates['longitude'],
+        ];
+
+        $riskAssessment = $this->riskScorer->calculateLoginRisk($user, $currentData, $lastLogin, $recentLogins);
+
+        // 7. Evaluate legacy suspicious criteria (for backwards compatibility)
         $isSuspicious = $this->tracker->evaluateSuspicious(
             $user,
             $ipAddress,
@@ -50,7 +74,7 @@ class LogSuccessfulLogin
             $lastLogin
         );
 
-        // 6. Create login history record
+        // 8. Create login history record with risk assessment
         UserLoginHistory::create([
             'user_id' => $user->id,
             'session_id' => session()->getId(),
@@ -61,21 +85,31 @@ class LogSuccessfulLogin
             'device_type' => $deviceInfo['device'],
             'country' => $geo['country'],
             'city' => $geo['city'],
+            'latitude' => $coordinates['latitude'],
+            'longitude' => $coordinates['longitude'],
             'status' => 'success',
             'login_at' => now(),
-            'is_suspicious' => $isSuspicious,
+            'is_suspicious' => $isSuspicious || in_array($riskAssessment['level'], ['sospechoso', 'critico']),
+            'risk_level' => $riskAssessment['level'],
+            'risk_score' => $riskAssessment['score'],
+            'risk_factors' => $riskAssessment['factors'],
+            'comparison_login_id' => $riskAssessment['comparison_login_id'],
         ]);
 
-        // 7. Mark as recorded in session to prevent duplicates
+        // 9. Mark as recorded in session to prevent duplicates
         session()->put($sessionKey, true);
 
-        // 8. Log warning if suspicious
-        if ($isSuspicious) {
-            Log::warning('Suspicious login detected', [
+        // 10. Log warning if suspicious or critical risk
+        if ($isSuspicious || $riskAssessment['level'] !== 'normal') {
+            Log::warning('Suspicious or high-risk login detected', [
                 'user_id' => $user->id,
                 'ip' => $ipAddress,
                 'device' => $deviceInfo,
                 'geo' => $geo,
+                'coordinates' => $coordinates,
+                'risk_level' => $riskAssessment['level'],
+                'risk_score' => $riskAssessment['score'],
+                'risk_factors' => $riskAssessment['factors'],
             ]);
         }
     }

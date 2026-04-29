@@ -11,7 +11,7 @@ import { PaginatedResponse, ResourcePageProps } from '@/types/core/api-types'
 import { type LearningSession } from '@/types/learning-session'
 import { Head, Link, router } from '@inertiajs/react'
 import { CellContext, ColumnDef } from '@tanstack/react-table'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 type PageProps = Omit<ResourcePageProps<LearningSession>, 'data'> & {
   learning_sessions: PaginatedResponse<LearningSession>
@@ -40,6 +40,43 @@ export default function LearningSession({ learning_sessions, curricular_areas, f
     responseId: null
   })
   const [isChecked, setIsChecked] = useState(false)
+
+  // GPS coordinates for risk assessment
+  const [gpsLocation, setGpsLocation] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null })
+  const [locationError, setLocationError] = useState<string | null>(null)
+
+  // Get GPS location when dialog opens
+  useEffect(() => {
+    if (confirmDialog.open) {
+      getCurrentLocation()
+    }
+  }, [confirmDialog.open])
+
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('Geolocalización no soportada en este navegador')
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setGpsLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        })
+        setLocationError(null)
+      },
+      (error) => {
+        setLocationError('Permiso denegado o error de ubicación')
+        console.error('Geolocation error:', error)
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    )
+  }
 
   const columns: ColumnDef<LearningSession>[] = [
     {
@@ -221,6 +258,10 @@ export default function LearningSession({ learning_sessions, curricular_areas, f
         onOpenChange={(open) => {
           setConfirmDialog({ open, responseId: null })
           setIsChecked(false)
+          if (!open) {
+            setGpsLocation({ lat: null, lng: null })
+            setLocationError(null)
+          }
         }}
       >
         <DialogContent>
@@ -260,7 +301,10 @@ export default function LearningSession({ learning_sessions, curricular_areas, f
               disabled={!isChecked}
               onClick={() => {
                 if (confirmDialog.responseId) {
-                  router.post(`/student/application-form-responses/${confirmDialog.responseId}/start`)
+                  router.post(`/student/application-form-responses/${confirmDialog.responseId}/start`, {
+                    latitude: gpsLocation.lat,
+                    longitude: gpsLocation.lng
+                  })
                 }
               }}
               className='inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'

@@ -1,6 +1,6 @@
 import { Head, useForm } from '@inertiajs/react'
 import { LoaderCircle } from 'lucide-react'
-import { FormEventHandler, useState } from 'react'
+import { FormEventHandler, useEffect, useState } from 'react'
 
 import AppLogoIcon from '@/components/app-logo-icon'
 import InputError from '@/components/input-error'
@@ -14,6 +14,8 @@ type LoginForm = {
   name: string
   password: string
   remember: boolean
+  latitude?: number
+  longitude?: number
 }
 
 interface LoginProps {
@@ -22,16 +24,55 @@ interface LoginProps {
 }
 
 export default function Login({ status, canResetPassword }: LoginProps) {
-  const { data, setData, post, processing, errors, reset } = useForm<Required<LoginForm>>({
+  const { data, setData, post, processing, errors, reset } = useForm<LoginForm>({
     name: '',
     password: '',
-    remember: false
+    remember: false,
+    latitude: undefined,
+    longitude: undefined
   })
 
   const [showPassword, setShowPassword] = useState(false)
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [locationError, setLocationError] = useState<string | null>(null)
+
+  // Get GPS location on component mount
+  useEffect(() => {
+    const getCurrentLocation = () => {
+      if (!navigator.geolocation) {
+        setLocationError('Geolocalización no soportada en este navegador')
+        return
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          })
+        },
+        (error) => {
+          setLocationError('Permiso denegado o error de ubicación')
+          console.error('Geolocation error:', error)
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      )
+    }
+
+    getCurrentLocation()
+  }, [])
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault()
+    setData({
+      ...data,
+      latitude: location?.lat,
+      longitude: location?.lng
+    })
     post(route('login'), {
       onFinish: () => reset('password')
     })
