@@ -80,6 +80,9 @@ class RoleSeeder extends Seeder
         Permission::firstOrCreate(['name' => 'admin.objects.edit'])->syncRoles([$admin]);
         Permission::firstOrCreate(['name' => 'admin.objects.destroy'])->syncRoles([$admin]);
 
+        // LOGIN HISTORIES (Auditoría de Sesiones)
+        Permission::firstOrCreate(['name' => 'admin.login-histories.index'])->syncRoles([$admin]);
+
         // ********************* PERMISOS TEACHER *****************************
         // CRUD LEARNING SESSIONS
         Permission::firstOrCreate(['name' => 'teacher.learning-sessions.index'])->syncRoles([$teacher]);
