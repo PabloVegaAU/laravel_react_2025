@@ -31,6 +31,7 @@ class LoginHistoryController extends Controller
         $riskLevels = $this->loginHistoryService->getRiskLevelOptions();
         $statusOptions = $this->loginHistoryService->getStatusOptions();
         $statistics = $this->loginHistoryService->getStatistics();
+        $riskConfig = $this->loginHistoryService->getRiskConfiguration();
 
         return Inertia::render('admin/login-histories/index', [
             'login_histories' => $loginHistories,
@@ -39,6 +40,7 @@ class LoginHistoryController extends Controller
             'status_options' => $statusOptions,
             'statistics' => $statistics,
             'filters' => $filters,
+            'risk_config' => $riskConfig,
         ]);
     }
 }

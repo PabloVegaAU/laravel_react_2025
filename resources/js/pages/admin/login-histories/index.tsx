@@ -15,6 +15,117 @@ import { ColumnDef } from '@tanstack/react-table'
 import { AlertTriangle, Eye, Filter, ShieldAlert, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 
+// Labels are now provided by backend via risk_config.labels
+
+interface RiskFactorsTableProps {
+  factors: Record<string, unknown>
+  score: number | null
+  riskLevel: string | null
+  weights: Record<string, number>
+  labels: Record<string, string>
+  thresholds: Record<string, { min: number; max: number }>
+}
+
+function RiskFactorsTable({ factors, score, riskLevel, weights, labels, thresholds }: RiskFactorsTableProps) {
+  const safeScore = score ?? 0
+  // Handle first login case
+  if (factors.first_login) {
+    return (
+      <div className='bg-muted rounded p-3 text-sm'>
+        <p className='text-muted-foreground'>Este es el primer inicio de sesión del usuario. No hay datos históricos para comparar.</p>
+        <p className='text-muted-foreground mt-1 text-xs'>Puntuación: {safeScore} (riesgo mínimo por defecto)</p>
+      </div>
+    )
+  }
+
+  const factorEntries = Object.entries(factors).filter(([key]) => key !== 'gps_distance_km')
+  const currentThreshold = thresholds[riskLevel || 'normal']
+  const thresholdMax = currentThreshold?.max ?? 100
+
+  if (factorEntries.length === 0) {
+    return (
+      <div className='bg-muted rounded p-3 text-sm'>
+        <p className='text-muted-foreground'>No se detectaron factores de riesgo.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className='overflow-hidden rounded border'>
+      <table className='w-full text-sm'>
+        <thead className='bg-muted'>
+          <tr>
+            <th className='px-3 py-2 text-left text-xs font-medium'>Parámetro</th>
+            <th className='px-3 py-2 text-left text-xs font-medium'>Puntuación</th>
+            <th className='px-3 py-2 text-left text-xs font-medium'>Máximo</th>
+            <th className='px-3 py-2 text-left text-xs font-medium'>Valor Detectado</th>
+          </tr>
+        </thead>
+        <tbody className='divide-y'>
+          {factorEntries.map(([key, value]) => {
+            const weight = weights[key] || 0
+            const label = labels[key] || key
+            let displayValue = ''
+
+            if (typeof value === 'boolean') {
+              displayValue = value ? 'Sí' : 'No'
+            } else if (typeof value === 'object' && value !== null) {
+              const obj = value as Record<string, unknown>
+              if (obj.previous !== undefined && obj.current !== undefined) {
+                displayValue = `${obj.previous} → ${obj.current}`
+              } else if (obj.minutes !== undefined && obj.minutes !== null) {
+                const minutesValue = Number(obj.minutes)
+                const totalSeconds = Math.round(minutesValue * 60)
+                const hours = Math.floor(totalSeconds / 3600)
+                const minutes = Math.floor((totalSeconds % 3600) / 60)
+                const seconds = totalSeconds % 60
+
+                if (hours > 0) {
+                  displayValue = `${hours}h ${minutes}m ${seconds}s`
+                } else if (minutes > 0) {
+                  displayValue = `${minutes}m ${seconds}s`
+                } else {
+                  displayValue = `${seconds}s`
+                }
+              } else if (obj.distance_km !== undefined) {
+                displayValue = `${obj.distance_km} km`
+              } else if (obj.active_sessions_count !== undefined) {
+                displayValue = `${obj.active_sessions_count} sesiones`
+              } else if (obj.current_hour !== undefined) {
+                displayValue = `Hora ${obj.current_hour}:00`
+              } else {
+                displayValue = JSON.stringify(value)
+              }
+            } else {
+              displayValue = String(value)
+            }
+
+            return (
+              <tr key={key} className='hover:bg-muted/50'>
+                <td className='px-3 py-2'>
+                  <div className='font-medium'>{label}</div>
+                  <div className='text-muted-foreground text-xs'>{key}</div>
+                </td>
+                <td className='px-3 py-2 font-medium text-orange-600'>{weight}</td>
+                <td className='text-muted-foreground px-3 py-2'>{weight}</td>
+                <td className='px-3 py-2 text-xs'>{displayValue}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+        <tfoot className='bg-muted font-medium'>
+          <tr>
+            <td className='px-3 py-2'>Total</td>
+            <td className='px-3 py-2 text-orange-600'>{safeScore}</td>
+            <td className='px-3 py-2'>≤ {thresholdMax}</td>
+            <td className='px-3 py-2'></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  )
+}
+
 type PageProps = {
   login_histories: {
     data: UserLoginHistory[]
@@ -32,12 +143,16 @@ type PageProps = {
   status_options: { value: string; label: string }[]
   statistics: LoginHistoryStatistics
   filters: LoginHistoryFilters
+  risk_config: {
+    weights: Record<string, number>
+    labels: Record<string, string>
+    thresholds: Record<string, { min: number; max: number }>
+  }
 }
 
-export default function LoginHistories({ login_histories, users, risk_levels, status_options, statistics, filters }: PageProps) {
+export default function LoginHistories({ login_histories, users, risk_levels, status_options, statistics, filters, risk_config }: PageProps) {
   const [localFilters, setLocalFilters] = useState<LoginHistoryFilters>(filters)
   const [showFilters, setShowFilters] = useState(true)
-  const [selectedDetail, setSelectedDetail] = useState<UserLoginHistory | null>(null)
 
   const handleFilterChange = (key: keyof LoginHistoryFilters, value: any) => {
     const newFilters = { ...localFilters, [key]: value }
@@ -183,14 +298,17 @@ export default function LoginHistories({ login_histories, users, risk_levels, st
     {
       header: 'GPS',
       accessorKey: 'latitude',
-      cell: ({ row }) =>
-        row.original.latitude && row.original.longitude ? (
+      cell: ({ row }) => {
+        const lat = Number(row.original.latitude)
+        const lng = Number(row.original.longitude)
+        return lat && lng ? (
           <code className='bg-muted rounded px-1 text-xs'>
-            {row.original.latitude.toFixed(4)}, {row.original.longitude.toFixed(4)}
+            {lat.toFixed(4)}, {lng.toFixed(4)}
           </code>
         ) : (
           <span className='text-muted-foreground text-xs'>N/A</span>
         )
+      }
     },
     {
       header: 'Acciones',
@@ -198,7 +316,7 @@ export default function LoginHistories({ login_histories, users, risk_levels, st
       cell: ({ row }) => (
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant='outline' size='sm' onClick={() => setSelectedDetail(row.original)}>
+            <Button variant='outline' size='sm'>
               <Eye className='mr-1 h-4 w-4' />
               Ver
             </Button>
@@ -253,9 +371,28 @@ export default function LoginHistories({ login_histories, users, risk_levels, st
               </div>
 
               {row.original.risk_factors && (
-                <div>
-                  <label className='text-muted-foreground text-xs'>Factores de Riesgo</label>
-                  <pre className='bg-muted mt-1 max-h-48 overflow-auto rounded p-2 text-xs'>{JSON.stringify(row.original.risk_factors, null, 2)}</pre>
+                <div className='mt-4'>
+                  <div className='mb-2 flex items-center justify-between'>
+                    <label className='text-muted-foreground text-xs'>Factores de Riesgo</label>
+                    <div className='flex items-center gap-2'>
+                      <span className='text-sm font-medium'>Total: {row.original.risk_score}</span>
+                      <Badge
+                        variant={
+                          row.original.risk_level === 'normal' ? 'default' : row.original.risk_level === 'sospechoso' ? 'outline' : 'destructive'
+                        }
+                      >
+                        {row.original.risk_level}
+                      </Badge>
+                    </div>
+                  </div>
+                  <RiskFactorsTable
+                    factors={row.original.risk_factors}
+                    score={row.original.risk_score}
+                    riskLevel={row.original.risk_level}
+                    weights={risk_config.weights}
+                    labels={risk_config.labels}
+                    thresholds={risk_config.thresholds}
+                  />
                 </div>
               )}
 

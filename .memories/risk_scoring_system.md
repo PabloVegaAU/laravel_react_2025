@@ -12,37 +12,45 @@ Se implementó un sistema de puntuación de riesgo (risk scoring) para autentica
 
 ### 1.1 Factores de Riesgo y Pesos
 
-| Factor | Peso | Descripción | Justificación |
-|--------|------|-------------|---------------|
-| `ip_changed` | +50 | Cambio de dirección IP respecto al último login | Indica posible acceso desde ubicación diferente |
-| `country_changed` | +70 | Cambio de país | Alto riesgo, posible acceso no autorizado |
-| `device_changed` | +20 | Cambio de tipo de dispositivo (desktop/mobile/tablet) | Puede indicar compartición de cuenta |
-| `browser_changed` | +10 | Cambio de navegador | Factor de riesgo bajo pero relevante |
-| `os_changed` | +15 | Cambio de sistema operativo | Puede indicar nuevo dispositivo |
-| `time_under_5min` | +20 | Tiempo entre sesiones < 5 minutos | Patrón inusual de comportamiento |
-| `time_under_1min` | +30 | Tiempo entre sesiones < 1 minuto | Riesgo crítico, posible ataque automatizado |
-| `session_simultaneous` | +30 | Sesiones activas simultáneas | Compartición de credenciales o acceso no autorizado |
-| `gps_distance_over_100m` | +25 | Distancia GPS > 100m | Fuera de la precisión típica de una casa |
-| `gps_distance_over_1km` | +40 | Distancia GPS > 1km | Diferente zona/barrio |
-| `gps_distance_over_10km` | +60 | Distancia GPS > 10km | Viaje físicamente imposible en tiempo corto |
-| `unusual_time` | +15 | Hora de login inusual para el usuario | Desviación > 3 horas del patrón histórico |
+| Factor                   | Peso | Descripción                                           | Justificación                                       |
+| ------------------------ | ---- | ----------------------------------------------------- | --------------------------------------------------- |
+| `ip_changed`             | +50  | Cambio de dirección IP respecto al último login       | Indica posible acceso desde ubicación diferente     |
+| `country_changed`        | +70  | Cambio de país                                        | Alto riesgo, posible acceso no autorizado           |
+| `device_changed`         | +20  | Cambio de tipo de dispositivo (desktop/mobile/tablet) | Puede indicar compartición de cuenta                |
+| `browser_changed`        | +10  | Cambio de navegador                                   | Factor de riesgo bajo pero relevante                |
+| `os_changed`             | +15  | Cambio de sistema operativo                           | Puede indicar nuevo dispositivo                     |
+| `time_under_5min`        | +20  | Tiempo entre sesiones < 5 minutos                     | Patrón inusual de comportamiento                    |
+| `time_under_1min`        | +30  | Tiempo entre sesiones < 1 minuto                      | Riesgo crítico, posible ataque automatizado         |
+| `session_simultaneous`   | +30  | Sesiones activas simultáneas                          | Compartición de credenciales o acceso no autorizado |
+| `gps_distance_over_100m` | +25  | Distancia GPS > 100m                                  | Fuera de la precisión típica de una casa            |
+| `gps_distance_over_1km`  | +40  | Distancia GPS > 1km                                   | Diferente zona/barrio                               |
+| `gps_distance_over_10km` | +60  | Distancia GPS > 10km                                  | Viaje físicamente imposible en tiempo corto         |
+| `unusual_time`           | +15  | Hora de login inusual para el usuario                 | Desviación > 3 horas del patrón histórico           |
 
-### 1.2 Umbrales de Clasificación
-
-```
-Puntuación 0-20   → NIVEL NORMAL (🟢)
-Puntuación 21-50  → NIVEL SOSPECHOSO (🟡)
-Puntuación 51+    → NIVEL CRÍTICO (🔴)
-```
-
-### 1.3 Fórmula de Cálculo
+### 1.2 Umbrales de Clasificación (Normalizados a 0-100)
 
 ```
-Score = Σ (peso_factor × condición_cumplida)
+Puntuación 0-30   → NIVEL NORMAL (🟢)
+Puntuación 31-60  → NIVEL SOSPECHOSO (🟡)
+Puntuación 61-100 → NIVEL CRÍTICO (🔴)
+```
+
+**Alineación con estándares:**
+
+- OWASP Risk Rating: umbrales relativos a la escala (Low/Medium/High)
+- NIST SP 800-63: 3 niveles de assurance (Low/Moderate/High)
+- SecureAuth (industrial): scores normalizados a 0-100 con cap
+
+### 1.3 Fórmula de Cálculo con Normalización
+
+```
+raw_score = Σ (peso_factor × condición_cumplida)
+normalized_score = min(raw_score, 100)
 
 Donde:
 - condición_cumplida = 1 si el factor está presente, 0 si no
-- El score puede exceder 100 (indica múltiples factores críticos)
+- La normalización a 0-100 permite umbrales intuitivos
+- El raw_score se mantiene en logs para debugging
 ```
 
 ---
@@ -89,11 +97,11 @@ public function calculateDistance(float $lat1, float $lon1, float $lat2, float $
 
 ### 2.4 Umbrales de Distancia
 
-| Umbral | Valor | Interpretación |
-|--------|-------|----------------|
+| Umbral           | Valor         | Interpretación                                |
+| ---------------- | ------------- | --------------------------------------------- |
 | `GPS_SAME_HOUSE` | 0.1 km (100m) | Precisión típica GPS en interior de viviendas |
-| `GPS_SAME_CITY` | 1.0 km | Diferente barrio/zona de la misma ciudad |
-| `GPS_IMPOSSIBLE` | 10.0 km | Distancia imposible de recorrer en < 5 min |
+| `GPS_SAME_CITY`  | 1.0 km        | Diferente barrio/zona de la misma ciudad      |
+| `GPS_IMPOSSIBLE` | 10.0 km       | Distancia imposible de recorrer en < 5 min    |
 
 ---
 
@@ -148,6 +156,7 @@ comparison_login_id BIGINT UNSIGNED NULL (FK → user_login_histories.id)
 ```
 
 **Ejemplo de risk_factors:**
+
 ```json
 {
   "ip_changed": {
@@ -178,6 +187,7 @@ auth_longitude        DECIMAL(10,7) NULL
 ```
 
 **Ejemplo de auth_risk_factors:**
+
 ```json
 {
   "ip_changed": {
@@ -208,14 +218,14 @@ auth_longitude        DECIMAL(10,7) NULL
 
 ### 5.2 Decisiones de Diseño
 
-| Decisión | Justificación |
-|----------|---------------|
-| Comparación con último login + últimos 10 | Proporciona contexto de patrón de comportamiento |
-| Distancia GPS de 100m para "misma casa" | Precisión típica de GPS doméstico (5-10m) más margen de error |
-| Distancia de 10km como "imposible" | Velocidad máxima terrestre (~120km/h) × 5 min = 10km |
-| Tiempo de 5 minutos como "corto" | Basado en estudios de comportamiento de usuarios |
-| Pesos de 10-70 por factor | OWASP Risk Rating: 0-10 por factor, escalado ×10 para granularidad |
-| No tomar acciones automáticas | Requisito del sistema: solo detección y registro |
+| Decisión                                  | Justificación                                                      |
+| ----------------------------------------- | ------------------------------------------------------------------ |
+| Comparación con último login + últimos 10 | Proporciona contexto de patrón de comportamiento                   |
+| Distancia GPS de 100m para "misma casa"   | Precisión típica de GPS doméstico (5-10m) más margen de error      |
+| Distancia de 10km como "imposible"        | Velocidad máxima terrestre (~120km/h) × 5 min = 10km               |
+| Tiempo de 5 minutos como "corto"          | Basado en estudios de comportamiento de usuarios                   |
+| Pesos de 10-70 por factor                 | OWASP Risk Rating: 0-10 por factor, escalado ×10 para granularidad |
+| No tomar acciones automáticas             | Requisito del sistema: solo detección y registro                   |
 
 ### 5.3 Extensibilidad
 
@@ -231,6 +241,7 @@ El sistema está diseñado para permitir futuras extensiones:
 ## 6. Ejemplos de Casos de Uso
 
 ### Caso 1: Login Normal
+
 ```
 Último login: Ayer, misma IP, mismo dispositivo
 Login actual: Hoy, misma IP, mismo dispositivo
@@ -241,6 +252,7 @@ Nivel: NORMAL ✅
 ```
 
 ### Caso 2: Cambio de Dispositivo (Sospechoso)
+
 ```
 Último login: iPhone, IP 192.168.1.100
 Login actual: Android, IP 192.168.1.100
@@ -251,6 +263,7 @@ Nivel: SOSPECHOSO ⚠️
 ```
 
 ### Caso 3: Viaje Imposible (Crítico)
+
 ```
 Login 1: Lima, Perú (GPS: -12.04, -77.03) - 10:00 AM
 Login 2: Cusco, Perú (GPS: -13.52, -71.98) - 10:03 AM
@@ -266,17 +279,17 @@ Nivel: CRÍTICO 🚨
 
 ### 7.1 Archivos Creados/Modificados
 
-| Archivo | Tipo | Descripción |
-|---------|------|-------------|
-| `database/migrations/2026_04_28_230000_add_risk_fields_to_user_login_histories.php` | Nueva | Campos de riesgo en logins |
-| `database/migrations/2026_04_28_230001_add_auth_risk_fields_to_application_form_responses.php` | Nueva | Campos de riesgo en declaraciones |
-| `app/Services/RiskScoringService.php` | Nueva | Servicio de cálculo de riesgo |
-| `app/Listeners/LogSuccessfulLogin.php` | Modificada | Integración de cálculo de riesgo en login |
-| `app/Listeners/LogFailedLogin.php` | Modificada | Integración de cálculo de riesgo en login fallido |
-| `app/Http/Controllers/Student/ApplicationFormResponseController.php` | Modificada | Cálculo de riesgo al aceptar declaración |
-| `resources/js/pages/student/learning-session/index.tsx` | Modificada | Envío de GPS desde frontend |
-| `app/Models/UserLoginHistory.php` | Modificada | Campos fillable y casts |
-| `app/Models/ApplicationFormResponse.php` | Modificada | Campos fillable, casts, relación |
+| Archivo                                                                                        | Tipo       | Descripción                                       |
+| ---------------------------------------------------------------------------------------------- | ---------- | ------------------------------------------------- |
+| `database/migrations/2026_04_28_230000_add_risk_fields_to_user_login_histories.php`            | Nueva      | Campos de riesgo en logins                        |
+| `database/migrations/2026_04_28_230001_add_auth_risk_fields_to_application_form_responses.php` | Nueva      | Campos de riesgo en declaraciones                 |
+| `app/Services/RiskScoringService.php`                                                          | Nueva      | Servicio de cálculo de riesgo                     |
+| `app/Listeners/LogSuccessfulLogin.php`                                                         | Modificada | Integración de cálculo de riesgo en login         |
+| `app/Listeners/LogFailedLogin.php`                                                             | Modificada | Integración de cálculo de riesgo en login fallido |
+| `app/Http/Controllers/Student/ApplicationFormResponseController.php`                           | Modificada | Cálculo de riesgo al aceptar declaración          |
+| `resources/js/pages/student/learning-session/index.tsx`                                        | Modificada | Envío de GPS desde frontend                       |
+| `app/Models/UserLoginHistory.php`                                                              | Modificada | Campos fillable y casts                           |
+| `app/Models/ApplicationFormResponse.php`                                                       | Modificada | Campos fillable, casts, relación                  |
 
 ---
 

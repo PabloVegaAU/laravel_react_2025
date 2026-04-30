@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Log;
  * - Mejores prácticas de autenticación adaptativa
  *
  * @author Pablo Vega
+ *
  * @version 1.0.0
  */
 class RiskScoringService
@@ -42,25 +43,67 @@ class RiskScoringService
     ];
 
     /**
-     * Umbrales de clasificación de riesgo
+     * Etiquetas descriptivas de factores de riesgo
+     * Co-ubicadas con WEIGHTS para mantener consistencia
+     */
+    public const LABELS = [
+        'ip_changed' => 'Cambio de IP',
+        'country_changed' => 'Cambio de País',
+        'device_changed' => 'Cambio de Dispositivo',
+        'browser_changed' => 'Cambio de Navegador',
+        'os_changed' => 'Cambio de Sistema Operativo',
+        'time_under_5min' => 'Tiempo < 5 minutos',
+        'time_under_1min' => 'Tiempo < 1 minuto',
+        'session_simultaneous' => 'Sesiones Simultáneas',
+        'gps_distance_over_100m' => 'Distancia GPS > 100m',
+        'gps_distance_over_1km' => 'Distancia GPS > 1km',
+        'gps_distance_over_10km' => 'Distancia GPS > 10km',
+        'unusual_time' => 'Hora Inusual',
+        'first_login' => 'Primer Login',
+        'login_failed' => 'Login Fallido',
+    ];
+
+    /**
+     * Umbrales de clasificación de riesgo (normalizados a 0-100)
+     * Alineados con OWASP/NIST: normal (0-30), sospechoso (31-60), critico (61-100)
      */
     public const THRESHOLDS = [
-        'normal' => ['min' => 0, 'max' => 20],
-        'sospechoso' => ['min' => 21, 'max' => 50],
-        'critico' => ['min' => 51, 'max' => 100],
+        'normal' => ['min' => 0, 'max' => 30],
+        'sospechoso' => ['min' => 31, 'max' => 60],
+        'critico' => ['min' => 61, 'max' => 100],
     ];
+
+    /**
+     * Score máximo normalizado (cap)
+     * Scores se normalizan a 0-100 para alinearse con estándares de industria
+     */
+    public const MAX_SCORE = 100;
 
     /**
      * Constantes temporales (en minutos)
      */
     public const TIME_SHORT = 5;      // Tiempo corto: 5 minutos
+
     public const TIME_CRITICAL = 1;   // Tiempo crítico: 1 minuto
+
+    /**
+     * Normaliza el score de riesgo a 0-100
+     *
+     * @param  int  $rawScore  Score calculado sumando pesos
+     * @return int Score normalizado (capped at MAX_SCORE)
+     */
+    private function normalizeScore(int $rawScore): int
+    {
+        return min($rawScore, self::MAX_SCORE);
+    }
 
     /**
      * Constantes de distancia GPS (en kilómetros)
      */
     public const GPS_SAME_HOUSE = 0.1;    // 100m - precisión típica GPS doméstico
+
     public const GPS_SAME_CITY = 1.0;      // 1km - mismo barrio/zona
+
     public const GPS_IMPOSSIBLE = 10.0;    // 10km - viaje imposible en tiempo corto
 
     /**
@@ -71,10 +114,10 @@ class RiskScoringService
     /**
      * Calcula el riesgo de un intento de login
      *
-     * @param User $user Usuario que intenta loguear
-     * @param array $currentData Datos actuales del login
-     * @param UserLoginHistory|null $lastLogin Último login exitoso del usuario
-     * @param Collection|null $recentLogins Últimos N logins para detección de patrones
+     * @param  User  $user  Usuario que intenta loguear
+     * @param  array  $currentData  Datos actuales del login
+     * @param  UserLoginHistory|null  $lastLogin  Último login exitoso del usuario
+     * @param  Collection|null  $recentLogins  Últimos N logins para detección de patrones
      * @return array{score: int, level: string, factors: array, comparison_login_id: int|null}
      */
     public function calculateLoginRisk(
@@ -179,10 +222,10 @@ class RiskScoringService
             $currentData['latitude'] !== null && $currentData['longitude'] !== null) {
 
             $distance = $this->calculateDistance(
-                $lastLogin->latitude,
-                $lastLogin->longitude,
-                $currentData['latitude'],
-                $currentData['longitude']
+                (float) $lastLogin->latitude,
+                (float) $lastLogin->longitude,
+                (float) $currentData['latitude'],
+                (float) $currentData['longitude']
             );
 
             if ($distance > self::GPS_IMPOSSIBLE) {
@@ -217,18 +260,22 @@ class RiskScoringService
             ];
         }
 
+        // Normalizar score a 0-100
+        $normalizedScore = $this->normalizeScore($score);
+
         // Clasificar nivel de riesgo
-        $level = $this->classifyRiskLevel($score);
+        $level = $this->classifyRiskLevel($normalizedScore);
 
         Log::info('Risk score calculated for login', [
             'user_id' => $user->id,
-            'score' => $score,
+            'raw_score' => $score,
+            'normalized_score' => $normalizedScore,
             'level' => $level,
             'factors' => $factors,
         ]);
 
         return [
-            'score' => $score,
+            'score' => $normalizedScore,
             'level' => $level,
             'factors' => $factors,
             'comparison_login_id' => $lastLogin->id,
@@ -240,9 +287,9 @@ class RiskScoringService
      *
      * Compara datos de la declaración con el login que inició la sesión
      *
-     * @param ApplicationFormResponse $response Respuesta del formulario
-     * @param UserLoginHistory $loginHistory Login que inició la sesión
-     * @param array $authData Datos de la declaración (IP, GPS, User-Agent, timestamp)
+     * @param  ApplicationFormResponse  $response  Respuesta del formulario
+     * @param  UserLoginHistory  $loginHistory  Login que inició la sesión
+     * @param  array  $authData  Datos de la declaración (IP, GPS, User-Agent, timestamp)
      * @return array{score: int, level: string, factors: array}
      */
     public function calculateAuthDeclarationRisk(
@@ -319,10 +366,10 @@ class RiskScoringService
             $authData['latitude'] !== null && $authData['longitude'] !== null) {
 
             $distance = $this->calculateDistance(
-                $loginHistory->latitude,
-                $loginHistory->longitude,
-                $authData['latitude'],
-                $authData['longitude']
+                (float) $loginHistory->latitude,
+                (float) $loginHistory->longitude,
+                (float) $authData['latitude'],
+                (float) $authData['longitude']
             );
 
             if ($distance > self::GPS_IMPOSSIBLE) {
@@ -368,19 +415,23 @@ class RiskScoringService
             }
         }
 
+        // Normalizar score a 0-100
+        $normalizedScore = $this->normalizeScore($score);
+
         // Clasificar nivel de riesgo
-        $level = $this->classifyRiskLevel($score);
+        $level = $this->classifyRiskLevel($normalizedScore);
 
         Log::info('Risk score calculated for auth declaration', [
             'user_id' => $loginHistory->user_id,
             'response_id' => $response->id,
-            'score' => $score,
+            'raw_score' => $score,
+            'normalized_score' => $normalizedScore,
             'level' => $level,
             'factors' => $factors,
         ]);
 
         return [
-            'score' => $score,
+            'score' => $normalizedScore,
             'level' => $level,
             'factors' => $factors,
         ];
@@ -391,10 +442,10 @@ class RiskScoringService
      *
      * Fórmula estándar en geodesia para calcular distancia sobre esfera
      *
-     * @param float $lat1 Latitud punto 1 (en grados)
-     * @param float $lon1 Longitud punto 1 (en grados)
-     * @param float $lat2 Latitud punto 2 (en grados)
-     * @param float $lon2 Longitud punto 2 (en grados)
+     * @param  float  $lat1  Latitud punto 1 (en grados)
+     * @param  float  $lon1  Longitud punto 1 (en grados)
+     * @param  float  $lat2  Latitud punto 2 (en grados)
+     * @param  float  $lon2  Longitud punto 2 (en grados)
      * @return float Distancia en kilómetros
      */
     public function calculateDistance(float $lat1, float $lon1, float $lat2, float $lon2): float
@@ -418,9 +469,8 @@ class RiskScoringService
     /**
      * Obtiene los últimos N logins exitosos de un usuario
      *
-     * @param int $userId ID del usuario
-     * @param int $limit Número de logins a retornar
-     * @return Collection
+     * @param  int  $userId  ID del usuario
+     * @param  int  $limit  Número de logins a retornar
      */
     public function getRecentLogins(int $userId, int $limit = 10): Collection
     {
@@ -434,8 +484,7 @@ class RiskScoringService
     /**
      * Detecta si hay sesiones simultáneas activas
      *
-     * @param Collection $recentLogins Colección de logins recientes
-     * @return bool
+     * @param  Collection  $recentLogins  Colección de logins recientes
      */
     public function detectSimultaneousSessions(Collection $recentLogins): bool
     {
@@ -448,8 +497,8 @@ class RiskScoringService
     /**
      * Calcula la diferencia de tiempo en minutos entre dos timestamps
      *
-     * @param Carbon $current Timestamp actual
-     * @param Carbon|null $previous Timestamp anterior
+     * @param  Carbon  $current  Timestamp actual
+     * @param  Carbon|null  $previous  Timestamp anterior
      * @return float|null Diferencia en minutos, o null si no hay timestamp anterior
      */
     public function calculateTimeDifference(Carbon $current, ?Carbon $previous): ?float
@@ -458,7 +507,7 @@ class RiskScoringService
             return null;
         }
 
-        return $current->diffInMinutes($previous, false);
+        return $previous->diffInMinutes($current, false);
     }
 
     /**
@@ -466,9 +515,8 @@ class RiskScoringService
      *
      * Basado en patrón histórico de logins (últimos 30 días)
      *
-     * @param int $userId ID del usuario
-     * @param Carbon $currentTime Hora a verificar
-     * @return bool
+     * @param  int  $userId  ID del usuario
+     * @param  Carbon  $currentTime  Hora a verificar
      */
     public function isUnusualTime(int $userId, Carbon $currentTime): bool
     {
@@ -498,7 +546,7 @@ class RiskScoringService
     /**
      * Clasifica el nivel de riesgo según la puntuación
      *
-     * @param int $score Puntuación de riesgo
+     * @param  int  $score  Puntuación de riesgo
      * @return string Nivel: 'normal', 'sospechoso', 'critico'
      */
     public function classifyRiskLevel(int $score): string
@@ -517,7 +565,7 @@ class RiskScoringService
     /**
      * Parsea User-Agent para comparación de dispositivos
      *
-     * @param string $userAgent User-Agent string
+     * @param  string  $userAgent  User-Agent string
      * @return array{browser: string, os: string, device: string}
      */
     private function parseUserAgentForComparison(string $userAgent): array

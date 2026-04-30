@@ -38,7 +38,21 @@ class CheckSequencesCommand extends Command
                 continue;
             }
 
-            if ($maxId > $sequenceValue) {
+            if ($maxId === null) {
+                if ($sequenceValue > 1) {
+                    $desynchronized[] = [
+                        'table' => $table,
+                        'sequence' => $sequenceName,
+                        'max_id' => 0,
+                        'sequence_value' => $sequenceValue,
+                        'diff' => 0,
+                        'empty' => true,
+                    ];
+                    $this->warn("  {$table}: Empty table (seq: {$sequenceValue}, should be 1)");
+                } else {
+                    $this->line("  {$table}: Empty table (seq: {$sequenceValue})");
+                }
+            } elseif ($maxId > $sequenceValue) {
                 $desynchronized[] = [
                     'table' => $table,
                     'sequence' => $sequenceName,
@@ -62,13 +76,14 @@ class CheckSequencesCommand extends Command
         $this->warn("\nFound ".count($desynchronized).' desynchronized sequence(s):');
 
         $this->table(
-            ['Table', 'Sequence', 'Max ID', 'Seq Value', 'Diff'],
+            ['Table', 'Sequence', 'Max ID', 'Seq Value', 'Diff', 'Action'],
             array_map(fn ($item) => [
                 $item['table'],
                 $item['sequence'],
-                $item['max_id'],
+                $item['empty'] ? '(empty)' : $item['max_id'],
                 $item['sequence_value'],
-                $item['diff'],
+                $item['empty'] ? 'reset to 1' : $item['diff'],
+                $item['empty'] ? 'Reset sequence' : 'Advance sequence',
             ], $desynchronized)
         );
 
@@ -92,7 +107,7 @@ class CheckSequencesCommand extends Command
     {
         $tables = [];
 
-        $allTables = Schema::getAllTables();
+        $allTables = DB::select("SELECT tablename as table_name FROM pg_tables WHERE schemaname = 'public'");
 
         foreach ($allTables as $table) {
             $tableName = is_array($table)
@@ -112,7 +127,7 @@ class CheckSequencesCommand extends Command
         try {
             $result = DB::select("SELECT MAX(id) as max_id FROM {$table}");
 
-            return $result[0]->max_id ?? null;
+            return isset($result[0]->max_id) ? (int) $result[0]->max_id : null;
         } catch (\Exception $e) {
             return null;
         }
@@ -123,7 +138,7 @@ class CheckSequencesCommand extends Command
         try {
             $result = DB::select("SELECT last_value FROM {$sequence}");
 
-            return $result[0]->last_value ?? null;
+            return isset($result[0]->last_value) ? (int) $result[0]->last_value : null;
         } catch (\Exception $e) {
             return null;
         }
@@ -131,6 +146,14 @@ class CheckSequencesCommand extends Command
 
     protected function fixSequence(string $table, string $sequence): void
     {
-        DB::statement("SELECT setval('{$sequence}', (SELECT MAX(id) FROM {$table}), true)");
+        $maxId = $this->getMaxId($table);
+
+        if ($maxId === null) {
+            // Table is empty, reset sequence to 1
+            DB::statement("SELECT setval('{$sequence}', 1, false)");
+        } else {
+            // Set sequence to current max ID
+            DB::statement("SELECT setval('{$sequence}', {$maxId}, true)");
+        }
     }
 }

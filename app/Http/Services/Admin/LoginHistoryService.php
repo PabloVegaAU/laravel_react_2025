@@ -4,6 +4,7 @@ namespace App\Http\Services\Admin;
 
 use App\Models\User;
 use App\Models\UserLoginHistory;
+use App\Services\RiskScoringService;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class LoginHistoryService
@@ -114,6 +115,15 @@ class LoginHistoryService
                 'sospechoso' => UserLoginHistory::where('risk_level', 'sospechoso')->count(),
                 'critico' => UserLoginHistory::where('risk_level', 'critico')->count(),
             ],
+        ];
+    }
+
+    public function getRiskConfiguration(): array
+    {
+        return [
+            'weights' => RiskScoringService::WEIGHTS,
+            'labels' => RiskScoringService::LABELS,
+            'thresholds' => RiskScoringService::THRESHOLDS,
         ];
     }
 }

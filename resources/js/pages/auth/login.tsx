@@ -35,29 +35,49 @@ export default function Login({ status, canResetPassword }: LoginProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [locationError, setLocationError] = useState<string | null>(null)
+  const [loadingLocation, setLoadingLocation] = useState(true)
 
   // Get GPS location on component mount
   useEffect(() => {
     const getCurrentLocation = () => {
       if (!navigator.geolocation) {
         setLocationError('Geolocalización no soportada en este navegador')
+        setLoadingLocation(false)
         return
       }
 
+      const timeoutId = setTimeout(() => {
+        setLocationError('Tiempo de espera agotado para obtener ubicación')
+        setLoadingLocation(false)
+      }, 5000)
+
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setLocation({
+          clearTimeout(timeoutId)
+          const coords = {
             lat: position.coords.latitude,
             lng: position.coords.longitude
-          })
+          }
+          setLocation(coords)
+          setData('latitude', coords.lat)
+          setData('longitude', coords.lng)
+          setLoadingLocation(false)
         },
         (error) => {
-          setLocationError('Permiso denegado o error de ubicación')
+          clearTimeout(timeoutId)
+          if (error.code === 1) {
+            setLocationError('Geolocalización requiere HTTPS o localhost. La sesión se registrará sin ubicación.')
+          } else if (error.code === 3) {
+            setLocationError('Tiempo de espera agotado para obtener ubicación. La sesión se registrará sin coordenadas.')
+          } else {
+            setLocationError('Permiso denegado o error de ubicación')
+          }
           console.error('Geolocation error:', error)
+          setLoadingLocation(false)
         },
         {
           enableHighAccuracy: true,
-          timeout: 10000,
+          timeout: 5000,
           maximumAge: 0
         }
       )
@@ -68,11 +88,6 @@ export default function Login({ status, canResetPassword }: LoginProps) {
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault()
-    setData({
-      ...data,
-      latitude: location?.lat,
-      longitude: location?.lng
-    })
     post(route('login'), {
       onFinish: () => reset('password')
     })
@@ -206,9 +221,23 @@ export default function Login({ status, canResetPassword }: LoginProps) {
             </div>
 
             {/* Botón */}
-            <Button type='submit' className='w-full bg-green-600 font-semibold transition hover:bg-green-700' tabIndex={4} disabled={processing}>
-              {processing && <LoaderCircle className='mr-2 h-4 w-4 animate-spin' />}
-              Iniciar sesión
+            <Button
+              type='submit'
+              className='w-full bg-green-600 font-semibold transition hover:bg-green-700'
+              tabIndex={4}
+              disabled={processing || loadingLocation}
+            >
+              {loadingLocation ? (
+                <>
+                  <LoaderCircle className='mr-2 h-4 w-4 animate-spin' />
+                  Obteniendo ubicación...
+                </>
+              ) : (
+                <>
+                  {processing && <LoaderCircle className='mr-2 h-4 w-4 animate-spin' />}
+                  Iniciar sesión
+                </>
+              )}
             </Button>
           </form>
         </div>

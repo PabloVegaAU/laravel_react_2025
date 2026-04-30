@@ -26,7 +26,7 @@ class LogSuccessfulLogout
 
         if ($login) {
             // Calculate duration in minutes
-            $durationMinutes = $login->login_at->diffInMinutes(now());
+            $durationMinutes = (int) $login->login_at->diffInMinutes(now());
 
             // Update the login record with logout info
             $login->update([
