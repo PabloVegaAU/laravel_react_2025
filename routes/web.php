@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\BackgroundController as AdminBackgroundController
 use App\Http\Controllers\Admin\ClassroomController as AdminClassroomController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EnrollmentController as AdminEnrollmentController;
+use App\Http\Controllers\Admin\LoginHistoryController as AdminLoginHistoryController;
 use App\Http\Controllers\Admin\PrizeController as AdminPrizeController;
 use App\Http\Controllers\Admin\StudentController as AdminStudentController;
 use App\Http\Controllers\Admin\TeacherController as AdminTeacherController;
@@ -46,6 +47,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin/students-to-enrollments', [AdminStudentController::class, 'studentToEnrollments'])->name('admin.students-to-enrollments');
     Route::get('admin/get-classrooms', [AdminClassroomController::class, 'getClassrooms'])->name('admin.classrooms');
     Route::resource('admin/achievements', AdminAchievementController::class)->names('admin.achievements');
+    Route::get('admin/login-histories', [AdminLoginHistoryController::class, 'index'])->name('admin.login-histories.index');
 
     // routes teacher
     Route::get('teacher/dashboard', [TeacherDashboardController::class, 'index'])->name('teacher.dashboard');

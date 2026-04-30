@@ -40,6 +40,12 @@ export const createNavItems = (permissions: string[] = []) => {
       href: '/admin/achievements',
       icon: Trophy,
       permission: 'admin.achievements.index'
+    },
+    {
+      title: 'Historial de Sesiones',
+      href: '/admin/login-histories',
+      icon: ClipboardList,
+      permission: 'admin.login-histories.index'
     }
   ]
 
