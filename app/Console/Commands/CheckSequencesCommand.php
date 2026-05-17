@@ -8,152 +8,391 @@ use Illuminate\Support\Facades\Schema;
 
 class CheckSequencesCommand extends Command
 {
-    protected $signature = 'db:check-sequences {--fix : Automatically fix desynchronized sequences}';
+    /**
+     * Command signature
+     */
+    protected $signature = 'db:check-sequences 
+                            {--fix : Automatically fix desynchronized sequences}';
 
-    protected $description = 'Check and optionally fix PostgreSQL sequences that are out of sync with their table max IDs';
+    /**
+     * Command description
+     */
+    protected $description = 'Check and fix PostgreSQL sequences';
 
-    public function handle()
+    /**
+     * Execute command
+     */
+    public function handle(): int
     {
         $this->info('Checking PostgreSQL sequences...');
 
-        $driver = DB::getDriverName();
-
-        if ($driver !== 'pgsql') {
-            $this->warn('This command only works with PostgreSQL. Current driver: '.$driver);
+        /**
+         * Validate database driver
+         */
+        if (DB::getDriverName() !== 'pgsql') {
+            $this->error('This command only works with PostgreSQL.');
 
             return self::FAILURE;
         }
 
-        $tables = $this->getTablesWithSequences();
+        /**
+         * Get all tables with id column
+         */
+        $tables = $this->getTablesWithId();
+
+        /**
+         * Store desynchronized sequences
+         */
         $desynchronized = [];
 
         foreach ($tables as $table) {
-            $sequenceName = $table.'_id_seq';
-            $maxId = $this->getMaxId($table);
-            $sequenceValue = $this->getSequenceValue($sequenceName);
 
-            if ($sequenceValue === null) {
-                $this->line("  {$table}: Sequence not found, skipping");
+            /**
+             * Get real sequence name
+             */
+            $sequence = $this->getSequenceName($table);
+
+            /**
+             * Table does not use sequence
+             */
+            if (! $sequence) {
+                $this->line("{$table}: no sequence found");
 
                 continue;
             }
 
+            /**
+             * Get max table id
+             */
+            $maxId = $this->getMaxId($table);
+
+            /**
+             * Get current sequence value
+             */
+            $sequenceValue = $this->getSequenceLastValue($sequence);
+
+            /**
+             * Could not read sequence
+             */
+            if ($sequenceValue === null) {
+                $this->warn("{$table}: could not read sequence");
+
+                continue;
+            }
+
+            /**
+             * Empty table
+             */
             if ($maxId === null) {
+
+                /**
+                 * Sequence advanced even if table is empty
+                 */
                 if ($sequenceValue > 1) {
+
                     $desynchronized[] = [
                         'table' => $table,
-                        'sequence' => $sequenceName,
+                        'sequence' => $sequence,
                         'max_id' => 0,
                         'sequence_value' => $sequenceValue,
-                        'diff' => 0,
+                        'expected_value' => 1,
+                        'difference' => $sequenceValue - 1,
+                        'problem' => 'Empty table but sequence is advanced',
+                        'solution' => 'Reset sequence to 1',
                         'empty' => true,
                     ];
-                    $this->warn("  {$table}: Empty table (seq: {$sequenceValue}, should be 1)");
+
+                    $this->warn(
+                        "{$table}: EMPTY TABLE | sequence={$sequenceValue} | should be=1"
+                    );
                 } else {
-                    $this->line("  {$table}: Empty table (seq: {$sequenceValue})");
+
+                    $this->line(
+                        "{$table}: OK | empty table | sequence=1"
+                    );
                 }
-            } elseif ($maxId > $sequenceValue) {
+
+                continue;
+            }
+
+            /**
+             * Sequence behind max ID
+             */
+            if ($sequenceValue < $maxId) {
+
                 $desynchronized[] = [
                     'table' => $table,
-                    'sequence' => $sequenceName,
+                    'sequence' => $sequence,
                     'max_id' => $maxId,
                     'sequence_value' => $sequenceValue,
-                    'diff' => $maxId - $sequenceValue,
+                    'expected_value' => $maxId,
+                    'difference' => $maxId - $sequenceValue,
+                    'problem' => 'Sequence is behind table max ID',
+                    'solution' => 'Advance sequence',
+                    'empty' => false,
                 ];
-            } elseif ($maxId < $sequenceValue) {
-                $this->warn("  {$table}: Sequence ahead of max ID (seq: {$sequenceValue}, max: {$maxId})");
-            } else {
-                $this->line("  {$table}: OK (max: {$maxId})");
+
+                $this->warn(
+                    "{$table}: OUT OF SYNC | max_id={$maxId} | sequence={$sequenceValue}"
+                );
+
+                continue;
             }
+
+            /**
+             * Sequence ahead of max ID
+             */
+            if ($sequenceValue > $maxId) {
+
+                /**
+                 * This is not always an error.
+                 * PostgreSQL sequences can advance because:
+                 * - rolled back transactions
+                 * - deleted records
+                 * - sequence cache
+                 * - failed inserts
+                 */
+                $difference = $sequenceValue - $maxId;
+
+                /**
+                 * Small difference is normal
+                 */
+                if ($difference <= 10) {
+
+                    $this->line(
+                        "{$table}: OK | sequence ahead (normal PostgreSQL behavior)"
+                    );
+
+                    continue;
+                }
+
+                /**
+                 * Large difference may indicate issue
+                 */
+                $desynchronized[] = [
+                    'table' => $table,
+                    'sequence' => $sequence,
+                    'max_id' => $maxId,
+                    'sequence_value' => $sequenceValue,
+                    'expected_value' => $maxId,
+                    'difference' => $difference,
+                    'problem' => 'Sequence is far ahead of max ID',
+                    'solution' => 'Optional reset sequence',
+                    'empty' => false,
+                ];
+
+                $this->warn(
+                    "{$table}: SEQUENCE AHEAD | max_id={$maxId} | sequence={$sequenceValue}"
+                );
+
+                continue;
+            }
+
+            /**
+             * Everything OK
+             */
+            $this->line(
+                "{$table}: OK | max_id={$maxId} | sequence={$sequenceValue}"
+            );
         }
 
+        /**
+         * No issues found
+         */
         if (empty($desynchronized)) {
+
             $this->info('All sequences are synchronized.');
 
             return self::SUCCESS;
         }
 
-        $this->warn("\nFound ".count($desynchronized).' desynchronized sequence(s):');
+        /**
+         * Show summary table
+         */
+        $this->newLine();
 
-        $this->table(
-            ['Table', 'Sequence', 'Max ID', 'Seq Value', 'Diff', 'Action'],
-            array_map(fn ($item) => [
-                $item['table'],
-                $item['sequence'],
-                $item['empty'] ? '(empty)' : $item['max_id'],
-                $item['sequence_value'],
-                $item['empty'] ? 'reset to 1' : $item['diff'],
-                $item['empty'] ? 'Reset sequence' : 'Advance sequence',
-            ], $desynchronized)
+        $this->warn(
+            'Found ' . count($desynchronized) . ' sequence issue(s)'
         );
 
-        if ($this->option('fix')) {
-            if ($this->confirm('Do you want to fix these sequences?')) {
-                foreach ($desynchronized as $item) {
-                    $this->fixSequence($item['table'], $item['sequence']);
-                    $this->info("  Fixed: {$item['table']}");
-                }
-                $this->info('All sequences fixed successfully.');
-            }
-        } else {
-            // ✅ FIX AQUÍ
-            $this->line("\nRun with --fix to automatically fix these sequences.");
+        $this->newLine();
+
+        $this->table(
+            [
+                'Table',
+                'Max ID',
+                'Sequence',
+                'Difference',
+                'Problem',
+                'Solution',
+            ],
+            array_map(function ($item) {
+
+                return [
+                    $item['table'],
+                    $item['max_id'],
+                    $item['sequence_value'],
+                    $item['difference'],
+                    $item['problem'],
+                    $item['solution'],
+                ];
+            }, $desynchronized)
+        );
+
+        /**
+         * Only analyze
+         */
+        if (! $this->option('fix')) {
+
+            $this->newLine();
+
+            $this->line(
+                'Run command with --fix to repair sequences.'
+            );
+
+            return self::SUCCESS;
         }
+
+        /**
+         * Automatically fix sequences
+         */
+        $this->newLine();
+
+        $this->info('Fixing sequences...');
+
+        foreach ($desynchronized as $item) {
+
+            $this->fixSequence(
+                $item['table'],
+                $item['sequence']
+            );
+
+            $this->info(
+                "Fixed {$item['table']}"
+            );
+        }
+
+        $this->newLine();
+
+        $this->info('All sequences fixed successfully.');
 
         return self::SUCCESS;
     }
 
-    protected function getTablesWithSequences(): array
+    /**
+     * Get all tables with id column
+     */
+    protected function getTablesWithId(): array
     {
         $tables = [];
 
-        $allTables = DB::select("SELECT tablename as table_name FROM pg_tables WHERE schemaname = 'public'");
+        $results = DB::select("
+            SELECT tablename
+            FROM pg_tables
+            WHERE schemaname = 'public'
+            ORDER BY tablename
+        ");
 
-        foreach ($allTables as $table) {
-            $tableName = is_array($table)
-                ? $table['table_name']
-                : (is_object($table) ? $table->table_name : $table);
+        foreach ($results as $row) {
 
-            if (Schema::hasColumn($tableName, 'id')) {
-                $tables[] = $tableName;
+            $table = $row->tablename;
+
+            /**
+             * Only tables with id column
+             */
+            if (Schema::hasColumn($table, 'id')) {
+                $tables[] = $table;
             }
         }
 
         return $tables;
     }
 
+    /**
+     * Get PostgreSQL sequence name
+     */
+    protected function getSequenceName(string $table): ?string
+    {
+        $result = DB::selectOne("
+            SELECT pg_get_serial_sequence(?, 'id') AS sequence_name
+        ", [$table]);
+
+        return $result?->sequence_name;
+    }
+
+    /**
+     * Get table max id
+     */
     protected function getMaxId(string $table): ?int
     {
         try {
-            $result = DB::select("SELECT MAX(id) as max_id FROM {$table}");
 
-            return isset($result[0]->max_id) ? (int) $result[0]->max_id : null;
-        } catch (\Exception $e) {
+            $result = DB::table($table)
+                ->selectRaw('MAX(id) as max_id')
+                ->first();
+
+            return $result?->max_id !== null
+                ? (int) $result->max_id
+                : null;
+        } catch (\Throwable $e) {
+
             return null;
         }
     }
 
-    protected function getSequenceValue(string $sequence): ?int
-    {
+    /**
+     * Get current sequence value
+     */
+    protected function getSequenceLastValue(
+        string $sequence
+    ): ?int {
+
         try {
-            $result = DB::select("SELECT last_value FROM {$sequence}");
 
-            return isset($result[0]->last_value) ? (int) $result[0]->last_value : null;
-        } catch (\Exception $e) {
+            $result = DB::selectOne("
+                SELECT last_value
+                FROM {$sequence}
+            ");
+
+            return $result?->last_value !== null
+                ? (int) $result->last_value
+                : null;
+        } catch (\Throwable $e) {
+
             return null;
         }
     }
 
-    protected function fixSequence(string $table, string $sequence): void
-    {
+    /**
+     * Fix sequence
+     */
+    protected function fixSequence(
+        string $table,
+        string $sequence
+    ): void {
+
         $maxId = $this->getMaxId($table);
 
+        /**
+         * Empty table
+         */
         if ($maxId === null) {
-            // Table is empty, reset sequence to 1
-            DB::statement("SELECT setval('{$sequence}', 1, false)");
-        } else {
-            // Set sequence to current max ID
-            DB::statement("SELECT setval('{$sequence}', {$maxId}, true)");
+
+            /**
+             * Reset sequence to 1
+             */
+            DB::statement("
+                SELECT setval('{$sequence}', 1, false)
+            ");
+
+            return;
         }
+
+        /**
+         * Synchronize sequence with max id
+         */
+        DB::statement("
+            SELECT setval('{$sequence}', {$maxId}, true)
+        ");
     }
 }
