@@ -34,7 +34,7 @@ class FinalizeLearningSessions extends Command
         // Buscar learning sessions que han vencido pero aún están activas
         // Consideramos que una sesión ha vencido si su fecha de fin es anterior o igual a la hora actual
         $sessionsToFinalize = LearningSession::where('status', 'active')
-            ->where('end_date', '<=', now())
+            ->where('end_date', '<=', DB::raw("NOW() AT TIME ZONE 'America/Lima'"))
             ->get();
 
         if ($sessionsToFinalize->isEmpty()) {

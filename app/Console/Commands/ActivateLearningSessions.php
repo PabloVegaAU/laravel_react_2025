@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Http\Controllers\Teacher\ApplicationFormController;
 use App\Models\ApplicationForm;
 use App\Models\LearningSession;
 use Illuminate\Console\Command;
@@ -37,8 +38,8 @@ class ActivateLearningSessions extends Command
         // - end_date >= now() (aún no ha vencido)
         // - deactivated_at es null (no está cancelada)
         $sessionsToActivate = LearningSession::where('status', 'scheduled')
-            ->where('start_date', '<=', now())
-            ->where('end_date', '>=', now())
+            ->where('start_date', '<=', DB::raw("NOW() AT TIME ZONE 'America/Lima'"))
+            ->where('end_date', '>=', DB::raw("NOW() AT TIME ZONE 'America/Lima'"))
             ->whereNull('deactivated_at')
             ->get();
 
