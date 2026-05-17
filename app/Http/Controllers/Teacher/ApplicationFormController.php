@@ -201,8 +201,6 @@ class ApplicationFormController extends Controller
                 'competency_id' => 'required|exists:competencies,id',
                 'name' => 'required|string|max:255',
                 'description' => 'nullable|string',
-                'start_date' => 'required|date',
-                'end_date' => 'required|date|after_or_equal:start_date',
                 'status' => 'required|in:scheduled,active,finished,canceled',
                 'registration_status' => 'required|in:active,inactive',
                 'score_max' => 'required|numeric|min:20|max:20',
@@ -225,14 +223,16 @@ class ApplicationFormController extends Controller
                 throw new \Exception('No tienes permiso para usar una o más preguntas seleccionadas.');
             }
 
+            $learningSession = LearningSession::findOrFail($validated['learning_session_id']);
+
             // Crear la ficha de aplicación
             $applicationForm = ApplicationForm::create([
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
                 'status' => $validated['status'],
                 'registration_status' => $validated['registration_status'],
-                'start_date' => $validated['start_date'],
-                'end_date' => $validated['end_date'],
+                'start_date' => $learningSession->start_date,
+                'end_date' => $learningSession->end_date,
                 'score_max' => $validated['score_max'],
                 'teacher_id' => auth()->id(),
                 'learning_session_id' => $validated['learning_session_id'],
@@ -441,8 +441,6 @@ class ApplicationFormController extends Controller
         $validated = validator($input, [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'start_date' => 'required|date|after:today',
-            'end_date' => 'required|date|after:start_date',
             'status' => 'required|in:scheduled,active,finished,canceled',
             'registration_status' => 'required|in:active,inactive',
             'score_max' => 'required|numeric|min:20|max:20',
@@ -460,8 +458,6 @@ class ApplicationFormController extends Controller
             $applicationForm->update([
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
-                'start_date' => $validated['start_date'],
-                'end_date' => $validated['end_date'],
                 'status' => $validated['status'],
                 'registration_status' => $validated['registration_status'],
                 'score_max' => floatval($validated['score_max']),

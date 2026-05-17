@@ -62,8 +62,6 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
 
     name: string
     description: string
-    start_date: string
-    end_date: string
     status: string
     registration_status: string
     score_max: number
@@ -76,8 +74,6 @@ export default function ApplicationsForm({ learning_session, teacher_classroom_c
 
     name: '',
     description: '',
-    start_date: learning_session.start_date || toUTCDateString(startDate),
-    end_date: learning_session.end_date || toUTCDateString(endDate),
     status: 'scheduled',
     registration_status: 'active',
     score_max: 0,

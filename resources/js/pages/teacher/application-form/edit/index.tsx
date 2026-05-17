@@ -61,8 +61,6 @@ export default function ApplicationFormEdit({ application_form, questions }: App
   const { data, setData, put, processing, errors } = useForm<{
     name: string
     description: string
-    start_date: string
-    end_date: string
     status: string
     score_max: number
     questions: QuestionWithScore[]
@@ -70,8 +68,6 @@ export default function ApplicationFormEdit({ application_form, questions }: App
   }>({
     name: application_form?.name || '',
     description: application_form?.description || '',
-    start_date: application_form?.start_date ? format(new Date(application_form.start_date), 'yyyy-MM-dd') : format(defaultStartDate, 'yyyy-MM-dd'),
-    end_date: application_form?.end_date ? format(new Date(application_form.end_date), 'yyyy-MM-dd') : format(defaultEndDate, 'yyyy-MM-dd'),
     status: application_form?.status || 'scheduled',
     score_max: application_form?.score_max || 0,
     questions:
@@ -251,14 +247,6 @@ export default function ApplicationFormEdit({ application_form, questions }: App
         formData.append(key, value as string | Blob)
       }
     })
-
-    // Handle date fields
-    if (data.start_date) {
-      formData.set('start_date', startOfDay(new Date(data.start_date)).toISOString())
-    }
-    if (data.end_date) {
-      formData.set('end_date', endOfDay(new Date(data.end_date)).toISOString())
-    }
 
     // Use the appropriate HTTP method based on the operation
     const submit = () => put(route('teacher.application-forms.update', application_form?.id), formData as any)

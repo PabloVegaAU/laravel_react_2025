@@ -124,10 +124,10 @@ class LearningSessionController extends Controller
         try {
             // Combine date and time fields if they are separate
             $requestData = $request->all();
-            if (isset($requestData['start_date']) && isset($requestData['start_time'])) {
+            if (isset($requestData['start_date']) && isset($requestData['start_time']) && !str_contains($requestData['start_date'], 'T')) {
                 $requestData['start_date'] = $requestData['start_date'].'T'.$requestData['start_time'];
             }
-            if (isset($requestData['end_date']) && isset($requestData['end_time'])) {
+            if (isset($requestData['end_date']) && isset($requestData['end_time']) && !str_contains($requestData['end_date'], 'T')) {
                 $requestData['end_date'] = $requestData['end_date'].'T'.$requestData['end_time'];
             }
             $request->merge($requestData);
@@ -295,10 +295,10 @@ class LearningSessionController extends Controller
         try {
             // Combine date and time fields if they are separate
             $requestData = $request->all();
-            if (isset($requestData['start_date']) && isset($requestData['start_time'])) {
+            if (isset($requestData['start_date']) && isset($requestData['start_time']) && !str_contains($requestData['start_date'], 'T')) {
                 $requestData['start_date'] = $requestData['start_date'].'T'.$requestData['start_time'];
             }
-            if (isset($requestData['end_date']) && isset($requestData['end_time'])) {
+            if (isset($requestData['end_date']) && isset($requestData['end_time']) && !str_contains($requestData['end_date'], 'T')) {
                 $requestData['end_date'] = $requestData['end_date'].'T'.$requestData['end_time'];
             }
             $request->merge($requestData);
